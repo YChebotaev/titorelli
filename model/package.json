@@ -1,0 +1,11 @@
+{
+  "name": "@titorelli/model",
+  "private": true,
+  "version": "0.1.0",
+  "main": "index.ts",
+  "author": "YChebotaev",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "natural": "^6.8.0"
+  }
+}

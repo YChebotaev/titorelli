@@ -1,0 +1,9 @@
+{
+  "workspaces": [
+    "service",
+    "model",
+    "client"
+  ],
+  "author": "YChebotaev",
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@titorelli/service",
+  "private": true,
+  "version": "0.1.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "dev": "nodemon"
+  },
+  "keywords": [],
+  "author": "YChebotaev",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "fastify": "^4.24.3",
+    "mkdirp": "^3.0.1",
+    "nodemon": "^3.0.1",
+    "pino": "^8.16.1",
+    "pino-pretty": "^10.2.3",
+    "ts-node": "^10.9.1"
+  }
+}
