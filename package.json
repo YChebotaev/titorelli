@@ -2,7 +2,8 @@
   "workspaces": [
     "service",
     "model",
-    "client"
+    "client",
+    "coach"
   ],
   "author": "YChebotaev",
   "license": "UNLICENSED"

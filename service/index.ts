@@ -2,7 +2,15 @@ import path from 'node:path'
 import { existsSync } from 'node:fs'
 import fastify from 'fastify'
 import { mkdirp } from 'mkdirp'
-import { readModel, createModel, predict, train, writeModel, type Model } from '@titorelli/model'
+import {
+  readModel,
+  createModel,
+  predict,
+  train,
+  trainBulk,
+  writeModel,
+  type Model
+} from '@titorelli/model'
 
 const service = fastify()
 
@@ -77,6 +85,41 @@ service.post<{
     const { model, filename: modelFilename } = await readOrCreateModel(modelId)
 
     train(model, { text, label })
+
+    writeModel(modelFilename, model)
+  }
+})
+
+service.post<{
+  Body: {
+    label: 'spam' | 'ham'
+    text: string
+  }[]
+  Params: {
+    modelId: string
+  }
+}>('/:modelId/train_bulk', {
+  schema: {
+    body: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: ['text', 'label'],
+        properties: {
+          label: {
+            enum: ['spam', 'ham']
+          },
+          text: {
+            type: 'string'
+          }
+        }
+      }
+    }
+  },
+  async handler({ params: { modelId }, body: examples }) {
+    const { model, filename: modelFilename } = await readOrCreateModel(modelId)
+
+    trainBulk(model, examples)
 
     writeModel(modelFilename, model)
   }

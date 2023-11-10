@@ -19,4 +19,5 @@ export type StemmerLanguage = 'es' | 'fa' | 'fr' | 'it' | 'nl' | 'no' | 'pt' | '
 
 export type Prediction = {
   value: Labels
+  confidence: number
 }
