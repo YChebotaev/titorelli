@@ -86,7 +86,7 @@ service.post<{
 
     train(model, { text, label })
 
-    writeModel(modelFilename, model)
+    await writeModel(modelFilename, model)
   }
 })
 
@@ -121,7 +121,7 @@ service.post<{
 
     trainBulk(model, examples)
 
-    writeModel(modelFilename, model)
+    await writeModel(modelFilename, model)
   }
 })
 
