@@ -1,4 +1,4 @@
-import type { StemmerLanguage } from "../types";
+import type { StemmerLanguage } from "../../types";
 import {
   PorterStemmer,
   PorterStemmerEs,

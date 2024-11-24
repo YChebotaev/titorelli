@@ -1,139 +1,44 @@
-import { readFileSync } from 'node:fs'
-import { sampleSize } from 'lodash'
-import { createClient, predict, trainBulk } from '@titorelli/client'
-import { recursivelyUnwrapText, toChunks } from './lib'
+import path from 'node:path'
+import { copyFileSync, appendFileSync, readFileSync } from 'fs'
+import { mkdirpSync } from 'mkdirp'
+import { format } from 'date-fns'
+import type { LabeledExample, UnlabeledExample } from '@titorelli/model/types'
+import { start } from './start'
 
-const hamDatasetText = readFileSync('data/result.json', 'utf-8')
-const hamTexts: string[] = (
-  JSON.parse(hamDatasetText)
-    .messages
-    .filter(({ type }: { type: string }) => type === 'message')
-    .flatMap(recursivelyUnwrapText)
-    .slice(0, 300)
-)
-const hamTextsChunks = toChunks(hamTexts, 100)
+export const mergeExamples = (
+  newExamples: (LabeledExample | UnlabeledExample)[],
+  classifiedExamples: LabeledExample[] = require('./examples').examples
+) => {
+  const loadedExamples = require('./examples').examples
+  const outputDirname = 'data'
+  const outputFilename = `merged-examples-${format(new Date(), 'ddd-HH-mm')}.jsonl`
+  const fullFilename = path.join(outputDirname, outputFilename)
 
-const spamDatasetText = readFileSync('data/spam.txt', 'utf-8')
-const spamTexts: string[] = spamDatasetText.split('---').map(text => text.trim())
-const spamTextsChunks = toChunks(spamTexts, 100)
+  mkdirpSync(outputDirname)
 
-const client = createClient('http://localhost:3000/react_ru')
+  if (loadedExamples === classifiedExamples) {
+    copyFileSync('data/yandex-dataset.json', fullFilename)
 
-const train = async () => {
-  console.group('run()')
+    for (const example of newExamples) {
+      if (!('label' in example)) continue
 
-  console.log('spamTextsChunks.length =', spamTextsChunks.length)
-  console.log('hamTextsChunks.length =', hamTextsChunks.length)
-
-  let i = 0;
-
-  for (const spamTexts of spamTextsChunks) {
-    console.log(i++)
-    await trainBulk(client, spamTexts.map(text => ({ label: 'spam', text })))
-  }
-
-  for (const hamTexts of hamTextsChunks) {
-    console.log(i++)
-    await trainBulk(client, hamTexts.map(text => ({ label: 'ham', text })))
-  }
-
-  console.groupEnd()
-}
-
-const validate = async () => {
-  const hamTexts: string[] = sampleSize(
-    JSON.parse(hamDatasetText)
-      .messages
-      .filter(({ type }: { type: string }) => type === 'message')
-      .flatMap(recursivelyUnwrapText),
-    300
-  )
-
-  const hamGroups: {
-    min: number
-    max: number
-    entries: string[]
-  }[] = [
-      {
-        min: 0,
-        max: 0.1,
-        entries: []
-      },
-      {
-        min: 0.1,
-        max: 0.2,
-        entries: []
-      },
-      {
-        min: 0.2,
-        max: 0.3,
-        entries: []
-      },
-      {
-        min: 0.3,
-        max: 0.4,
-        entries: []
-      },
-      {
-        min: 0.4,
-        max: 0.5,
-        entries: []
-      },
-      {
-        min: 0.5,
-        max: 0.6,
-        entries: []
-      },
-      {
-        min: 0.6,
-        max: 0.7,
-        entries: []
-      },
-      {
-        min: 0.7,
-        max: 0.8,
-        entries: []
-      },
-      {
-        min: 0.8,
-        max: 0.9,
-        entries: []
-      },
-      {
-        min: 0.9,
-        max: 1,
-        entries: []
-      }
-    ]
-
-  for (const hamText of hamTexts) {
-    const { value, confidence } = await predict(client, { text: hamText })
-
-    if (value === 'spam') {
-      for (const { min, max, entries } of hamGroups) {
-        if (confidence >= min && confidence < max) {
-          entries.push(hamText)
-        }
-      }
+      appendFileSync(fullFilename, JSON.stringify({
+        text: example.text,
+        "спам": example.label === 'spam' ? 1 : 0,
+        "не спам": example.label === 'ham' ? 1 : 0
+      }) + '\n', 'utf-8')
     }
 
-    // if (value === 'spam') {
-    //   console.group('classified as spam with confidence = ' + confidence)
-    //   console.log(hamText)
-    //   console.groupEnd()
-    // } else {
-    //   console.group('classified as ham with confidence = ' + confidence)
-    //   console.log(hamText)
-    //   console.groupEnd()
-    // }
+    return {
+      readMergedFile() {
+        return readFileSync(fullFilename, 'utf-8')
+      }
+    }
+  } else {
+    // TODO: TO IMPLEMENT
   }
-
-  console.group('hamGroups')
-  for (const { min, max, entries } of hamGroups) {
-    console.log(`${min}-${max}: ${entries.length}`)
-  }
-  console.groupEnd()
 }
 
-// train().catch(e => console.error(e))
-validate().catch(e => console.error(e))
+if (require.main === module) {
+  start()
+}

@@ -2,15 +2,7 @@ import path from 'node:path'
 import { existsSync } from 'node:fs'
 import fastify from 'fastify'
 import { mkdirp } from 'mkdirp'
-import {
-  readModel,
-  createModel,
-  predict,
-  train,
-  trainBulk,
-  writeModel,
-  type Model
-} from '@titorelli/model'
+import { yandex, type Model } from '@titorelli/model'
 
 const service = fastify()
 
@@ -21,9 +13,9 @@ const readOrCreateModel = async (modelId: string) => {
   let model: Model
 
   if (existsSync(modelFilename)) {
-    model = await readModel(modelFilename)
+    model = await yandex.readModel(modelFilename)
   } else {
-    model = await createModel(modelFilename, 'ru')
+    model = await yandex.createModel(modelFilename, 'ru')
   }
 
   return {
@@ -54,7 +46,7 @@ service.post<{
   async handler({ params: { modelId }, body: { text } }) {
     const { model } = await readOrCreateModel(modelId)
 
-    return predict(model, { text })
+    return yandex.predict(model, { text })
   }
 })
 
@@ -84,9 +76,9 @@ service.post<{
   async handler({ params: { modelId }, body: { text, label } }) {
     const { model, filename: modelFilename } = await readOrCreateModel(modelId)
 
-    train(model, { text, label })
+    yandex.train(model, { text, label })
 
-    await writeModel(modelFilename, model)
+    await yandex.writeModel(modelFilename, model)
   }
 })
 
@@ -119,9 +111,9 @@ service.post<{
   async handler({ params: { modelId }, body: examples }) {
     const { model, filename: modelFilename } = await readOrCreateModel(modelId)
 
-    trainBulk(model, examples)
+    yandex.trainBulk(model, examples)
 
-    await writeModel(modelFilename, model)
+    await yandex.writeModel(modelFilename, model)
   }
 })
 

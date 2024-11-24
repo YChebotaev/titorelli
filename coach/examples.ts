@@ -7,18 +7,12 @@ const hamTexts: string[] = (
     .messages
     .filter(({ type }: { type: string }) => type === 'message')
     .flatMap(recursivelyUnwrapText)
-    // .filter((_: any, i: number) => i % 500 === 0)
 )
 
 const spamDatasetText = readFileSync('data/spam.txt', 'utf-8')
 const spamTexts: string[] = spamDatasetText.split('---').map(text => text.trim())
 
-const result: {
-  type: string,
-  text: string
-}[] = [
-    ...hamTexts.map(text => ({ type: 'ham', text })),
-    ...spamTexts.map(text => ({ type: 'spam', text }))
-  ]
-
-writeFileSync('data/rs_examples.json', JSON.stringify(result, null, 2), 'utf-8')
+export const examples = [
+  ...hamTexts.map(text => ({ type: 'ham' as const, text })),
+  ...spamTexts.map(text => ({ type: 'spam' as const, text }))
+]

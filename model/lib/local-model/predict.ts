@@ -1,5 +1,5 @@
 import { type LogisticRegressionClassifier } from 'natural'
-import type { Labels, Model, Prediction, UnlabeledExample } from '../types'
+import type { Labels, Model, Prediction, UnlabeledExample } from '../../types'
 
 export const predict = (model: Model, example: UnlabeledExample): Prediction => {
   const classifier = model.data as LogisticRegressionClassifier

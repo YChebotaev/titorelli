@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises'
 import { LogisticRegressionClassifier } from 'natural'
 import { getStemmer } from './getStemmer'
-import type { Model, StemmerLanguage } from "../types";
+import type { Model, StemmerLanguage } from '../../types'
 
 export const createModel = async (filename: string, lang: StemmerLanguage) => {
   const stemmer = getStemmer(lang)

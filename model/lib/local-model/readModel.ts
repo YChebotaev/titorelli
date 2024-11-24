@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { LogisticRegressionClassifier } from 'natural'
-import type { Model } from '../types'
+import type { Model } from '../../types'
 import { getStemmer } from './getStemmer'
 
 export const readModel = async (filename: string) => {
