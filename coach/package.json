@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node index.ts"
+    "start": "ts-node index.ts",
+    "trainSpam": "ts-node trainSpam.ts"
   },
   "author": "YChebotaev",
   "license": "UNLICENSED",

@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node --require dotenv/config index.ts",
+    "start": "node --require dotenv/config --require ts-node/register index.ts",
     "dev": "nodemon"
   },
   "keywords": [],
