@@ -24,13 +24,20 @@ export class YandexGptModel implements IModel {
         body: JSON.stringify({
           modelId: this.modelId,
           text: example.text
-        })
+        }),
+        headers: {
+          'Content-Type': "application/json"
+        }
       })
 
       if (resp.ok) {
         const data = await resp.json() as Awaited<ClassifyMessageResponse>
 
         return data
+      } else {
+        const respText = await resp.text()
+
+        console.error('Error while requeting "classify-text" cloud function', respText)
       }
     }
 

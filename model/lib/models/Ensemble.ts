@@ -17,22 +17,31 @@ export class EnsembleModel implements IModel {
 
     if (!lrPrediction) throw new Error('Cannot get prediction from logistic-regression model')
 
-    if (lrPrediction.value === 'ham') {
+    const isHam = lrPrediction.value === 'ham'
+    const isNotCertain = lrPrediction.confidence <= 0.7
+
+    if (isHam || isNotCertain) {
       const yGptPrediction = await yandexGpt.predict(example)
 
       if (!yGptPrediction) throw new Error('Cannot get prediction from yandex-gpt model')
 
-      switch (yGptPrediction.value) {
-        case 'ham':
-          return {
-            value: 'ham',
-            confidence: yGptPrediction.confidence
-          }
-        case 'spam':
-          return {
-            value: 'spam',
-            confidence: yGptPrediction.confidence
-          }
+      switch (`${lrPrediction.value}-${yGptPrediction.value}`) {
+        case 'ham-ham': return {
+          value: 'ham',
+          confidence: yGptPrediction.confidence
+        }
+        case 'spam-spam': return {
+          value: 'spam',
+          confidence: yGptPrediction.confidence
+        }
+        case 'ham-spam': return {
+          value: 'spam',
+          confidence: yGptPrediction.confidence
+        }
+        case 'spam-ham': return {
+          value: 'spam',
+          confidence: lrPrediction.confidence
+        }
       }
     }
 
