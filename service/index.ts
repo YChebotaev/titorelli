@@ -1,28 +1,12 @@
 import path from 'node:path'
-import { existsSync } from 'node:fs'
 import fastify from 'fastify'
-import { mkdirp } from 'mkdirp'
-import { local, type Model } from '@titorelli/model'
+import { ModelsStore } from '@titorelli/model'
 
+const store = new ModelsStore(
+  path.join(__dirname, 'data'),
+  'ensemble'
+)
 const service = fastify()
-
-const readOrCreateModel = async (modelId: string) => {
-  const modelDirname = path.join(__dirname, 'data')
-  await mkdirp(modelDirname)
-  const modelFilename = path.join(modelDirname, `${modelId}.json`)
-  let model: Model
-
-  if (existsSync(modelFilename)) {
-    model = await local.readModel(modelFilename)
-  } else {
-    model = await local.createModel(modelFilename, 'ru')
-  }
-
-  return {
-    model,
-    filename: modelFilename
-  }
-}
 
 service.post<{
   Body: {
@@ -41,12 +25,31 @@ service.post<{
           type: 'string'
         }
       }
+    },
+    response: {
+      200: {
+        type: 'object',
+        properties: {
+          timing: { type: 'number' },
+          value: { type: 'string' },
+          confidence: { type: 'number' },
+        }
+      }
     }
   },
   async handler({ params: { modelId }, body: { text } }) {
-    const { model } = await readOrCreateModel(modelId)
+    const startTime = new Date()
 
-    return local.predict(model, { text })
+    const model = await store.getOrCreate(modelId)
+
+    const prediction = await model.predict({ text })
+
+    const timeDelta = new Date().getTime() - startTime.getTime()
+
+    return {
+      timing: timeDelta,
+      ...prediction
+    }
   }
 })
 
@@ -74,11 +77,9 @@ service.post<{
     }
   },
   async handler({ params: { modelId }, body: { text, label } }) {
-    const { model, filename: modelFilename } = await readOrCreateModel(modelId)
+    const model = await store.getOrCreate(modelId)
 
-    local.train(model, { text, label })
-
-    await local.writeModel(modelFilename, model)
+    await model.train({ text, label })
   }
 })
 
@@ -109,11 +110,9 @@ service.post<{
     }
   },
   async handler({ params: { modelId }, body: examples }) {
-    const { model, filename: modelFilename } = await readOrCreateModel(modelId)
+    const model = await store.getOrCreate(modelId)
 
-    local.trainBulk(model, examples)
-
-    await local.writeModel(modelFilename, model)
+    await model.trainBulk(examples)
   }
 })
 

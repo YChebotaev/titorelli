@@ -6,6 +6,7 @@
   "author": "YChebotaev",
   "license": "UNLICENSED",
   "dependencies": {
+    "mkdirp": "^3.0.1",
     "natural": "^6.8.0"
   }
 }

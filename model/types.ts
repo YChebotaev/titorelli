@@ -1,10 +1,4 @@
-export type Model = {
-  type: ModelType,
-  lang: StemmerLanguage,
-  data: object
-}
-
-export type ModelType = 'logistic-regression' | 'yandex-gpt'
+export type ModelType = 'logistic-regression' | 'yandex-gpt' | 'ensemble'
 
 export type Labels = 'spam' | 'ham'
 

@@ -1,6 +1,0 @@
-export * from './createModel'
-export * from './predict'
-export * from './train'
-export * from './readModel'
-export * from './writeModel'
-export * from './trainBulk'

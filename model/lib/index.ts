@@ -1,2 +1,3 @@
-export * as local from './local-model'
-export * as yandex from './yandex-model'
+export * from './models'
+export * from './createModel'
+export * from './ModelsStore'
