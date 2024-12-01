@@ -1,6 +1,7 @@
 require('ts-node/register')
 
 import { parentPort, workerData } from 'node:worker_threads'
+
 import { RpcRequest, RpcResponse } from '../types'
 import { LabeledExample, StemmerLanguage } from '../../../../types'
 import { LogisticRegressionClassifier } from 'natural'
@@ -34,28 +35,36 @@ const trainBulk = async (examples: LabeledExample[]) => {
   })
 }
 
+const apply = async <F extends Function, P extends any[]>(fn: F, req: RpcRequest<P>) => {
+  try {
+    const result = await fn.apply(null, req.params)
+
+    const res: RpcResponse<typeof result> = {
+      id: req.id,
+      result
+    }
+
+    return res
+  } catch (error) {
+    console.error(error)
+
+    const res: RpcResponse<void, typeof error> = {
+      id: req.id,
+      error
+    }
+
+    return res
+  }
+}
+
 parentPort?.on('message', async (req: RpcRequest<any[]>) => {
   switch (req.method) {
     case 'trainBulk': {
-      try {
-        const result = await trainBulk.apply(null, req.params)
+      const res = await apply(trainBulk, req)
 
-        const res: RpcResponse<void> = {
-          id: req.id,
-          result
-        }
+      parentPort.postMessage(res)
 
-        parentPort?.postMessage(res)
-      } catch (error) {
-        console.error(error)
-
-        const res: RpcResponse<void, Error> = {
-          id: req.id,
-          error
-        }
-
-        parentPort?.postMessage(res)
-      }
+      return
     }
   }
 })

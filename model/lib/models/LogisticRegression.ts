@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import { LogisticRegressionClassifier } from 'natural'
 
 import { getStemmer } from '../models/getStemmer'
-import { LogisticRegressionTrainWorker } from './LogisticRegressionTrainWorker/LogisticRegressionTrainWorker'
+import { LogisticRegressionTrainWorker } from './LogisticRegressionTrainWorker'
 import type { UnlabeledExample, Prediction, LabeledExample, StemmerLanguage, Labels } from '../../types'
 import type { IModel } from './IModel'
 
@@ -37,19 +37,13 @@ export class LogisticRegressionModel implements IModel {
 
   async train(example: LabeledExample): Promise<void> {
     await this.trainBulk([example])
-    // await this.ready
-
-    // this.classifier.addDocument(example.text, example.label)
-    // this.classifier.train()
-
-    // await this.flush()
   }
 
   async trainBulk(examples: LabeledExample[]): Promise<void> {
     await this.ready
 
     if (this.trainWorker.inprogress) {
-      return new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         this.trainWorker.addTrainBulkCompleteListener(() => {
           this.trainWorker
             .trainBulk(examples)
@@ -61,15 +55,7 @@ export class LogisticRegressionModel implements IModel {
       await this.trainWorker.trainBulk(examples)
     }
 
-    // await this.ready
-
-    // for (const example of examples) {
-    //   this.classifier.addDocument(example.text, example.label)
-    // }
-
-    // this.classifier.train()
-
-    // await this.flush()
+    this.ready = this.revive()
   }
 
   async revive() {
@@ -94,17 +80,9 @@ export class LogisticRegressionModel implements IModel {
         return true
       }
     } catch (e) {
+      console.error(e)
+
       return false
     }
-  }
-
-  flush() {
-    return new Promise<void>((resolve, reject) => {
-      this.classifier.save(this.modelFilename, (err) => {
-        if (err) return reject(err)
-
-        resolve()
-      })
-    })
   }
 }

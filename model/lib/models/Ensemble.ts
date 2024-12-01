@@ -26,22 +26,11 @@ export class EnsembleModel implements IModel {
       if (!yGptPrediction) throw new Error('Cannot get prediction from yandex-gpt model')
 
       switch (`${lrPrediction.value}-${yGptPrediction.value}`) {
-        case 'ham-ham': return {
-          value: 'ham',
-          confidence: yGptPrediction.confidence
-        }
-        case 'spam-spam': return {
-          value: 'spam',
-          confidence: yGptPrediction.confidence
-        }
-        case 'ham-spam': return {
-          value: 'spam',
-          confidence: yGptPrediction.confidence
-        }
-        case 'spam-ham': return {
-          value: 'spam',
-          confidence: lrPrediction.confidence
-        }
+        case 'ham-ham': return { value: 'ham', confidence: 1 }
+        case 'spam-spam': return { value: 'spam', confidence: 1 }
+        case 'ham-spam':
+        case 'spam-ham':
+          return [lrPrediction, yGptPrediction].sort((a, b) => b.confidence - a.confidence)[0]
       }
     }
 
