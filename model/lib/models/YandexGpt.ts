@@ -14,7 +14,7 @@ export class YandexGptModel implements IModel {
   }
 
   async predict(example: UnlabeledExample): Promise<Prediction | null> {
-    let retriesLeft = 2
+    let retriesLeft = 3
 
     while (retriesLeft > 0) {
       retriesLeft -= 1

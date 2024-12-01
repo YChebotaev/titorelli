@@ -6,9 +6,17 @@
   "directories": {
     "lib": "lib"
   },
+  "scripts": {
+    "test": "node --require ts-node/register test.ts"
+  },
   "author": "YChebotaev",
   "license": "UNLICENSED",
   "dependencies": {
-    "axios": "^1.6.1"
+    "axios": "^1.6.1",
+    "axios-oauth-client": "^2.2.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
   }
 }

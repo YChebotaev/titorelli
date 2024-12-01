@@ -1,113 +1,19 @@
 import path from 'node:path'
-import fastify from 'fastify'
+import { readFileSync, existsSync } from 'node:fs'
 import { ModelsStore } from '@titorelli/model'
+import yaml from 'yaml'
+import { Service } from './lib/Service'
 
-const store = new ModelsStore(
-  path.join(__dirname, 'data'),
-  'ensemble',
-  3600000 /* 3 hours */
-)
-const service = fastify()
+const oauthClientsFilename = path.join(__dirname, 'oauth-clients.yaml')
 
-service.post<{
-  Body: {
-    text: string
-  },
-  Params: {
-    modelId: string
-  }
-}>('/:modelId/predict', {
-  schema: {
-    body: {
-      type: 'object',
-      required: ['text'],
-      properties: {
-        text: {
-          type: 'string'
-        }
-      }
-    },
-    response: {
-      200: {
-        type: 'object',
-        properties: {
-          value: { type: 'string' },
-          confidence: { type: 'number' },
-        }
-      }
-    }
-  },
-  async handler({ params: { modelId }, body: { text } }) {
-    const model = await store.getOrCreate(modelId)
+if (!existsSync(oauthClientsFilename)) {
+  throw new Error('oauth-clients.yaml file must be present in a root of module')
+}
 
-    return model.predict({ text })
-  }
-})
-
-service.post<{
-  Body: {
-    label: 'spam' | 'ham'
-    text: string
-  }
-  Params: {
-    modelId: string
-  }
-}>('/:modelId/train', {
-  schema: {
-    body: {
-      type: 'object',
-      required: ['text'],
-      properties: {
-        label: {
-          enum: ['spam', 'ham']
-        },
-        text: {
-          type: 'string'
-        }
-      }
-    }
-  },
-  async handler({ params: { modelId }, body: { text, label } }) {
-    const model = await store.getOrCreate(modelId)
-
-    await model.train({ text, label })
-  }
-})
-
-service.post<{
-  Body: {
-    label: 'spam' | 'ham'
-    text: string
-  }[]
-  Params: {
-    modelId: string
-  }
-}>('/:modelId/train_bulk', {
-  schema: {
-    body: {
-      type: 'array',
-      items: {
-        type: 'object',
-        required: ['text', 'label'],
-        properties: {
-          label: {
-            enum: ['spam', 'ham']
-          },
-          text: {
-            type: 'string'
-          }
-        }
-      }
-    }
-  },
-  async handler({ params: { modelId }, body: examples }) {
-    const model = await store.getOrCreate(modelId)
-
-    await model.trainBulk(examples)
-  }
-})
-
-service.listen({
+new Service({
   port: Number(process.env['PORT'] ?? 3000),
-  host: process.env['HOST'] ?? '0.0.0.0'
-})
+  host: process.env['HOST'] ?? '0.0.0.0',
+  store: new ModelsStore(path.join(__dirname, 'data'), 'ensemble', 3600000 /* 3 hours */),
+  jwtSecret: process.env.JWT_SECRET,
+  oauthClients: yaml.parse(readFileSync(oauthClientsFilename, 'utf-8'))
+}).listen()

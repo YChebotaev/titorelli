@@ -4,13 +4,14 @@
   "version": "0.1.0",
   "main": "index.ts",
   "scripts": {
-    "start": "ts-node index.ts",
-    "trainSpam": "ts-node trainSpam.ts"
+    "start": "ts-node --require dotenv/register index.ts",
+    "trainSpam": "ts-node --require dotenv/register trainSpam.ts"
   },
   "author": "YChebotaev",
   "license": "UNLICENSED",
   "dependencies": {
     "date-fns": "^4.1.0",
+    "dotenv": "^16.4.5",
     "lodash": "^4.17.21",
     "mkdirp": "^3.0.1"
   },
