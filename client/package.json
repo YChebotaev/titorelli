@@ -1,22 +1,29 @@
 {
   "name": "@titorelli/client",
-  "private": true,
-  "version": "0.1.0",
-  "main": "index.ts",
+  "description": "A titorelli antispam client",
+  "version": "0.1.1",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "directories": {
     "lib": "lib"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "node --require ts-node/register test.ts"
+    "build": ""
   },
   "author": "YChebotaev",
-  "license": "UNLICENSED",
+  "license": "GPL-3.0-only",
   "dependencies": {
     "axios": "^1.6.1",
     "axios-oauth-client": "^2.2.0"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
+    "tsup": "^8.3.5",
     "typescript": "^5.7.2"
-  }
+  },
+  "keywords": []
 }

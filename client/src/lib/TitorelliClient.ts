@@ -1,6 +1,6 @@
-import axios, { type Axios } from 'axios'
+import axios, { type AxiosInstance } from 'axios'
 import { clientCredentials } from 'axios-oauth-client'
-import { Prediction, type UnlabeledExample } from '../types'
+import { Prediction, type UnlabeledExample } from '../../types'
 
 export type TitorelliClientConfig = {
   serviceUrl: string
@@ -10,13 +10,13 @@ export type TitorelliClientConfig = {
 }
 
 export type TitorelliModelClientConfig = {
-  axios: Axios
+  axios: AxiosInstance
   modelId: string
   getReadyPromise(): Promise<void>
 }
 
 export class TitorelliModelClient {
-  private axios: Axios
+  private axios: AxiosInstance
   private modelId: string
 
   constructor({ axios, modelId, getReadyPromise }: TitorelliModelClientConfig) {
@@ -39,7 +39,7 @@ export class TitorelliModelClient {
 
 export class TitorelliClient {
   private ready: Promise<void>
-  private axios: Axios
+  private axios: AxiosInstance
   private serviceUrl: string
   private clientId: string
   private clientSecret: string
