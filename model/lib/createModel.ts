@@ -5,8 +5,8 @@ import { mkdirp } from 'mkdirp'
 import { YandexGptModel } from './models/YandexGpt'
 import { LogisticRegressionModel } from './models/LogisticRegression'
 import { EnsembleModel } from './models/Ensemble'
-import { ModelType } from '../types'
-import { IModel } from './models'
+import type { ModelType } from '../types'
+import type { IModel } from './models'
 
 export const createModel = async (
   modelsDirname: string,

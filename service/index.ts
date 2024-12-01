@@ -4,7 +4,8 @@ import { ModelsStore } from '@titorelli/model'
 
 const store = new ModelsStore(
   path.join(__dirname, 'data'),
-  'ensemble'
+  'ensemble',
+  3600000 /* 3 hours */
 )
 const service = fastify()
 
@@ -30,7 +31,6 @@ service.post<{
       200: {
         type: 'object',
         properties: {
-          timing: { type: 'number' },
           value: { type: 'string' },
           confidence: { type: 'number' },
         }
@@ -38,18 +38,9 @@ service.post<{
     }
   },
   async handler({ params: { modelId }, body: { text } }) {
-    const startTime = new Date()
-
     const model = await store.getOrCreate(modelId)
 
-    const prediction = await model.predict({ text })
-
-    const timeDelta = new Date().getTime() - startTime.getTime()
-
-    return {
-      timing: timeDelta,
-      ...prediction
-    }
+    return model.predict({ text })
   }
 })
 
