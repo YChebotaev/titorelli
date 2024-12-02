@@ -223,16 +223,7 @@ export class Service {
             grant_type: { enum: ['client_credentials'] },
             client_id: { type: 'string' },
             client_secret: { type: 'string' },
-            scope: {
-              type: 'array',
-              items: {
-                enum: [
-                  'predict',
-                  'train',
-                  'train_bulk'
-                ]
-              }
-            }
+            scope: { type: 'string' }
           }
         },
         response: {
@@ -259,6 +250,7 @@ export class Service {
 
       const requestScopes = body.scope?.split(' ').map(s => s.trim()).filter(s => s) ?? []
       const scopes = requestScopes.filter(s => client.scopes.includes(s as ClientScopes))
+
       const token = this.service.jwt.sign({
         sub: body.client_id,
         scopes: scopes
