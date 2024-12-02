@@ -13,7 +13,7 @@ if (!existsSync(oauthClientsFilename)) {
 new Service({
   port: Number(process.env['PORT'] ?? 3000),
   host: process.env['HOST'] ?? '0.0.0.0',
-  store: new ModelsStore(path.join(__dirname, 'data'), 'ensemble', 3600000 /* 3 hours */),
+  store: new ModelsStore(path.join(__dirname, 'data'), 'logistic-regression', 3600000 /* 3 hours */),
   jwtSecret: process.env.JWT_SECRET,
   oauthClients: yaml.parse(readFileSync(oauthClientsFilename, 'utf-8'))
 }).listen()
