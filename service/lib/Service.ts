@@ -1,8 +1,9 @@
-import fastify from 'fastify'
+import fastify, { type FastifyInstance } from 'fastify'
 import fastifyFormbody from '@fastify/formbody'
 import fastifyJwt, { type FastifyJwtNamespace } from '@fastify/jwt'
+import fastifySwagger from '@fastify/swagger'
+import fastifySwaggerUi from '@fastify/swagger-ui'
 import { ModelsStore } from "@titorelli/model"
-import { FastifyInstance } from "fastify"
 import type { ClientScopes, ServiceAuthClient } from './types'
 
 declare module 'fastify' {
@@ -67,6 +68,26 @@ export class Service {
 
     await this.service.register(fastifyFormbody)
     await this.service.register(fastifyJwt, { secret: this.jwtSecret })
+    await this.service.register(fastifySwagger, {
+      openapi: {
+        openapi: '3.0.0',
+        info: {
+          title: "Titorelli api client",
+          description: '',
+          version: '0.1.0'
+        },
+        servers: [
+          {
+            url: 'http://localhost:3000',
+            description: 'Local dev server'
+          },
+          {
+            url: 'https://titorelli.ru',
+            description: 'Production server'
+          }
+        ]
+      }
+    })
 
     this.service.post<{
       Body: {
@@ -194,7 +215,39 @@ export class Service {
         client_secret: string
         scope: string
       }
-    }>('/oauth2/token', ({ body }) => {
+    }>('/oauth2/token', {
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            grant_type: { enum: ['client_credentials'] },
+            client_id: { type: 'string' },
+            client_secret: { type: 'string' },
+            scope: {
+              type: 'array',
+              items: {
+                enum: [
+                  'predict',
+                  'train',
+                  'train_bulk'
+                ]
+              }
+            }
+          }
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              access_token: { type: 'string' },
+              token_type: { enum: ['Bearer'] },
+              expires_id: { type: 'number' },
+              scope: { type: 'string' }
+            }
+          }
+        }
+      }
+    }, ({ body }) => {
       const client = this.oauthClients.find(({ id }) => id === body.client_id)
 
       if (!client) {
@@ -218,5 +271,7 @@ export class Service {
         scope: scopes.join(' ')
       }
     })
+
+    await this.service.register(fastifySwaggerUi)
   }
 }

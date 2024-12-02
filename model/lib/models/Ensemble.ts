@@ -33,12 +33,12 @@ export class EnsembleModel implements IModel {
 
     const lrPrediction = await logisticRegression.predict(example)
 
-    if (!lrPrediction) throw new Error('Cannot get prediction from logistic-regression model')
+    if (!lrPrediction)
+      throw new Error('Cannot get prediction from logistic-regression model')
 
-    const isHam = lrPrediction.value === 'ham'
     const isUncertain = lrPrediction.confidence <= 0.6
 
-    if (isHam && isUncertain) {
+    if (isUncertain) {
       const yGptPrediction = await yandexGpt.predict(example)
 
       if (!yGptPrediction) throw new Error('Cannot get prediction from yandex-gpt model')
