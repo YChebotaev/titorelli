@@ -1,26 +1,44 @@
-import { UnlabeledExample, Prediction, LabeledExample } from "../../types";
+import { UnlabeledExample, Prediction, LabeledExample, ModelType } from "../../types";
 import type { IModel } from "./IModel";
 
 export class EnsembleModel implements IModel {
   public type = 'ensemble' as const
 
-  constructor(private modelId, private models: IModel[]) {
+  constructor(
+    private modelId,
+    private models: IModel[],
+    private enableLearningFromCustomRules: boolean = false
+  ) {
   }
 
   async predict(example: UnlabeledExample): Promise<Prediction | null> {
+    const customRules = this.getModelByType('custom-rules')
     const logisticRegression = this.getModelByType('logistic-regression')
     const yandexGpt = this.getModelByType('yandex-gpt')
 
-    if (!logisticRegression || !yandexGpt) throw new Error('Some models are not provided')
+    if (!logisticRegression || !yandexGpt)
+      throw new Error('Some models are not provided')
+
+    if (customRules) {
+      const crPrediction = await customRules.predict(example)
+
+      if (crPrediction.value === 'spam') {
+        if (this.enableLearningFromCustomRules) {
+          void this.train({ text: example.text, label: crPrediction.value })
+        }
+
+        return crPrediction
+      }
+    }
 
     const lrPrediction = await logisticRegression.predict(example)
 
     if (!lrPrediction) throw new Error('Cannot get prediction from logistic-regression model')
 
     const isHam = lrPrediction.value === 'ham'
-    const isNotCertain = lrPrediction.confidence <= 0.7
+    const isUncertain = lrPrediction.confidence <= 0.6
 
-    if (isHam || isNotCertain) {
+    if (isHam && isUncertain) {
       const yGptPrediction = await yandexGpt.predict(example)
 
       if (!yGptPrediction) throw new Error('Cannot get prediction from yandex-gpt model')
@@ -49,7 +67,7 @@ export class EnsembleModel implements IModel {
     )
   }
 
-  private getModelByType(type: string) {
+  private getModelByType(type: ModelType) {
     return this.models.find((model) => model.type === type)
   }
 }
