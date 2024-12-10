@@ -5,7 +5,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "ts-node --require dotenv/register index.ts",
-    "trainSpam": "ts-node --require dotenv/register trainSpam.ts"
+    "trainSpam": "ts-node --require dotenv/register trainSpam.ts",
+    "validate": "ts-node validate.ts"
   },
   "author": "YChebotaev",
   "license": "UNLICENSED",
