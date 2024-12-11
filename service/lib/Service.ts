@@ -3,8 +3,9 @@ import fastifyFormbody from '@fastify/formbody'
 import fastifyJwt, { type FastifyJwtNamespace } from '@fastify/jwt'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
-import { ModelsStore } from "@titorelli/model"
+import { ModelsStore, Prediction } from "@titorelli/model"
 import type { ClientScopes, ServiceAuthClient } from './types'
+import { ICas } from '@titorelli/model/lib/types'
 
 declare module 'fastify' {
   interface FastifyInstance extends FastifyJwtNamespace<{ namespace: 'jwt' }> {
@@ -16,6 +17,7 @@ export type ServiceConfig = {
   port: number
   host: string
   store: ModelsStore
+  cas: ICas
   jwtSecret: string
   oauthClients: ServiceAuthClient[]
 }
@@ -28,14 +30,16 @@ export type JwtTokenPayload = {
 export class Service {
   private ready: Promise<void>
   private store: ModelsStore
+  private cas: ICas
   private service: FastifyInstance
   private port: number
   private host: string
   private jwtSecret: string
   private oauthClients: ServiceAuthClient[]
 
-  constructor({ port, host, store, jwtSecret, oauthClients }: ServiceConfig) {
+  constructor({ port, host, store, cas, jwtSecret, oauthClients }: ServiceConfig) {
     this.store = store
+    this.cas = cas
     this.port = port
     this.host = host
     this.jwtSecret = jwtSecret
@@ -51,6 +55,7 @@ export class Service {
 
   private async initialize() {
     const store = this.store
+    const cas = this.cas
 
     this.service = fastify()
 
@@ -92,6 +97,7 @@ export class Service {
     this.service.post<{
       Body: {
         text: string
+        tgUserId?: number
       },
       Params: {
         modelId: string
@@ -105,7 +111,8 @@ export class Service {
           properties: {
             text: {
               type: 'string'
-            }
+            },
+            thUserId: { type: 'number' }
           }
         },
         response: {
@@ -119,11 +126,22 @@ export class Service {
         }
       },
       async handler(req) {
-        const { params: { modelId }, body: { text } } = req
+        const { params: { modelId }, body: { text, tgUserId } } = req
         const { sub, scopes } = this.jwt.decode<JwtTokenPayload>(this.jwt.lookupToken(req))
 
         if (!scopes || !scopes.includes('predict'))
           throw new Error(`Client with id = '${sub}' don't have scope 'predict' for this operation`)
+
+        if (tgUserId != null) {
+          const casBan = await cas.has(tgUserId)
+
+          if (casBan) {
+            return {
+              value: 'spam',
+              confidence: 1
+            } as Prediction
+          }
+        }
 
         const model = await store.getOrCreate(modelId)
 
