@@ -42,11 +42,10 @@ const trainModel = async () => {
 
 const prepareTestDataset = async () => {
   const { examples } = await import('./examples')
-  const pickedExamples = examples.filter(() => Math.random() > 0.7)
-
+  
   writeFileSync(vwTestDatasetFilename, '', 'utf-8')
 
-  for (const { text, type } of pickedExamples) {
+  for (const { text, type } of examples) {
     const words = PorterStemmerRu.tokenizeAndStem(text)
 
     const doc = `${type === 'spam' ? 0 : 1} |text ${words.join(' ')}\n`

@@ -35,6 +35,8 @@ class ModelHolder {
     if (!model) {
       model = await createModel(this.modelsDirname, this.modelType, this.modelId)
 
+      model.onCreated()
+
       this.model = model
     }
 
@@ -44,6 +46,8 @@ class ModelHolder {
   }
 
   private onTimeout = () => {
+    this.model.onRemoved()
+
     this.model = null
   }
 
