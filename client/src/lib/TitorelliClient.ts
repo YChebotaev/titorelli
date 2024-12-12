@@ -36,10 +36,10 @@ export class TitorelliClient {
     this.ready = this.initialize({ scope })
   }
 
-  async predict(example: UnlabeledExample) {
+  async predict(reqData: UnlabeledExample & { tgUserId?: number }) {
     await this.ready
 
-    const { data } = await this.axios.post<Prediction>(`/${this.modelId}/predict`, example)
+    const { data } = await this.axios.post<Prediction>(`/${this.modelId}/predict`, reqData)
 
     return data
   }
