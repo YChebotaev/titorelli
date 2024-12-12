@@ -124,7 +124,7 @@ export class Service {
             text: {
               type: 'string'
             },
-            thUserId: { type: 'number' }
+            tgUserId: { type: 'number' }
           }
         },
         response: {
