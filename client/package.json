@@ -1,7 +1,7 @@
 {
   "name": "@titorelli/client",
   "description": "A titorelli antispam client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -12,7 +12,7 @@
     "dist"
   ],
   "scripts": {
-    "build": ""
+    "build": "tsup"
   },
   "author": "YChebotaev",
   "license": "GPL-3.0-only",
