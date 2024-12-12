@@ -78,6 +78,8 @@ export class Service {
         const { sub, scopes } = this.service.jwt.decode<JwtTokenPayload>(this.service.jwt.lookupToken(req))
 
         scopeGuard(sub, modelId, scopeSuffix, scopes)
+
+        done()
       }
     }
 
