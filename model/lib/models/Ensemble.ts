@@ -70,4 +70,16 @@ export class EnsembleModel implements IModel {
   private getModelByType(type: ModelType) {
     return this.models.find((model) => model.type === type)
   }
+
+  onCreated(): void {
+    for (const model of this.models) {
+      model.onCreated()
+    }
+  }
+
+  onRemoved(): void {
+    for (const model of this.models) {
+      model.onRemoved()
+    }
+  }
 }
