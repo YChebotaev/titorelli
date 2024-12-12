@@ -6,6 +6,7 @@
   "scripts": {
     "start": "ts-node --require dotenv/register index.ts",
     "trainSpam": "ts-node --require dotenv/register trainSpam.ts",
+    "validate": "ts-node validate.ts",
     "vowpalWabbitTrain": "ts-node vowpalWabbitTrain.ts"
   },
   "author": "YChebotaev",
