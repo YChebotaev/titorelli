@@ -1,40 +1,15 @@
 import axios, { type AxiosInstance } from 'axios'
 import { clientCredentials } from 'axios-oauth-client'
-import { Prediction, type UnlabeledExample } from '../../types'
+import type { Prediction, UnlabeledExample, LabeledExample } from '../../types'
+
+export type ClientScopes = 'predict' | 'train' | 'train_bulk'
 
 export type TitorelliClientConfig = {
   serviceUrl: string
   clientId: string
   clientSecret: string
-  scope?: string
-}
-
-export type TitorelliModelClientConfig = {
-  axios: AxiosInstance
   modelId: string
-  getReadyPromise(): Promise<void>
-}
-
-export class TitorelliModelClient {
-  private axios: AxiosInstance
-  private modelId: string
-
-  constructor({ axios, modelId, getReadyPromise }: TitorelliModelClientConfig) {
-    this.axios = axios
-    this.modelId = modelId
-    this.getReadyPromise = getReadyPromise
-  }
-
-  async predict(example: UnlabeledExample) {
-    await this.getReadyPromise()
-
-    const { data } = await this.axios.post<Prediction>(`/${this.modelId}/predict`, example)
-
-    return data
-  }
-
-  private getReadyPromise(): Promise<void>
-  private getReadyPromise() { return Promise.reject() }
+  scope?: ClientScopes | ClientScopes[]
 }
 
 export class TitorelliClient {
@@ -43,30 +18,41 @@ export class TitorelliClient {
   private serviceUrl: string
   private clientId: string
   private clientSecret: string
+  private modelId: string
 
-  constructor({ serviceUrl, clientId, clientSecret, scope }: TitorelliClientConfig) {
+  constructor({ serviceUrl, clientId, clientSecret, scope, modelId }: TitorelliClientConfig) {
     if (!serviceUrl) throw new Error('serviceUrl must be provided')
     if (!clientId) throw new Error('clientId must be provided')
     if (!clientSecret) throw new Error('clientSecret must be provided')
+    if (!modelId) throw new Error('modelId must be provided')
 
     this.serviceUrl = serviceUrl
     this.clientId = clientId
     this.clientSecret = clientSecret
+    this.modelId = modelId
 
     this.axios = axios.create({ baseURL: serviceUrl })
 
     this.ready = this.initialize({ scope })
   }
 
-  model(modelId: string) {
-    return new TitorelliModelClient({
-      axios: this.axios,
-      modelId,
-      getReadyPromise: () => this.ready
-    })
+  async predict(example: UnlabeledExample) {
+    await this.ready
+
+    const { data } = await this.axios.post<Prediction>(`/${this.modelId}/predict`, example)
+
+    return data
   }
 
-  private async initialize({ scope }: { scope: string }) {
+  async train(example: LabeledExample) {
+    await this.ready
+
+    const { data } = await this.axios.post<void>(`${this.modelId}/train`, example)
+
+    return data
+  }
+
+  private async initialize({ scope }: { scope: ClientScopes | ClientScopes[] }) {
     const authResult = await this.authenticate({ scope })
 
     this.axios.interceptors.request.use((config) => {
@@ -76,11 +62,13 @@ export class TitorelliClient {
     })
   }
 
-  private async authenticate({ scope }: { scope: string }) {
+  private async authenticate({ scope }: { scope: ClientScopes | ClientScopes[] }) {
     const url = new URL('/oauth2/token', this.serviceUrl).toString()
 
     const getClientCredentials = clientCredentials(this.axios, url, this.clientId, this.clientSecret)
 
-    return getClientCredentials(scope)
+    const finalScope = [scope].flatMap(scope => `${this.modelId}/${scope}`)
+
+    return getClientCredentials(finalScope)
   }
 }

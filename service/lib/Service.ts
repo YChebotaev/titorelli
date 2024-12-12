@@ -4,6 +4,7 @@ import fastifyJwt, { type FastifyJwtNamespace } from '@fastify/jwt'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
 import { ModelsStore, Prediction } from "@titorelli/model"
+import { scopeGuard } from './scopeGuard'
 import type { ClientScopes, ServiceAuthClient } from './types'
 import { ICas } from '@titorelli/model/lib/types'
 
@@ -71,6 +72,15 @@ export class Service {
       }
     }
 
+    const allowScope = (scopeSuffix: string) => {
+      return (req, reply, done) => {
+        const { params: { modelId } } = req
+        const { sub, scopes } = this.service.jwt.decode<JwtTokenPayload>(this.service.jwt.lookupToken(req))
+
+        scopeGuard(sub, modelId, scopeSuffix, scopes)
+      }
+    }
+
     await this.service.register(fastifyFormbody)
     await this.service.register(fastifyJwt, { secret: this.jwtSecret })
     await this.service.register(fastifySwagger, {
@@ -103,7 +113,7 @@ export class Service {
         modelId: string
       }
     }>('/:modelId/predict', {
-      onRequest: [verifyToken],
+      onRequest: [verifyToken, allowScope('predict')],
       schema: {
         body: {
           type: 'object',
@@ -127,10 +137,6 @@ export class Service {
       },
       async handler(req) {
         const { params: { modelId }, body: { text, tgUserId } } = req
-        const { sub, scopes } = this.jwt.decode<JwtTokenPayload>(this.jwt.lookupToken(req))
-
-        if (!scopes || !scopes.includes('predict'))
-          throw new Error(`Client with id = '${sub}' don't have scope 'predict' for this operation`)
 
         if (tgUserId != null) {
           const casBan = await cas.has(tgUserId)
@@ -158,7 +164,7 @@ export class Service {
         modelId: string
       }
     }>('/:modelId/train', {
-      onRequest: [verifyToken],
+      onRequest: [verifyToken, allowScope('train')],
       schema: {
         body: {
           type: 'object',
@@ -175,10 +181,9 @@ export class Service {
       },
       async handler(req) {
         const { params: { modelId }, body: { text, label } } = req
-        const { sub, scopes } = this.jwt.decode<JwtTokenPayload>(this.jwt.lookupToken(req))
+        // const { sub, scopes } = this.jwt.decode<JwtTokenPayload>(this.jwt.lookupToken(req))
 
-        if (!scopes || !scopes.includes('train'))
-          throw new Error(`Client with id = '${sub}' don't have scope 'train' for this operation`)
+        // scopeGuard(sub, modelId, 'train', scopes)
 
         const model = await store.getOrCreate(modelId)
 
@@ -195,7 +200,7 @@ export class Service {
         modelId: string
       }
     }>('/:modelId/train_bulk', {
-      onRequest: [verifyToken],
+      onRequest: [verifyToken, allowScope('train_bulk')],
       schema: {
         body: {
           type: 'array',
@@ -215,10 +220,9 @@ export class Service {
       },
       async handler(req) {
         const { params: { modelId }, body: examples } = req
-        const { sub, scopes } = this.jwt.decode<JwtTokenPayload>(this.jwt.lookupToken(req))
+        // const { sub, scopes } = this.jwt.decode<JwtTokenPayload>(this.jwt.lookupToken(req))
 
-        if (!scopes || !scopes.includes('train_bulk'))
-          throw new Error(`Client with id = '${sub}' don't have scope 'train_bulk' for this operation`)
+        // scopeGuard(sub, modelId, 'train', scopes)
 
         const model = await store.getOrCreate(modelId)
 

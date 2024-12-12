@@ -1,4 +1,4 @@
-export type ModelType = 'logistic-regression' | 'yandex-gpt' | 'ensemble' | 'custom-rules'
+export type ModelType = 'logistic-regression' | 'yandex-gpt' | 'ensemble' | 'custom-rules' | 'vowpal-wabbit'
 
 export type Labels = 'spam' | 'ham'
 

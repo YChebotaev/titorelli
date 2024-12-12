@@ -8,6 +8,8 @@ import { EnsembleModel } from './models/Ensemble'
 import { CustomRulesModel } from './models/CustomRules'
 import type { ModelType } from '../types'
 import type { IModel } from './models'
+import { VowpalWabbitModel } from './models/VowpalWabbit'
+import replaceExt from 'replace-ext'
 
 export const createModel = async (
   modelsDirname: string,
@@ -38,6 +40,9 @@ export const createModel = async (
 
     case 'custom-rules':
       return new CustomRulesModel()
+
+    case 'vowpal-wabbit':
+      return new VowpalWabbitModel(modelId, replaceExt(modelFilename, '.vw'))
 
     default:
       return null

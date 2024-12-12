@@ -7,7 +7,12 @@
   "license": "UNLICENSED",
   "dependencies": {
     "csv": "^6.3.11",
+    "@vowpalwabbit/vowpalwabbit": "^0.0.8",
     "mkdirp": "^3.0.1",
-    "natural": "^6.8.0"
+    "natural": "^6.8.0",
+    "replace-ext": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/replace-ext": "^2.0.2"
   }
 }
