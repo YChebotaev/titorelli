@@ -34,4 +34,12 @@ export class CustomRulesModel implements IModel {
       confidence: 1
     }
   }
+
+  onCreated(): void {
+    // Do nothing
+  }
+
+  onRemoved(): void {
+    // Do nothing
+  }
 }

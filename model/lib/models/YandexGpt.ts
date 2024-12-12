@@ -63,4 +63,12 @@ export class YandexGptModel implements IModel {
       await this.train(example)
     }
   }
+
+  onCreated(): void {
+    // Do nothing
+  }
+
+  onRemoved(): void {
+    // Do nothing
+  }
 }

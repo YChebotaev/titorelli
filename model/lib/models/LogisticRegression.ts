@@ -85,4 +85,12 @@ export class LogisticRegressionModel implements IModel {
       return false
     }
   }
+
+  onCreated(): void {
+    // Do nothing
+  }
+
+  onRemoved(): void {
+    // Do nothing
+  }
 }
