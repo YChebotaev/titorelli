@@ -27,10 +27,10 @@ export class VowpalWabbitModel implements IModel {
 
       const prediction = this.workspace.predict(vwExample)
 
-      return {
-        value: prediction > 0.5 ? 'ham' : 'spam',
-        confidence: prediction
-      }
+      const value = prediction > 0.5 ? 'ham' : 'spam'
+      const confidence = value === 'ham' ? prediction : 1 - prediction
+
+      return { value, confidence }
     } catch (e) {
       throw e
     } finally {
