@@ -1,0 +1,19 @@
+{
+  "name": "@titorelli/cq",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "ts-node test.ts -- --test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  }
+}
