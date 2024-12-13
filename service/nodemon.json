@@ -7,5 +7,5 @@
     "lib/**/*"
   ],
   "ext": "ts,json",
-  "exec": "node --require dotenv/config --require ts-node/register index.ts | pino-pretty"
+  "exec": "node --require ts-node/register --require dotenv/config index.ts | pino-pretty"
 }

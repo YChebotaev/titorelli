@@ -1,14 +1,14 @@
 import fs from 'node:fs'
 import { finished } from 'node:stream/promises'
 import { parse } from 'csv'
-import { ICas } from './types'
+import type { ICas } from './types'
 
 export class CasAntispam implements ICas {
-  private records = new Set<number>
+  private userIds = new Set<number>
   private ready: Promise<void>
 
   constructor(
-    private modelFilename
+    private modelFilename: string
   ) {
     this.ready = this.initialize()
   }
@@ -16,11 +16,21 @@ export class CasAntispam implements ICas {
   async has(tgUserId: number) {
     await this.ready
 
-    return this.records.has(tgUserId)
+    return this.userIds.has(tgUserId)
+  }
+
+  /**
+   * 
+   * @todo Use library for CSV serialization
+   */
+  async add(tgUserId: number) {
+    await this.ready
+
+    await fs.promises.appendFile(this.modelFilename, `${tgUserId}\n`, 'utf-8')
   }
 
   private async initialize() {
-    this.records.clear()
+    this.userIds.clear()
 
     const parser = fs
       .createReadStream(this.modelFilename)
@@ -30,7 +40,7 @@ export class CasAntispam implements ICas {
       let record: [string]
 
       while ((record = parser.read()) != null) {
-        this.records.add(Number(record[0]))
+        this.userIds.add(Number(record[0]))
       }
     })
 

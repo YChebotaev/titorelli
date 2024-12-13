@@ -8,12 +8,12 @@ import type { IModel } from './IModel'
 
 export class LogisticRegressionModel implements IModel {
   private classifier: LogisticRegressionClassifier
-  private ready: Promise<boolean>
   private trainWorker: LogisticRegressionTrainWorker
+  private ready: Promise<boolean>
 
   public type = 'logistic-regression' as const
 
-  constructor(private modelId, private modelFilename, private lang: StemmerLanguage) {
+  constructor(private modelId: string, private modelFilename: string, private lang: StemmerLanguage) {
     this.trainWorker = new LogisticRegressionTrainWorker(modelFilename, lang)
     this.ready = this.revive()
   }
