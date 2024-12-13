@@ -3,8 +3,15 @@
     "service",
     "model",
     "client",
-    "coach"
+    "coach",
+    "persistence",
+    "cq"
   ],
   "author": "YChebotaev",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "knex": "^3.1.0",
+    "objection": "^3.1.5",
+    "sqlite3": "^5.1.7"
+  }
 }
