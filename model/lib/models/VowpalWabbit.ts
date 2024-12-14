@@ -1,4 +1,5 @@
 import vwPromise from '@vowpalwabbit/vowpalwabbit'
+import type { Logger } from 'pino'
 import type { UnlabeledExample, Prediction, LabeledExample } from "../../types";
 import type { IModel } from "./IModel";
 import { PorterStemmerRu } from 'natural';
@@ -11,7 +12,8 @@ export class VowpalWabbitModel implements IModel {
 
   constructor(
     private modelId: string,
-    private modelFilename: string
+    private modelFilename: string,
+    private logger: Logger
   ) {
     this.ready = this.initialize()
   }
@@ -30,14 +32,14 @@ export class VowpalWabbitModel implements IModel {
       const value = prediction > 0.5 ? 'ham' : 'spam'
       const confidence = value === 'ham' ? prediction : 1 - prediction
 
-      return { value, confidence }
+      return { value, confidence, reason: 'classifier' }
     } catch (e) {
       throw e
     } finally {
       vwExample.delete()
     }
 
-    return { value: 'ham', confidence: 1 }
+    return { value: 'ham', confidence: 1, reason: 'classifier' }
   }
 
   async train(example: LabeledExample): Promise<void> {

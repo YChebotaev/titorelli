@@ -1,3 +1,4 @@
+import type { Logger } from 'pino'
 import type { UnlabeledExample, Prediction, LabeledExample } from '../../types'
 import type { IModel } from './IModel'
 
@@ -7,6 +8,10 @@ export class CustomRulesModel implements IModel {
   private winRegexp = /выи/i
 
   public type = 'custom-rules' as const
+
+  constructor(
+    private logger: Logger
+  ) { }
 
   async predict(example: UnlabeledExample): Promise<Prediction | null> {
     if (this.casinoRegexp.test(example.text)) {
@@ -31,7 +36,8 @@ export class CustomRulesModel implements IModel {
   private returnSpamPrediction(): Prediction {
     return {
       value: 'spam',
-      confidence: 1
+      confidence: 1,
+      reason: 'rule'
     }
   }
 

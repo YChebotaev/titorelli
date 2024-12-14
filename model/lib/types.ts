@@ -10,4 +10,8 @@ export interface ITotems {
   add(tgUserId: number): Promise<void>
 
   revoke(tgUserId: number): Promise<void>
+
+  onCreated(): void
+
+  onRemoved(): void
 }

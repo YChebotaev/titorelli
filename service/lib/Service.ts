@@ -4,7 +4,15 @@ import fastifyJwt, { type FastifyJwtNamespace } from '@fastify/jwt'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
 import type { Logger } from 'pino'
-import { EnsembleModel, LabeledExample, ModelsStore, Prediction, type ICas } from "@titorelli/model"
+import type {
+  EnsembleModel,
+  LabeledExample,
+  Prediction,
+  TemporaryStorage,
+  IModel,
+  ITotems,
+  ICas
+} from "@titorelli/model"
 import type { ServiceAuthClient } from './types'
 
 declare module 'fastify' {
@@ -17,8 +25,9 @@ export type ServiceConfig = {
   port: number
   host: string
   logger: Logger,
-  store: ModelsStore
+  modelsStore: TemporaryStorage<IModel, [string]>
   cas: ICas
+  totemsStore: TemporaryStorage<ITotems, [string]>
   jwtSecret: string
   oauthClients: ServiceAuthClient[]
 }
@@ -30,8 +39,9 @@ export type JwtTokenPayload = {
 
 export class Service {
   private logger: Logger
-  private store: ModelsStore
+  private modelsStore: TemporaryStorage<IModel, [string]>
   private cas: ICas
+  private totemsStore: TemporaryStorage<ITotems, [string]>
   private service: FastifyInstance
   private port: number
   private host: string
@@ -42,13 +52,24 @@ export class Service {
   private modelTrainPath = '/models/:modelId/train'
   private modelTrainBulkPath = '/models/:modelId/train_bulk'
   private modelExactMatchTrainPath = '/models/:modelId/exact_match/train'
+  private modelTotemsTrainPath = '/models/:modelId/totems/train'
   private casTrainPath = '/cas/train'
   private ouathTokenPath = '/oauth2/token'
 
-  constructor({ port, host, logger, store, cas, jwtSecret, oauthClients }: ServiceConfig) {
+  constructor({
+    port,
+    host,
+    logger,
+    modelsStore,
+    cas,
+    totemsStore,
+    jwtSecret,
+    oauthClients
+  }: ServiceConfig) {
     this.logger = logger
-    this.store = store
+    this.modelsStore = modelsStore
     this.cas = cas
+    this.totemsStore = totemsStore
     this.port = port
     this.host = host
     this.jwtSecret = jwtSecret
@@ -70,6 +91,7 @@ export class Service {
     await this.installModelTrainRoute()
     await this.installModelTrainBulkRoute()
     await this.installModelExactMatchTrainRoute()
+    await this.installModelTotemsTrainRoute()
     await this.installCasTrainRoute()
     await this.installOauthTokenRoute()
     await this.installPluginsEnd()
@@ -165,6 +187,7 @@ export class Service {
             200: {
               type: 'object',
               properties: {
+                reason: { enum: ['classifier', 'duplicate', 'totem', 'cas'] },
                 value: { type: 'string' },
                 confidence: { type: 'number' },
               }
@@ -176,21 +199,56 @@ export class Service {
         const { params: { modelId }, body: { text, tgUserId } } = req
 
         if (tgUserId != null) {
-          const casBan = await this.cas.has(tgUserId)
+          {
+            const casPrediction = await this.checkCas(tgUserId)
 
-          if (casBan) {
-            return {
-              value: 'spam',
-              confidence: 1
-            } as Prediction
+            if (casPrediction != null)
+              return casPrediction
+          }
+
+          {
+            console.log('totem check')
+
+            const totemPrediction = await this.checkTotem(modelId, tgUserId)
+
+            console.log('totemPrediction =', totemPrediction)
+
+            if (totemPrediction != null)
+              return totemPrediction
           }
         }
 
-        const model = await this.store.getOrCreate(modelId)
+        const model = await this.modelsStore.getOrCreate(modelId)
 
         return model.predict({ text })
       }
     )
+  }
+
+  private async checkCas(tgUserId: number): Promise<Prediction | null> {
+    if (await this.cas.has(tgUserId)) {
+      return {
+        value: 'spam',
+        confidence: 1,
+        reason: 'cas'
+      }
+    }
+
+    return null
+  }
+
+  private async checkTotem(modelId: string, tgUserId: number): Promise<Prediction | null> {
+    const totems = await this.totemsStore.getOrCreate(modelId)
+
+    if (await totems.has(tgUserId)) {
+      return {
+        value: 'ham',
+        confidence: 1,
+        reason: 'totem'
+      }
+    }
+
+    return null
   }
 
   private async installModelTrainRoute() {
@@ -220,7 +278,7 @@ export class Service {
       },
 
     }, async ({ params: { modelId }, body: { text, label } }) => {
-      const model = await this.store.getOrCreate(modelId)
+      const model = await this.modelsStore.getOrCreate(modelId)
 
       await model.train({ text, label })
     })
@@ -260,7 +318,7 @@ export class Service {
       async (req) => {
         const { params: { modelId }, body: examples } = req
 
-        const model = await this.store.getOrCreate(modelId)
+        const model = await this.modelsStore.getOrCreate(modelId)
 
         await model.trainBulk(examples)
       })
@@ -280,7 +338,7 @@ export class Service {
           params: {
             type: 'object',
             properties: {
-              'modelId': { type: 'string' }
+              modelId: { type: 'string' }
             }
           },
           body: {
@@ -293,7 +351,7 @@ export class Service {
         }
       },
       async ({ params: { modelId }, body }) => {
-        const ensemble = await this.store.getOrCreate(modelId) as Awaited<EnsembleModel>
+        const ensemble = await this.modelsStore.getOrCreate(modelId) as Awaited<EnsembleModel>
         const emModel = ensemble.getModelByType('exact-match')
 
         if (!emModel)
@@ -301,6 +359,37 @@ export class Service {
 
         await emModel.train(body)
       })
+  }
+
+  private async installModelTotemsTrainRoute() {
+    await this.service.post<{
+      Params: {
+        modelId: string
+      },
+      Body: {
+        tgUserId: number
+      }
+    }>(this.modelTotemsTrainPath, {
+      onRequest: [this.verifyToken, this.allowScopeTemplate('totems/train')],
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            modelId: { type: 'string' }
+          }
+        },
+        body: {
+          type: 'object',
+          properties: {
+            tgUserId: { type: 'number' }
+          }
+        }
+      }
+    }, async ({ params: { modelId }, body: { tgUserId } }) => {
+      const totems = await this.totemsStore.getOrCreate(modelId)
+
+      await totems.add(tgUserId)
+    })
   }
 
   private async installCasTrainRoute() {

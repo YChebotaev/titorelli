@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import createKnex, { Knex } from 'knex'
 import { PorterStemmerRu } from 'natural'
+import type { Logger } from 'pino'
 import type { UnlabeledExample, Prediction, LabeledExample } from '../../types'
 import type { IModel } from './IModel'
 
@@ -19,7 +20,11 @@ export class ExactMatchModel implements IModel {
   private knex: Knex
   private ready: Promise<void>
 
-  constructor(private modelId: string, private modelFilename: string) {
+  constructor(
+    private modelId: string,
+    private modelFilename: string,
+    private logger: Logger
+  ) {
     this.knex = createKnex({
       client: 'sqlite3',
       connection: { filename: this.modelFilename },
@@ -37,7 +42,8 @@ export class ExactMatchModel implements IModel {
     if (record) {
       return {
         value: record.label,
-        confidence: record.confidence
+        confidence: record.confidence,
+        reason: 'duplicate'
       }
     }
 

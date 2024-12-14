@@ -1,4 +1,5 @@
 import { appendFile } from 'fs/promises'
+import type { Logger } from 'pino'
 import { UnlabeledExample, Prediction, LabeledExample } from "../../types";
 import type { IModel } from "./IModel";
 
@@ -10,7 +11,12 @@ export type ClassifyMessageResponse = {
 export class YandexGptModel implements IModel {
   public type = 'yandex-gpt' as const
 
-  constructor(private modelId: string, private modelFilename: string, private functionUrl: string) {
+  constructor(
+    private modelId: string,
+    private modelFilename: string,
+    private functionUrl: string,
+    private logger: Logger
+  ) {
   }
 
   async predict(example: UnlabeledExample): Promise<Prediction | null> {
@@ -33,7 +39,7 @@ export class YandexGptModel implements IModel {
       if (resp.ok) {
         const data = await resp.json() as Awaited<ClassifyMessageResponse>
 
-        return data
+        return { ...data, reason: 'classifier' }
       } else {
         const respText = await resp.text()
 
@@ -45,8 +51,8 @@ export class YandexGptModel implements IModel {
   }
 
   async train({ text, label }: LabeledExample): Promise<void> {
-    if (text.trim().length === 0) return null
-    if (text.trim().length >= 10000) return null
+    if (text.trim().length === 0) return
+    if (text.trim().length >= 10000) return
 
     const data = {
       text,

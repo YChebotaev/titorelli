@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import { finished } from 'node:stream/promises'
 import { parse } from 'csv'
+import type { Logger } from 'pino'
 import type { ICas } from './types'
 
 export class CasAntispam implements ICas {
@@ -8,7 +9,8 @@ export class CasAntispam implements ICas {
   private ready: Promise<void>
 
   constructor(
-    private modelFilename: string
+    private modelFilename: string,
+    private logger: Logger
   ) {
     this.ready = this.initialize()
   }

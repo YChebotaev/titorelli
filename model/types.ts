@@ -6,6 +6,13 @@ export type ModelType =
   | 'vowpal-wabbit'
   | 'exact-match'
 
+export type ReasonTypes =
+  | 'classifier'
+  | 'rule'
+  | 'duplicate'
+  | 'totem'
+  | 'cas'
+
 export type Labels = 'spam' | 'ham'
 
 export type LabeledExample = {
@@ -17,9 +24,19 @@ export type UnlabeledExample = {
   text: string
 }
 
-export type StemmerLanguage = 'es' | 'fa' | 'fr' | 'it' | 'nl' | 'no' | 'pt' | 'ru' | 'sv'
+export type StemmerLanguage =
+  | 'es'
+  | 'fa'
+  | 'fr'
+  | 'it'
+  | 'nl'
+  | 'no'
+  | 'pt'
+  | 'ru'
+  | 'sv'
 
 export type Prediction = {
   value: Labels
   confidence: number
+  reason?: ReasonTypes
 }

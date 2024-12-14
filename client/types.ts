@@ -1,5 +1,11 @@
 export type Labels = 'spam' | 'ham'
 
+export type ReasonTypes =
+  | 'classifier'
+  | 'duplicate'
+  | 'totem'
+  | 'cas'
+
 export type LabeledExample = {
   label: Labels
   text: string
@@ -10,6 +16,7 @@ export type UnlabeledExample = {
 }
 
 export type Prediction = {
+  reason: ReasonTypes
   value: Labels
   confidence: number
 }

@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { LogisticRegressionClassifier } from 'natural'
+import type { Logger } from 'pino'
 
 import { getStemmer } from '../models/getStemmer'
 import { LogisticRegressionTrainWorker } from './LogisticRegressionTrainWorker'
@@ -13,7 +14,12 @@ export class LogisticRegressionModel implements IModel {
 
   public type = 'logistic-regression' as const
 
-  constructor(private modelId: string, private modelFilename: string, private lang: StemmerLanguage) {
+  constructor(
+    private modelId: string,
+    private modelFilename: string,
+    private lang: StemmerLanguage,
+    private logger: Logger
+  ) {
     this.trainWorker = new LogisticRegressionTrainWorker(modelFilename, lang)
     this.ready = this.revive()
   }
@@ -26,7 +32,8 @@ export class LogisticRegressionModel implements IModel {
 
       return {
         value: classifications[0].label as Labels,
-        confidence: classifications[0].value
+        confidence: classifications[0].value,
+        reason: 'classifier'
       }
     } catch (e) {
       console.error(e)

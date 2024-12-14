@@ -1,5 +1,6 @@
 import path from 'node:path'
 import createKnex, { Knex } from 'knex'
+import type { Logger } from 'pino'
 import type { ITotems } from "./types";
 
 interface TotemRecord {
@@ -15,11 +16,12 @@ export class Totems implements ITotems {
 
   constructor(
     private modelsDirname: string,
-    private modelId: string
+    private modelId: string,
+    private logger: Logger
   ) {
     this.knex = createKnex({
       client: 'sqlite3',
-      connection: { filename: path.join(modelsDirname, `totems-${modelId}.sqlite3`) },
+      connection: { filename: path.join(this.modelsDirname, `totems-${this.modelId}.sqlite3`) },
       useNullAsDefault: true
     })
 
@@ -89,4 +91,8 @@ export class Totems implements ITotems {
       .delete()
       .where('tgUserId', tgUserId)
   }
+
+  onCreated() { }
+
+  onRemoved() { }
 }
