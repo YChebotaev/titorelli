@@ -1,15 +1,15 @@
 import path from 'node:path'
 
 import { mkdirp } from 'mkdirp'
+import replaceExt from 'replace-ext'
 
 import { YandexGptModel } from './models/YandexGpt'
 import { LogisticRegressionModel } from './models/LogisticRegression'
 import { EnsembleModel } from './models/Ensemble'
 import { CustomRulesModel } from './models/CustomRules'
 import type { ModelType } from '../types'
-import type { IModel } from './models'
+import { ExactMatchModel, type IModel } from './models'
 import { VowpalWabbitModel } from './models/VowpalWabbit'
-import replaceExt from 'replace-ext'
 
 export const createModel = async (
   modelsDirname: string,
@@ -33,9 +33,8 @@ export const createModel = async (
 
     case 'ensemble':
       return new EnsembleModel(modelId, [
-        await createModel(modelsDirname, 'yandex-gpt', modelId),
-        await createModel(modelsDirname, 'logistic-regression', modelId),
-        await createModel(modelsDirname, 'custom-rules', modelId)
+        await createModel(modelsDirname, 'exact-match', modelId),
+        await createModel(modelsDirname, 'logistic-regression', modelId)
       ])
 
     case 'custom-rules':
@@ -44,7 +43,10 @@ export const createModel = async (
     case 'vowpal-wabbit':
       return new VowpalWabbitModel(modelId, replaceExt(modelFilename, '.vw'))
 
+    case 'exact-match':
+      return new ExactMatchModel(modelId, replaceExt(modelFilename, '.sqlite3'))
+
     default:
-      return null
+      throw 'unreachable'
   }
 }

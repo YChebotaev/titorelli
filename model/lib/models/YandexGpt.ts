@@ -10,7 +10,7 @@ export type ClassifyMessageResponse = {
 export class YandexGptModel implements IModel {
   public type = 'yandex-gpt' as const
 
-  constructor(private modelId: string, private modelFilename, private functionUrl: string) {
+  constructor(private modelId: string, private modelFilename: string, private functionUrl: string) {
   }
 
   async predict(example: UnlabeledExample): Promise<Prediction | null> {

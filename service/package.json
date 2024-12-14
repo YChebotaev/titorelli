@@ -19,7 +19,7 @@
     "fastify": "^5.1.0",
     "mkdirp": "^3.0.1",
     "nodemon": "^3.0.1",
-    "pino": "^8.16.1",
+    "pino": "^8.21.0",
     "pino-pretty": "^10.2.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.7.2",

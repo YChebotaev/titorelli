@@ -5,12 +5,17 @@
   "main": "index.ts",
   "author": "YChebotaev",
   "license": "UNLICENSED",
+  "scripts": {
+    "test": "ts-node test.ts -- --test"
+  },
   "dependencies": {
-    "csv": "^6.3.11",
     "@vowpalwabbit/vowpalwabbit": "^0.0.8",
+    "csv": "^6.3.11",
+    "knex": "^3.1.0",
     "mkdirp": "^3.0.1",
     "natural": "^6.8.0",
-    "replace-ext": "^2.0.0"
+    "replace-ext": "^2.0.0",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@types/replace-ext": "^2.0.2"

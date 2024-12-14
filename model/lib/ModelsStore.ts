@@ -61,8 +61,11 @@ class ModelHolder {
 export class ModelsStore {
   private internal = new Map<string, ModelHolder>()
 
-  constructor(private modelsDirname, private modelType: ModelType, private storeTimeoutMs: number) {
-  }
+  constructor(
+    private modelsDirname: string,
+    private modelType: ModelType,
+    private storeTimeoutMs: number
+  ) { }
 
   async getOrCreate(modelId: string) {
     let holder = this.get(modelId)
