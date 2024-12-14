@@ -7,7 +7,8 @@
     "start": "ts-node --require dotenv/register index.ts",
     "trainSpam": "ts-node --require dotenv/register trainSpam.ts",
     "validate": "ts-node validate.ts",
-    "vowpalWabbitTrain": "ts-node vowpalWabbitTrain.ts"
+    "vowpalWabbitTrain": "ts-node vowpalWabbitTrain.ts",
+    "wordstat": "ts-node wordstat.ts"
   },
   "author": "YChebotaev",
   "license": "UNLICENSED",
@@ -16,7 +17,8 @@
     "dotenv": "^16.4.5",
     "lodash": "^4.17.21",
     "mkdirp": "^3.0.1",
-    "natural": "^8.0.1"
+    "natural": "^8.0.1",
+    "stopwords-ru": "^0.3.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.202",
