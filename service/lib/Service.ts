@@ -207,11 +207,7 @@ export class Service {
           }
 
           {
-            console.log('totem check')
-
             const totemPrediction = await this.checkTotem(modelId, tgUserId)
-
-            console.log('totemPrediction =', totemPrediction)
 
             if (totemPrediction != null)
               return totemPrediction

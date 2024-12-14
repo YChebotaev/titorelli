@@ -66,6 +66,14 @@ export class TitorelliClient {
     return data
   }
 
+  async trainTotem(tgUserId: number) {
+    await this.ready
+
+    const { data } = await this.axios.post<void>(`/models/${this.modelId}/totems/train`, { tgUserId })
+
+    return data
+  }
+
   private async initialize({ scope }: { scope: string | string[] }) {
     const authResult = await this.authenticate({ scope })
 
