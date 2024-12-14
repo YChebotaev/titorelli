@@ -8,13 +8,15 @@
     "trainSpam": "ts-node --require dotenv/register trainSpam.ts",
     "validate": "ts-node validate.ts",
     "vowpalWabbitTrain": "ts-node vowpalWabbitTrain.ts",
-    "wordstat": "ts-node wordstat.ts"
+    "wordstat": "ts-node wordstat.ts",
+    "importTotems": "ts-node importTotems.ts"
   },
   "author": "YChebotaev",
   "license": "UNLICENSED",
   "dependencies": {
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
+    "knex": "^3.1.0",
     "lodash": "^4.17.21",
     "mkdirp": "^3.0.1",
     "natural": "^8.0.1",

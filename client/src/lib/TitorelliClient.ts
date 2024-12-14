@@ -53,7 +53,7 @@ export class TitorelliClient {
   async trainExactMatch(example: LabeledExample) {
     await this.ready
 
-    const { data } = await this.axios.post<void>(`/models/${this.modelId}/exact-match/train`, example)
+    const { data } = await this.axios.post<void>(`/models/${this.modelId}/exact_match/train`, example)
 
     return data
   }
