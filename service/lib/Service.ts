@@ -452,7 +452,12 @@ export class Service {
           throw new Error('Client credentials not valid')
 
         const requestScopes = body.scope?.split(' ').map(s => s.trim()).filter(s => s) ?? []
+
+        console.log('requestScopes =', requestScopes)
+
         const scopes = requestScopes.filter(s => client.scopes.includes(s))
+
+        console.log('scope =', scopes)
 
         const token = this.service.jwt.sign({
           sub: body.client_id,

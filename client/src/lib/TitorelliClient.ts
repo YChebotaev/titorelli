@@ -89,12 +89,15 @@ export class TitorelliClient {
 
     const getClientCredentials = clientCredentials(this.axios, url, this.clientId, this.clientSecret)
 
-    const finalScope = [scope].flatMap(scope => {
-      if (scope === 'cas/train')
-        return scope
+    const finalScope = []
+      .concat(scope)
+      .map(scope => {
+        if (scope === 'cas/train')
+          return scope
 
-      return `${this.modelId}/${scope}`
-    })
+        return `${this.modelId}/${scope}`
+      })
+      .join(' ')
 
     return getClientCredentials(finalScope)
   }
