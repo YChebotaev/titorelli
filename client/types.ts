@@ -20,10 +20,3 @@ export type Prediction = {
   value: Labels
   confidence: number
 }
-
-export type ClientScopes =
-  | 'predict'
-  | 'train'
-  | 'train_bulk'
-  | 'exact_match/train'
-  | 'cas/train'

@@ -1,13 +1,13 @@
 import axios, { type AxiosInstance } from 'axios'
 import { clientCredentials } from 'axios-oauth-client'
-import type { Prediction, UnlabeledExample, LabeledExample, ClientScopes } from '../../types'
+import type { Prediction, UnlabeledExample, LabeledExample } from '../../types'
 
 export type TitorelliClientConfig = {
   serviceUrl: string
   clientId: string
   clientSecret: string
   modelId: string
-  scope?: ClientScopes | ClientScopes[]
+  scope?: string | string[]
 }
 
 export class TitorelliClient {
@@ -66,7 +66,7 @@ export class TitorelliClient {
     return data
   }
 
-  private async initialize({ scope }: { scope: ClientScopes | ClientScopes[] }) {
+  private async initialize({ scope }: { scope: string | string[] }) {
     const authResult = await this.authenticate({ scope })
 
     this.axios.interceptors.request.use((config) => {
@@ -76,7 +76,7 @@ export class TitorelliClient {
     })
   }
 
-  private async authenticate({ scope }: { scope: ClientScopes | ClientScopes[] }) {
+  private async authenticate({ scope }: { scope: string | string[] }) {
     const url = new URL('/oauth2/token', this.serviceUrl).toString()
 
     const getClientCredentials = clientCredentials(this.axios, url, this.clientId, this.clientSecret)
