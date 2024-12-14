@@ -3,10 +3,9 @@ import fastifyFormbody from '@fastify/formbody'
 import fastifyJwt, { type FastifyJwtNamespace } from '@fastify/jwt'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
-import { ModelsStore, Prediction } from "@titorelli/model"
-import { scopeGuard } from './scopeGuard'
-import type { ClientScopes, ServiceAuthClient } from './types'
-import { ICas } from '@titorelli/model/lib/types'
+import type { Logger } from 'pino'
+import { EnsembleModel, LabeledExample, ModelsStore, Prediction, type ICas } from "@titorelli/model"
+import type { ServiceAuthClient } from './types'
 
 declare module 'fastify' {
   interface FastifyInstance extends FastifyJwtNamespace<{ namespace: 'jwt' }> {
@@ -17,6 +16,7 @@ declare module 'fastify' {
 export type ServiceConfig = {
   port: number
   host: string
+  logger: Logger,
   store: ModelsStore
   cas: ICas
   jwtSecret: string
@@ -25,11 +25,11 @@ export type ServiceConfig = {
 
 export type JwtTokenPayload = {
   sub: string,
-  scopes: ClientScopes[]
+  scopes: string[]
 }
 
 export class Service {
-  private ready: Promise<void>
+  private logger: Logger
   private store: ModelsStore
   private cas: ICas
   private service: FastifyInstance
@@ -37,8 +37,16 @@ export class Service {
   private host: string
   private jwtSecret: string
   private oauthClients: ServiceAuthClient[]
+  private ready: Promise<void>
+  private modelPredictPath = '/models/:modelId/predict'
+  private modelTrainPath = '/models/:modelId/train'
+  private modelTrainBulkPath = '/models/:modelId/train_bulk'
+  private modelExactMatchTrainPath = '/models/:modelId/exact_match/train'
+  private casTrainPath = '/cas/train'
+  private ouathTokenPath = '/oauth2/token'
 
-  constructor({ port, host, store, cas, jwtSecret, oauthClients }: ServiceConfig) {
+  constructor({ port, host, logger, store, cas, jwtSecret, oauthClients }: ServiceConfig) {
+    this.logger = logger
     this.store = store
     this.cas = cas
     this.port = port
@@ -55,34 +63,58 @@ export class Service {
   }
 
   private async initialize() {
-    const store = this.store
-    const cas = this.cas
+    this.service = fastify({ loggerInstance: this.logger })
 
-    this.service = fastify()
+    await this.installPluginsBegin()
+    await this.installModelPredictRoute()
+    await this.installModelTrainRoute()
+    await this.installModelTrainBulkRoute()
+    await this.installModelExactMatchTrainRoute()
+    await this.installCasTrainRoute()
+    await this.installOauthTokenRoute()
+    await this.installPluginsEnd()
+  }
 
-    const verifyToken = (req, reply, done) => {
-      const token = this.service.jwt.lookupToken(req)
+  private verifyToken = (req, reply, done) => {
+    const token = this.service.jwt.lookupToken(req)
 
-      try {
-        this.service.jwt.verify(token)
+    try {
+      this.service.jwt.verify(token)
 
-        done()
-      } catch (error) {
-        reply.send(error)
-      }
+      done()
+    } catch (error) {
+      this.logger.error(error)
+
+      reply.send(error)
     }
+  }
 
-    const allowScope = (scopeSuffix: string) => {
-      return (req, reply, done) => {
-        const { params: { modelId } } = req
-        const { sub, scopes } = this.service.jwt.decode<JwtTokenPayload>(this.service.jwt.lookupToken(req))
+  private allowScopeTemplate = (scopePostfix: string) => {
+    return (req, _reply, done) => {
+      const { params: { modelId } } = req
+      const { sub, scopes } = this.service.jwt.decode<JwtTokenPayload>(this.service.jwt.lookupToken(req))
 
-        scopeGuard(sub, modelId, scopeSuffix, scopes)
+      const finalScope = `${modelId}/${scopePostfix}`
 
-        done()
-      }
+      if (!scopes.includes(finalScope))
+        throw new Error(`Client with id = '${sub}' don't have scope ${finalScope} for this operation`)
+
+      done()
     }
+  }
 
+  private allowScopeExact = (testScope: string) => {
+    return (req, _reply, done) => {
+      const { sub, scopes } = this.service.jwt.decode<JwtTokenPayload>(this.service.jwt.lookupToken(req))
+
+      if (!scopes.includes(testScope))
+        throw new Error(`Client with id = ${sub} don't have scope ${testScope} for this operatiob`)
+
+      done()
+    }
+  }
+
+  private async installPluginsBegin() {
     await this.service.register(fastifyFormbody)
     await this.service.register(fastifyJwt, { secret: this.jwtSecret })
     await this.service.register(fastifySwagger, {
@@ -105,8 +137,10 @@ export class Service {
         ]
       }
     })
+  }
 
-    this.service.post<{
+  private async installModelPredictRoute() {
+    await this.service.post<{
       Body: {
         text: string
         tgUserId?: number
@@ -114,34 +148,35 @@ export class Service {
       Params: {
         modelId: string
       }
-    }>('/:modelId/predict', {
-      onRequest: [verifyToken, allowScope('predict')],
-      schema: {
-        body: {
-          type: 'object',
-          required: ['text'],
-          properties: {
-            text: {
-              type: 'string'
-            },
-            tgUserId: { type: 'number' }
-          }
-        },
-        response: {
-          200: {
+    }>(
+      this.modelPredictPath,
+      {
+        onRequest: [this.verifyToken, this.allowScopeTemplate('predict')],
+        schema: {
+          body: {
             type: 'object',
+            required: ['text'],
             properties: {
-              value: { type: 'string' },
-              confidence: { type: 'number' },
+              text: { type: 'string' },
+              tgUserId: { type: 'number' }
+            }
+          },
+          response: {
+            200: {
+              type: 'object',
+              properties: {
+                value: { type: 'string' },
+                confidence: { type: 'number' },
+              }
             }
           }
         }
       },
-      async handler(req) {
+      async (req) => {
         const { params: { modelId }, body: { text, tgUserId } } = req
 
         if (tgUserId != null) {
-          const casBan = await cas.has(tgUserId)
+          const casBan = await this.cas.has(tgUserId)
 
           if (casBan) {
             return {
@@ -151,13 +186,15 @@ export class Service {
           }
         }
 
-        const model = await store.getOrCreate(modelId)
+        const model = await this.store.getOrCreate(modelId)
 
         return model.predict({ text })
       }
-    })
+    )
+  }
 
-    this.service.post<{
+  private async installModelTrainRoute() {
+    await this.service.post<{
       Body: {
         label: 'spam' | 'ham'
         text: string
@@ -165,8 +202,8 @@ export class Service {
       Params: {
         modelId: string
       }
-    }>('/:modelId/train', {
-      onRequest: [verifyToken, allowScope('train')],
+    }>(this.modelTrainPath, {
+      onRequest: [this.verifyToken, this.allowScopeTemplate('train')],
       schema: {
         body: {
           type: 'object',
@@ -181,19 +218,16 @@ export class Service {
           }
         }
       },
-      async handler(req) {
-        const { params: { modelId }, body: { text, label } } = req
-        // const { sub, scopes } = this.jwt.decode<JwtTokenPayload>(this.jwt.lookupToken(req))
 
-        // scopeGuard(sub, modelId, 'train', scopes)
+    }, async ({ params: { modelId }, body: { text, label } }) => {
+      const model = await this.store.getOrCreate(modelId)
 
-        const model = await store.getOrCreate(modelId)
-
-        await model.train({ text, label })
-      }
+      await model.train({ text, label })
     })
+  }
 
-    this.service.post<{
+  private async installModelTrainBulkRoute() {
+    await this.service.post<{
       Body: {
         label: 'spam' | 'ham'
         text: string
@@ -201,93 +235,155 @@ export class Service {
       Params: {
         modelId: string
       }
-    }>('/:modelId/train_bulk', {
-      onRequest: [verifyToken, allowScope('train_bulk')],
-      schema: {
-        body: {
-          type: 'array',
-          items: {
-            type: 'object',
-            required: ['text', 'label'],
-            properties: {
-              label: {
-                enum: ['spam', 'ham']
-              },
-              text: {
-                type: 'string'
+    }>(
+      this.modelTrainBulkPath,
+      {
+        onRequest: [this.verifyToken, this.allowScopeTemplate('train_bulk')],
+        schema: {
+          body: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['text', 'label'],
+              properties: {
+                label: {
+                  enum: ['spam', 'ham']
+                },
+                text: {
+                  type: 'string'
+                }
               }
             }
           }
         }
       },
-      async handler(req) {
+      async (req) => {
         const { params: { modelId }, body: examples } = req
-        // const { sub, scopes } = this.jwt.decode<JwtTokenPayload>(this.jwt.lookupToken(req))
 
-        // scopeGuard(sub, modelId, 'train', scopes)
-
-        const model = await store.getOrCreate(modelId)
+        const model = await this.store.getOrCreate(modelId)
 
         await model.trainBulk(examples)
-      }
-    })
+      })
+  }
 
-    this.service.post<{
+  private async installModelExactMatchTrainRoute() {
+    await this.service.post<{
+      Body: LabeledExample,
+      Params: {
+        modelId: string
+      }
+    }>(
+      this.modelExactMatchTrainPath,
+      {
+        onRequest: [this.verifyToken, this.allowScopeTemplate('exact_match/train')],
+        schema: {
+          params: {
+            type: 'object',
+            properties: {
+              'modelId': { type: 'string' }
+            }
+          },
+          body: {
+            type: 'object',
+            properties: {
+              text: { type: 'string' },
+              label: { enum: ['spam', 'ham'] }
+            }
+          }
+        }
+      },
+      async ({ params: { modelId }, body }) => {
+        const ensemble = await this.store.getOrCreate(modelId) as Awaited<EnsembleModel>
+        const emModel = ensemble.getModelByType('exact-match')
+
+        if (!emModel)
+          return null
+
+        await emModel.train(body)
+      })
+  }
+
+  private async installCasTrainRoute() {
+    await this.service.post<{
+      Body: {
+        tgUserId: number
+      }
+    }>(this.casTrainPath, {
+      onRequest: [this.verifyToken, this.allowScopeExact('cas/train')],
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            tgUserId: { type: 'number' }
+          }
+        }
+      }
+    }, async ({ body: { tgUserId } }) => {
+      await this.cas.add(tgUserId)
+    })
+  }
+
+  private async installOauthTokenRoute() {
+    await this.service.post<{
       Body: {
         grant_type: 'client_credentials'
         client_id: string
         client_secret: string
         scope: string
       }
-    }>('/oauth2/token', {
-      schema: {
-        body: {
-          type: 'object',
-          properties: {
-            grant_type: { enum: ['client_credentials'] },
-            client_id: { type: 'string' },
-            client_secret: { type: 'string' },
-            scope: { type: 'string' }
-          }
-        },
-        response: {
-          200: {
+    }>(
+      this.ouathTokenPath,
+      {
+        schema: {
+          body: {
             type: 'object',
             properties: {
-              access_token: { type: 'string' },
-              token_type: { enum: ['Bearer'] },
-              expires_id: { type: 'number' },
+              grant_type: { enum: ['client_credentials'] },
+              client_id: { type: 'string' },
+              client_secret: { type: 'string' },
               scope: { type: 'string' }
+            }
+          },
+          response: {
+            200: {
+              type: 'object',
+              properties: {
+                access_token: { type: 'string' },
+                token_type: { enum: ['Bearer'] },
+                expires_id: { type: 'number' },
+                scope: { type: 'string' }
+              }
             }
           }
         }
-      }
-    }, ({ body }) => {
-      const client = this.oauthClients.find(({ id }) => id === body.client_id)
+      }, ({ body }) => {
+        const client = this.oauthClients.find(({ id }) => id === body.client_id)
 
-      if (!client) {
-        throw new Error(`Client with id = "${body.client_id}" not registered within system`)
-      }
+        if (!client) {
+          throw new Error(`Client with id = "${body.client_id}" not registered within system`)
+        }
 
-      if (client.secret !== body.client_secret)
-        throw new Error('Client credentials not valid')
+        if (client.secret !== body.client_secret)
+          throw new Error('Client credentials not valid')
 
-      const requestScopes = body.scope?.split(' ').map(s => s.trim()).filter(s => s) ?? []
-      const scopes = requestScopes.filter(s => client.scopes.includes(s as ClientScopes))
+        const requestScopes = body.scope?.split(' ').map(s => s.trim()).filter(s => s) ?? []
+        const scopes = requestScopes.filter(s => client.scopes.includes(s))
 
-      const token = this.service.jwt.sign({
-        sub: body.client_id,
-        scopes: scopes
+        const token = this.service.jwt.sign({
+          sub: body.client_id,
+          scopes: scopes
+        })
+
+        return {
+          access_token: token,
+          token_type: 'Bearer',
+          expires_id: -1,
+          scope: scopes.join(' ')
+        }
       })
+  }
 
-      return {
-        access_token: token,
-        token_type: 'Bearer',
-        expires_id: -1,
-        scope: scopes.join(' ')
-      }
-    })
-
+  private async installPluginsEnd() {
     await this.service.register(fastifySwaggerUi)
   }
 }

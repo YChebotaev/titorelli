@@ -5,52 +5,21 @@ export class EnsembleModel implements IModel {
   public type = 'ensemble' as const
 
   constructor(
-    private modelId,
-    private models: IModel[],
-    private enableLearningFromCustomRules: boolean = false
+    private modelId: string,
+    private models: IModel[]
   ) {
   }
 
   async predict(example: UnlabeledExample): Promise<Prediction | null> {
-    const customRules = this.getModelByType('custom-rules')
-    const logisticRegression = this.getModelByType('logistic-regression')
-    const yandexGpt = this.getModelByType('yandex-gpt')
+    const exactMatchModel = this.getModelByType('exact-match')!
+    const logisticRegressionModel = this.getModelByType('logistic-regression')!
 
-    if (!logisticRegression || !yandexGpt)
-      throw new Error('Some models are not provided')
+    const emPrediction = await exactMatchModel.predict(example)
 
-    if (customRules) {
-      const crPrediction = await customRules.predict(example)
+    if (emPrediction)
+      return emPrediction
 
-      if (crPrediction.value === 'spam') {
-        if (this.enableLearningFromCustomRules) {
-          void this.train({ text: example.text, label: crPrediction.value })
-        }
-
-        return crPrediction
-      }
-    }
-
-    const lrPrediction = await logisticRegression.predict(example)
-
-    if (!lrPrediction)
-      throw new Error('Cannot get prediction from logistic-regression model')
-
-    const isUncertain = lrPrediction.confidence <= 0.6
-
-    if (isUncertain) {
-      const yGptPrediction = await yandexGpt.predict(example)
-
-      if (!yGptPrediction) throw new Error('Cannot get prediction from yandex-gpt model')
-
-      switch (`${lrPrediction.value}-${yGptPrediction.value}`) {
-        case 'ham-ham': return { value: 'ham', confidence: 1 }
-        case 'spam-spam': return { value: 'spam', confidence: 1 }
-        case 'ham-spam':
-        case 'spam-ham':
-          return [lrPrediction, yGptPrediction].sort((a, b) => b.confidence - a.confidence)[0]
-      }
-    }
+    const lrPrediction = await logisticRegressionModel.predict(example)
 
     return lrPrediction
   }
@@ -67,7 +36,7 @@ export class EnsembleModel implements IModel {
     )
   }
 
-  private getModelByType(type: ModelType) {
+  getModelByType(type: ModelType) {
     return this.models.find((model) => model.type === type)
   }
 
