@@ -9,7 +9,8 @@
     "validate": "ts-node validate.ts",
     "vowpalWabbitTrain": "ts-node vowpalWabbitTrain.ts",
     "wordstat": "ts-node wordstat.ts",
-    "importTotems": "ts-node importTotems.ts"
+    "importTotems": "ts-node importTotems.ts",
+    "gptVerify": "ts-node gptVerify.ts"
   },
   "author": "YChebotaev",
   "license": "UNLICENSED",

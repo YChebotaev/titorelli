@@ -1,5 +1,5 @@
+export * from './cas'
 export * from './models'
-export * from './Cas'
 export * from './createModel'
 export * from './TemporaryStorage'
 export * from './Totems'

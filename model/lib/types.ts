@@ -1,9 +1,3 @@
-export interface ICas {
-  has(id: number): Promise<boolean>
-
-  add(id: number): Promise<void>
-}
-
 export interface ITotems {
   has(tgUserId: number): Promise<boolean>
 
