@@ -20,3 +20,9 @@ export type Prediction = {
   value: Labels
   confidence: number
 }
+
+export type AuthenticationResult = {
+  access_token: string
+  token_type: string
+  scope: string
+}
