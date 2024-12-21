@@ -1,9 +1,10 @@
+import path from 'node:path'
 import pino from 'pino'
 
 import { LolsAntispam } from './lib/cas/Lols'
 
 const lolsAntispam = async () => {
-  const lols = new LolsAntispam(pino())
+  const lols = new LolsAntispam(path.join(__dirname, 'lols-test.sqlite3'), pino())
 
   {
     const isBanned = await lols.has(8064601006)

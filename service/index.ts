@@ -2,7 +2,15 @@ import path from 'node:path'
 import { readFileSync, existsSync } from 'node:fs'
 import yaml from 'yaml'
 import pino from 'pino'
-import { CasAntispam, CascadeAntispam, createModel, LolsAntispam, TemporaryStorage, Totems, type ITotems } from '@titorelli/model'
+import {
+  CasAntispam,
+  CascadeAntispam,
+  createModel,
+  LolsAntispam,
+  TemporaryStorage,
+  Totems,
+  type ITotems
+} from '@titorelli/model'
 import { Service } from './lib/Service'
 
 const oauthClientsFilename = path.join(__dirname, 'oauth-clients.yaml')
@@ -26,7 +34,7 @@ new Service({
   ),
   cas: new CascadeAntispam([
     new CasAntispam(path.join(__dirname, 'data/cas.csv'), logger),
-    new LolsAntispam(logger)
+    new LolsAntispam(path.join(__dirname, 'data/lols.sqlite3'), logger)
   ], logger),
   totemsStore: new TemporaryStorage<ITotems, [string]>(
     (modelId: string) =>
