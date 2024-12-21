@@ -1,1 +1,2 @@
 inventory.yml
+templates/service/oauth-clients.yaml.j2
