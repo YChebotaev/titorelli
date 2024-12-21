@@ -1,0 +1,25 @@
+---
+- name: Deploy titorelli
+  hosts: titorelli
+  remote_user: root
+  tasks:
+    - name: Pull the code
+      ansible.builtin.git:
+        repo: "{{repository_url}}"
+        dest: "{{root_dir}}"
+    - name: Install monorepo dependencies
+      community.general.npm:
+        path: "{{root_dir}}"
+        ci: true
+    - name: Copy service env
+      ansible.builtin.template:
+        src: service/.env.j2
+        dest: "{{root_dir}}/service/.env"
+    - name: Copy service oauth clients
+      ansible.builtin.template:
+        src: service/oauth-clients.yaml.j2
+        dest: "{{root_dir}}/service/oauth-clients.yaml"
+    - name: Restart service
+      ansible.builtin.shell:
+        cmd: pm2 restart titorelli-service
+        chdir: "{{root_dir}}"
