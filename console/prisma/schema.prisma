@@ -10,16 +10,54 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id            Int         @id @default(autoincrement())
+  username      String
+  contacts      UserContact[]
+  passwordHash  String
+  passwordSalt  String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  @@index([username])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
+model UserContact {
+  id            Int         @id @default(autoincrement())
+  // 'email' | 'phone' | 'tg-username' | 'tg-user-id'
+  type          String
+  email         String?
+  phone         String?
+  tgUsername    String?
+  tgUserId      String?
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  @@index([type])
+  @@index([email])
+  @@index([createdAt])
+  @@index([updatedAt])
+}
+
 model Client {
-  id          Int         @id @default(autoincrement())
-  secretHash  String
-  role        String                                      // 'bot' | 'console'
-  scopes      String                                      /* [
-                                                            | ':modelId/predict'
-                                                            | ':modelId/train'
-                                                            | ':modelId/exact_match/train'
-                                                            | ':modelId/totems/train'
-                                                            | 'cas/train'
-                                                            | 'console/clients'
-                                                          ] */  
+  id            Int         @id @default(autoincrement())
+  secretHash    String
+  secretSalt    String
+  // 'bot' | 'console'
+  role          String
+  /* [
+    | ':modelId/predict'
+    | ':modelId/train'
+    | ':modelId/exact_match/train'
+    | ':modelId/totems/train'
+    | 'cas/train'
+    | 'console/clients'
+  ] */
+  scopes        String  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  @@index([createdAt])
+  @@index([updatedAt])
 }
