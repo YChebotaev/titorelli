@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id          Int         @id @default(autoincrement())
+  secretHash  String
+  role        String                                      // 'bot' | 'console'
+  scopes      String                                      /* [
+                                                            | ':modelId/predict'
+                                                            | ':modelId/train'
+                                                            | ':modelId/exact_match/train'
+                                                            | ':modelId/totems/train'
+                                                            | 'cas/train'
+                                                            | 'console/clients'
+                                                          ] */  
+}
