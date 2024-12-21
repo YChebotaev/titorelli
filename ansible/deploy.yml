@@ -19,6 +19,14 @@
       ansible.builtin.template:
         src: service/oauth-clients.yaml.j2
         dest: "{{root_dir}}/service/oauth-clients.yaml"
+    - name: Copy console env
+      ansible.builtin.template:
+        src: console/.env.j2
+        dest: "{{root_dir}}/console/.env"
+    - name: Migrate console db
+      ansible.builtin.shell:
+        cmd: npx prisma migrate dev
+        chdir: "{{root_dir}}"
     - name: Restart service
       ansible.builtin.shell:
         cmd: pm2 restart titorelli-service
