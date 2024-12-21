@@ -1,0 +1,25 @@
+name: Client build and publish
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install node
+        uses: actions/setup-node@v4.1.0
+        with:
+          node-version: 20.18.1
+      - name: Npm install
+        run: npm ci
+      - name: Npm build
+        run: "cd client && npm run build"
+      - name: Npm publish
+        uses: JS-DevTools/npm-publish@v3.1.1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          package: client
+          access: public
