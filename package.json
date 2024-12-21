@@ -3,7 +3,8 @@
     "service",
     "model",
     "client",
-    "coach"
+    "coach",
+    "console"
   ],
   "author": "YChebotaev",
   "license": "UNLICENSED"
