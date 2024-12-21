@@ -70,7 +70,7 @@ export class LolsAntispam implements ICas {
     if (await this.hasTable())
       return
 
-    await this.knex.schema.createTable('examples', table => {
+    await this.knex.schema.createTable('lols', table => {
       table.increments('id').primary()
       table.integer('tgUserId')
 
