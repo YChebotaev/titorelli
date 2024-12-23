@@ -107,6 +107,39 @@ export class UserService {
     })
   }
 
+  async tryLogin(identity: string, rawPassword: string): Promise<[boolean, number | null]> {
+    let user = await this.getUserByUsername(identity)
+
+    if (user == null) {
+      user = await this.getUserByEmail(identity)
+    }
+
+    if (user == null) {
+      user = await this.getUserByPhone(identity)
+    }
+
+    if (user) {
+      const rawPasswordHash = this.hashPassword(rawPassword, user.passwordSalt)
+
+      return [
+        rawPasswordHash === user.passwordHash,
+        user.id
+      ]
+    }
+
+    return [false, null]
+  }
+
+  async getUserByUsername(username: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        username
+      }
+    })
+
+    return user ?? null
+  }
+
   async getUserByEmail(email: string) {
     const contact = await this.prisma.userContact.findFirst({
       where: {
@@ -118,18 +151,23 @@ export class UserService {
       }
     })
 
-    return contact?.user
+    return contact?.user ?? null
   }
 
-  async tryLogin(email: string, rawPassword: string) {
-    const user = await this.getUserByEmail(email)
+  async getUserByPhone(rawPhone: string) {
+    const phone = this.formatPhoneNumber(rawPhone)
 
-    if (!user)
-      throw new Error('Such user not found')
+    const contact = await this.prisma.userContact.findFirst({
+      where: {
+        type: 'phone',
+        phone
+      },
+      include: {
+        user: true
+      }
+    })
 
-    const rawPasswordHash = this.hashPassword(rawPassword, user.passwordSalt)
-
-    return rawPasswordHash === user.passwordHash
+    return contact?.user ?? null
   }
 
   validateUsername(username: string) {

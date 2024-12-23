@@ -39,12 +39,8 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
   const [{ defaultValues, errors }, formAction] =
     useActionState<SignupFormState>(action, signupFormInitialState);
 
-  console.log("defaultValues =", defaultValues);
-  console.log("errors =", errors);
-
   return (
     <form
-      // method="POST"
       action={formAction}
       className={cn("flex flex-col gap-6", className)}
       {...props}
