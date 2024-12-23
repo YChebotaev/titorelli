@@ -65,7 +65,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
             name="username"
             defaultValue={defaultValues.username}
             placeholder=""
-            /*required*/
+            required
           />
           <FieldHelp>Через ник можно будет войти</FieldHelp>
         </div>
@@ -77,7 +77,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
             name="email"
             defaultValue={defaultValues.email}
             placeholder="oleg@example.com"
-            /*required*/
+            required
           />
           <FieldError errors={errors} field="email" />
           <FieldHelp>
@@ -93,7 +93,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
             name="phone"
             defaultValue={defaultValues.phone}
             placeholder="+7 123 456 78 90"
-            /*required*/
+            required
           />
           <FieldError errors={errors} field="phone" />
         </div>
@@ -101,7 +101,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
           <div className="flex items-center">
             <Label htmlFor="password">Пароль</Label>
           </div>
-          <Input id="password" type="password" name="password" /*required*/ />
+          <Input id="password" type="password" name="password" required />
           <FieldError errors={{}} field="password" />
           <FieldHelp>Пароль нужно вводить при входе</FieldHelp>
         </div>
@@ -113,7 +113,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
             id="password-confirm"
             type="password"
             name="password_confirm"
-            /*required*/
+            required
           />
           <FieldError errors={errors} field="password" />
         </div>
@@ -124,7 +124,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
                 defaultChecked={defaultValues.accept_terms}
                 name="accept_terms"
                 id="accept-terms"
-                /*required*/
+                required
               ></Checkbox>
               <label
                 htmlFor="accept-terms"
@@ -143,7 +143,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
                 defaultChecked={defaultValues.accept_pdp}
                 name="accept_pdp"
                 id="accept-pdp"
-                /*required*/
+                required
               ></Checkbox>
               <label
                 htmlFor="accept-pd["
@@ -162,7 +162,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
                 defaultChecked={defaultValues.accept_subscription}
                 name="accept_subscription"
                 id="accept-subscription"
-                /*required*/
+                required
               ></Checkbox>
               <label
                 htmlFor="accept-subscription"
