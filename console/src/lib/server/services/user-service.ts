@@ -108,15 +108,7 @@ export class UserService {
   }
 
   async tryLogin(identity: string, rawPassword: string): Promise<[boolean, number | null]> {
-    let user = await this.getUserByUsername(identity)
-
-    if (user == null) {
-      user = await this.getUserByEmail(identity)
-    }
-
-    if (user == null) {
-      user = await this.getUserByPhone(identity)
-    }
+    const user = await this.getUserByIdentnty(identity)
 
     if (user) {
       const rawPasswordHash = this.hashPassword(rawPassword, user.passwordSalt)
@@ -128,6 +120,30 @@ export class UserService {
     }
 
     return [false, null]
+  }
+
+  async tryRestore(identity: string): Promise<[boolean, number | null]> {
+    const user = await this.getUserByIdentnty(identity)
+
+    if (user) {
+      return [true, user.id]
+    }
+
+    return [false, null]
+  }
+
+  private async getUserByIdentnty(identity: string) {
+    let user = await this.getUserByUsername(identity)
+
+    if (user == null) {
+      user = await this.getUserByEmail(identity)
+    }
+
+    if (user == null) {
+      user = await this.getUserByUsername(identity)
+    }
+
+    return user
   }
 
   async getUserByUsername(username: string) {

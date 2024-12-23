@@ -98,8 +98,8 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
             <Label htmlFor="password">Пароль</Label>
           </div>
           <Input id="password" type="password" name="password" required />
-          <FieldError errors={{}} field="password" />
-          <FieldHelp>Пароль нужно вводить при входе</FieldHelp>
+          <FieldError errors={errors} field="password" />
+          <FieldHelp>Запомните, запишите или сохрание пароль в надежном месте</FieldHelp>
         </div>
         <div className="grid gap-2">
           <div className="flex items-center">
