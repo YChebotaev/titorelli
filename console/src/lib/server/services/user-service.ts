@@ -1,6 +1,8 @@
 import { createHash, randomBytes } from 'node:crypto'
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { prismaClient } from '@/lib/server/prisma-client'
 import { PrismaClient } from '@prisma/client'
+import { EmailValidationService } from '@/lib/server/services/email-validation-service'
 
 export class UserService {
   private passwordPepper: string
@@ -14,6 +16,9 @@ export class UserService {
     this.passwordPepper = process.env.PASSWORD_PEPPER
   }
 
+  /**
+   * @deprecated Used only in seed
+   */
   async createUserWithEmail(username: string, rawPassword: string, email: string) {
     const passwordSalt = this.generateSalt()
 
@@ -36,7 +41,73 @@ export class UserService {
     })
   }
 
-  async tryLogin(email: string, rawPassword: string) {
+  async createUserWithSignupData(
+    username: string,
+    email: string,
+    phone: string,
+    rawPassword: string,
+    acceptTerms: boolean,
+    acceptPdp: boolean,
+    acceptSubscription: boolean
+  ) {
+    const emailValidationService = new EmailValidationService()
+    const formattedPhone = this.formatPhoneNumber(phone)
+    const emailCorporate = await emailValidationService.corporate(email)
+    const emailDisposable = await emailValidationService.disposable(email)
+    const passwordSalt = this.generateSalt()
+
+    return this.prisma.$transaction(async t => {
+      const user = await t.user.create({
+        data: {
+          username,
+          passwordHash: this.hashPassword(rawPassword, passwordSalt),
+          passwordSalt
+        }
+      })
+
+      await t.userContact.createMany({
+        data: [
+          {
+            type: 'email',
+            userId: user.id,
+            email,
+            emailConfirmed: false,
+            emailCorporate: emailCorporate === 'unknown' ? null : emailCorporate,
+            emailDisposable: emailDisposable === 'unknown' ? null : emailDisposable
+          },
+          {
+            type: 'phone',
+            userId: user.id,
+            phone: formattedPhone,
+          }
+        ]
+      })
+
+      await t.userConsent.createMany({
+        data: [
+          {
+            type: 'terms',
+            userId: user.id,
+            terms: acceptTerms
+          },
+          {
+            type: 'pdp',
+            userId: user.id,
+            pdp: acceptPdp
+          },
+          {
+            type: 'subsc',
+            userId: user.id,
+            sub: acceptSubscription
+          },
+        ]
+      })
+
+      return user.id
+    })
+  }
+
+  async getUserByEmail(email: string) {
     const contact = await this.prisma.userContact.findFirst({
       where: {
         type: 'email',
@@ -47,12 +118,76 @@ export class UserService {
       }
     })
 
-    if (!contact)
+    return contact?.user
+  }
+
+  async tryLogin(email: string, rawPassword: string) {
+    const user = await this.getUserByEmail(email)
+
+    if (!user)
       throw new Error('Such user not found')
 
-    const rawPasswordHash = this.hashPassword(rawPassword, contact.user.passwordSalt)
+    const rawPasswordHash = this.hashPassword(rawPassword, user.passwordSalt)
 
-    return rawPasswordHash === contact.user.passwordHash
+    return rawPasswordHash === user.passwordHash
+  }
+
+  validateUsername(username: string) {
+    if (!/^[a-z]/.test(username))
+      return false
+
+    if (!/[a-z]$/.test(username))
+      return false
+
+    if (!/[a-z0-9\-\_]+/.test(username))
+      return false
+
+    if (/[\-\_]{2,}/.test(username))
+      return false
+
+    if (username.length < 3)
+      return false
+
+    return true
+  }
+
+  async usernameTaken(username: string) {
+    const usersCount = await this.prisma.user.count({
+      where: {
+        username
+      }
+    })
+
+    return usersCount > 0
+  }
+
+  async emailTaken(email: string) {
+    const emailsCount = await this.prisma.userContact.count({
+      where: {
+        type: 'email',
+        email
+      }
+    })
+
+    return emailsCount > 0
+  }
+
+  async phoneTaken(phone: string) {
+    const formattedPhone = this.formatPhoneNumber(phone)
+
+    const phonesCount = await this.prisma.userContact.count({
+      where: {
+        type: 'phone',
+        phone: formattedPhone
+      }
+    })
+
+    return phonesCount > 0
+  }
+
+  private formatPhoneNumber(phone: string) {
+    const parsedPhone = parsePhoneNumberFromString(phone, 'RU')
+    return parsedPhone?.formatInternational()
   }
 
   private hashPassword(rawPassword: string, salt: string) {

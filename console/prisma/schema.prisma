@@ -16,6 +16,8 @@ model User {
   contacts      UserContact[]
   passwordHash  String
   passwordSalt  String
+  sessions      UserSession[]
+  consents      UserConsent[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   @@index([username])
@@ -24,21 +26,52 @@ model User {
 }
 
 model UserContact {
-  id            Int         @id @default(autoincrement())
+  id              Int         @id @default(autoincrement())
   // 'email' | 'phone' | 'tg-username' | 'tg-user-id'
-  type          String
-  email         String?
-  phone         String?
-  tgUsername    String?
-  tgUserId      String?
-  user          User        @relation(fields: [userId], references: [id])
-  userId        Int
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  type                  String
+  email                 String?
+  emailConfirmed        Boolean?
+  emailDisposable       Boolean?
+  emailCorporate        Boolean?
+  phone                 String?
+  phoneInvalid          Boolean?
+  // 'out-of-service' | 'cant-reach' | 'wrong-person' | 'other:${reason}'
+  phoneInvalidReason    String?
+  tgUsername            String?
+  tgUserId              String?
+  user                  User        @relation(fields: [userId], references: [id])
+  userId                Int
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
   @@index([type])
   @@index([email])
   @@index([createdAt])
   @@index([updatedAt])
+}
+
+model UserSession {
+  id            Int         @id @default(autoincrement())
+  token         String      
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  revoked       Boolean
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  @@index([token])
+  @@index([userId])
+}
+
+model UserConsent {
+  id            Int         @id @default(autoincrement())
+  // 'terms' | 'pdp' | 'subsc'
+  type          String
+  terms         Boolean?
+  pdp           Boolean?
+  sub           Boolean?
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Client {
