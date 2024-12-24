@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export type CoverImageVariants = "signin" | "signup" | "restore";
 
-const getImageSrc = (variant: CoverImageVariants) => {
+const getCoverSrc = (variant: CoverImageVariants) => {
   switch (variant) {
     case "signin":
       return "/images/authorization/signin-cover.jpeg";
@@ -41,7 +41,7 @@ export const AuthorizationLayout: FC<{
         priority
         width={960}
         height={1080}
-        src={getImageSrc(coverImageVariant)}
+        src={getCoverSrc(coverImageVariant)}
         alt="Image"
         className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
       />
