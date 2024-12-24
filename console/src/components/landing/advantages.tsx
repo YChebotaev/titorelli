@@ -6,26 +6,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import { Container } from './container'
+import { Container } from "./container";
 
 const advantages = [
   {
     title: "Ban by list of known spammers",
     description:
       "Titorelli platform uses CAS (Combot Anti-Spam) and lols.bot continuously updated dataset of known spammers",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/images/landing/advantages/adv-1.jpeg",
   },
   {
     title: "Ban by text duplicate",
     description:
       "Platform stores a list of known spam messages and bans if one of them is sent to protected group",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/images/landing/advantages/adv-2.jpeg",
   },
   {
     title: "Ban by text classification",
     description:
       "We leverage carefully crafted machine learning model that can accurately determine if message are spam or not",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "/images/landing/advantages/adv-3.jpeg",
   },
 ];
 
@@ -36,13 +36,13 @@ export function Advantages() {
         <div className="grid gap-8 md:grid-cols-3">
           {advantages.map((advantage, index) => (
             <Card key={index}>
-              <CardHeader>
+              <CardHeader className="p-0 pb-6 h-[400px]">
                 <Image
                   src={advantage.image}
                   alt={advantage.title}
-                  width={300}
-                  height={200}
-                  className="rounded-t-lg"
+                  width={600}
+                  height={600}
+                  className="w-full h-full object-cover rounded-t-lg"
                 />
               </CardHeader>
               <CardContent>

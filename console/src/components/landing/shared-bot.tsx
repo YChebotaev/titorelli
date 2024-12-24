@@ -12,7 +12,7 @@ export function SharedBot() {
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
             <Image
-              src="/placeholder.svg?height=400&width=400"
+              src="/images/landing/shared-bot/cover.jpeg"
               alt="Titorelli Bot"
               width={400}
               height={400}
