@@ -1,4 +1,4 @@
-import { createSecretKey, KeyObject } from 'node:crypto'
+import { createSecretKey, KeyObject } from 'crypto'
 import { jwtVerify, SignJWT } from 'jose'
 import { PrismaClient } from '@prisma/client'
 import { prismaClient } from '@/lib/server/prisma-client'

@@ -1,6 +1,6 @@
 "use client";
 
-import { type FC } from "react";
+import { FormEvent, type FC } from "react";
 import { useMaskito } from "@maskito/react";
 import { maskitoPhoneOptionsGenerator } from "@maskito/phone";
 import metadata from "libphonenumber-js/min/metadata";
@@ -12,13 +12,23 @@ const options = maskitoPhoneOptionsGenerator({
 });
 
 export const PhoneInput: FC<{
-  id: string;
-  type: "tel";
-  name: string;
-  defaultValue: string;
-  placeholder: string;
+  id?: string;
+  type?: "tel";
+  name?: string;
+  value?: string;
+  defaultValue?: string;
+  placeholder?: string;
   required?: boolean;
-}> = ({ id, type, name, placeholder, defaultValue, required }) => {
+  onChange?(e: FormEvent<HTMLInputElement>): void;
+}> = ({
+  id,
+  type = "tel",
+  name,
+  placeholder,
+  defaultValue,
+  required,
+  onChange,
+}) => {
   const maskedInputRef = useMaskito({ options });
 
   return (
@@ -30,6 +40,12 @@ export const PhoneInput: FC<{
       defaultValue={defaultValue}
       placeholder={placeholder}
       required={required}
+      onInput={
+        onChange &&
+        ((e) => {
+          onChange(e);
+        })
+      }
     />
   );
 };

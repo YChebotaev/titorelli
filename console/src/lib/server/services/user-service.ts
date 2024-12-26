@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto'
+import { createHash, randomBytes } from 'crypto'
 import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { prismaClient } from '@/lib/server/prisma-client'
 import { PrismaClient } from '@prisma/client'
@@ -7,6 +7,7 @@ import { EmailValidationService } from '@/lib/server/services/email-validation-s
 export class UserService {
   private passwordPepper: string
   private prisma: PrismaClient
+  private emailValidationService: EmailValidationService
 
   constructor() {
     if (process.env.PASSWORD_PEPPER == null)
@@ -14,6 +15,7 @@ export class UserService {
 
     this.prisma = prismaClient
     this.passwordPepper = process.env.PASSWORD_PEPPER
+    this.emailValidationService = new EmailValidationService()
   }
 
   /**
@@ -50,10 +52,9 @@ export class UserService {
     acceptPdp: boolean,
     acceptSubscription: boolean
   ) {
-    const emailValidationService = new EmailValidationService()
     const formattedPhone = this.formatPhoneNumber(phone)
-    const emailCorporate = await emailValidationService.corporate(email)
-    const emailDisposable = await emailValidationService.disposable(email)
+    const emailCorporate = await this.emailValidationService.corporate(email)
+    const emailDisposable = await this.emailValidationService.disposable(email)
     const passwordSalt = this.generateSalt()
 
     return this.prisma.$transaction(async t => {
@@ -237,6 +238,43 @@ export class UserService {
     })
 
     return phonesCount > 0
+  }
+
+  async addEmailContact(userId: number, email: string) {
+    const emailCorporate = await this.emailValidationService.corporate(email)
+    const emailDisposable = await this.emailValidationService.disposable(email)
+
+    await this.prisma.userContact.create({
+      data: {
+        userId,
+        type: 'email',
+        emailConfirmed: false,
+        emailDisposable: emailDisposable === 'unknown' ? null : emailDisposable,
+        emailCorporate: emailCorporate === 'unknown' ? null : emailCorporate,
+      }
+    })
+  }
+
+  async addPhoneContact(userId: number, phone: string) {
+    const formattedPhone = this.formatPhoneNumber(phone)
+
+    await this.prisma.userContact.create({
+      data: {
+        userId,
+        type: 'phone',
+        phone: formattedPhone
+      }
+    })
+  }
+
+  async addTelegramContact(userId: number, tgUsername: string) {
+    await this.prisma.userContact.create({
+      data: {
+        userId,
+        type: 'tg-username',
+        tgUsername
+      }
+    })
   }
 
   private formatPhoneNumber(phone: string) {
