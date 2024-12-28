@@ -7,7 +7,8 @@ export function SharedBot() {
     <section className="py-24 bg-background">
       <Container>
         <h2 className="text-3xl font-bold mb-12 text-center">
-          Or just connect to official bot
+          Join our thriving community by utilizing our official antispam bot,
+          designed to enhance user experience while efficiently managing spam.
         </h2>
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
@@ -36,7 +37,7 @@ export function SharedBot() {
                     d="M5 13l4 4L19 7"
                   ></path>
                 </svg>
-                Receives latest updates of the platform
+                Seamlessly integrates with your channels.
               </li>
               <li className="flex items-center">
                 <svg
@@ -53,7 +54,7 @@ export function SharedBot() {
                     d="M5 13l4 4L19 7"
                   ></path>
                 </svg>
-                Supports all the features of the platform
+                Regular updates to combat the latest spam tactics.
               </li>
               <li className="flex items-center">
                 <svg
@@ -70,17 +71,16 @@ export function SharedBot() {
                     d="M5 13l4 4L19 7"
                   ></path>
                 </svg>
-                Performs back-learning of platform to enhance quality of whole
-                service
+                Reliable performance with minimal downtime.
               </li>
             </ul>
-            <Button size="lg">Get Started</Button>
+            <Button size="lg">Try the Antispam Bot Now</Button>
           </div>
         </div>
-        <div className="mt-12 text-center">
+        {/* <div className="mt-12 text-center">
           <p className="mb-4">Or you can use bot docker image on-premise</p>
           <Button variant="outline">Install with Docker</Button>
-        </div>
+        </div> */}
       </Container>
     </section>
   );

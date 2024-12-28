@@ -10,22 +10,25 @@ import { Container } from "./container";
 
 const advantages = [
   {
-    title: "Ban by list of known spammers",
+    title: "Easy Setup",
     description:
-      "Titorelli platform uses CAS (Combot Anti-Spam) and lols.bot continuously updated dataset of known spammers",
-    image: "/images/landing/advantages/adv-1.jpeg",
+      "Get started in minutes with our user-friendly interface and straightforward configurations.",
+    // image: "/images/landing/advantages/adv-1.jpeg",
+    image: "/images/landing/advantages/yandexart-fbvm6ina8s37dh7tg98j.jpeg",
   },
   {
-    title: "Ban by text duplicate",
+    title: "Advanced Analytics",
     description:
-      "Platform stores a list of known spam messages and bans if one of them is sent to protected group",
-    image: "/images/landing/advantages/adv-2.jpeg",
+      "Gain insights into your community's activity with real-time analytics.",
+    // image: "/images/landing/advantages/adv-2.jpeg",
+    image: "/images/landing/advantages/yandexart-fbvagphelp85jhk26uh6.jpeg",
   },
   {
-    title: "Ban by text classification",
+    title: "High-Quality Spam Detection",
     description:
-      "We leverage carefully crafted machine learning model that can accurately determine if message are spam or not",
-    image: "/images/landing/advantages/adv-3.jpeg",
+      "Utilize cutting-edge algorithms designed to identify and eliminate spam with precision.",
+    // image: "/images/landing/advantages/adv-3.jpeg",
+    image: "/images/landing/advantages/yandexart-fbvit7vj0ubaqva8lgms.jpeg",
   },
 ];
 
