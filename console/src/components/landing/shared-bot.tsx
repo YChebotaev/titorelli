@@ -7,14 +7,8 @@ export function SharedBot() {
     <section className="py-24 bg-background">
       <Container>
         <h2 className="text-3xl font-bold mb-12 text-center">
-          Официальный бот по умолчанию
+          Официальный бот
         </h2>
-        <p>
-          Представляем вам нашего официального бота по умолчанию, который
-          поможет вам эффективно бороться со спамом. Наш бот использует
-          передовые алгоритмы для обнаружения и блокировки спам-сообщений, что
-          позволяет вам сосредоточиться на других аспектах вашего бизнеса.
-        </p>
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
             <Image
@@ -42,7 +36,7 @@ export function SharedBot() {
                     d="M5 13l4 4L19 7"
                   ></path>
                 </svg>
-                Отслеживает и блокирует спам-сообщения.
+                Автоматическая фильтрация спама.
               </li>
               <li className="flex items-center">
                 <svg
@@ -59,7 +53,7 @@ export function SharedBot() {
                     d="M5 13l4 4L19 7"
                   ></path>
                 </svg>
-                Помогает поддерживать чистоту в каналах.
+                Пользовательский интерфейс для управления.
               </li>
               <li className="flex items-center">
                 <svg
@@ -76,7 +70,7 @@ export function SharedBot() {
                     d="M5 13l4 4L19 7"
                   ></path>
                 </svg>
-                Позволяет сосредоточиться на развитии бизнеса.
+                Обновления в реальном времени.
               </li>
             </ul>
             <Button size="lg">Получить бота</Button>
