@@ -11,30 +11,30 @@ import { Container } from "./container";
 
 const plans = [
   {
-    name: "Free",
+    name: "Бесплатный тариф",
     price: "$0/mo",
     features: [
-      "Access essential antispam features.",
-      "Community support to assist with basic needs.",
-      "Ideal for small groups looking to maintain order.",
+      "Подходит для начинающих пользователей.",
+      "Доступ к базовым функциям управления ботами.",
+      "Возможность попробовать платформу перед покупкой.",
     ],
   },
   {
-    name: "Pro",
+    name: "Тариф Pro",
     price: "$12/mo",
     features: [
-      "Unlock advanced functionalities like detailed analytics.",
-      "Priority support for faster issue resolution.",
-      "Enhanced customization options to fit your community's needs.",
+      "Расширенные возможности настройки ботов.",
+      "Дополнительные функции управления.",
+      "Подробные отчёты о работе ботов.",
     ],
   },
   {
-    name: "Enterprise",
+    name: "Корпоративный тариф Enterprise",
     price: "$360/mo",
     features: [
-      "Get tailored solutions designed specifically for large organizations.",
-      "Dedicated support with a personal account manager.",
-      "Custom features and enhanced security protocols for maximum protection.",
+      "Максимальная гибкость и контроль.",
+      "Индивидуальные параметры работы ботов.",
+      "Эксклюзивные функции для крупных компаний.",
     ],
   },
 ];
@@ -43,7 +43,9 @@ export function Pricing() {
   return (
     <section id="select-plan" className="py-24 bg-muted">
       <Container>
-        <h2 className="text-3xl font-bold mb-12 text-center">Select a Plan</h2>
+        <h2 className="text-3xl font-bold mb-12 text-center">
+          Варианты подписки
+        </h2>
         <div className="grid md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
             <Card key={index}>
@@ -77,7 +79,7 @@ export function Pricing() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button className="w-full">Choose Plan</Button>
+                <Button className="w-full">Выбрать план</Button>
               </CardFooter>
             </Card>
           ))}

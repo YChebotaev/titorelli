@@ -8,11 +8,10 @@ export function Hero() {
         <div className="text-center">
           <TitorelliLogo className="w-32 h-32 mx-auto mb-8" />
           <h1 className="text-4xl font-bold mb-4">
-            Titorelli: Your Ultimate Telegram Antispam Solution
+            Платформа для управления антиспамовыми ботами в Telegram.
           </h1>
           <p className="text-xl text-muted-foreground">
-            Experience seamless management of antispam bots and secure your
-            community effortlessly.
+            Эффективное решение для автоматизации и контроля работы ваших ботов
           </p>
         </div>
       </Container>

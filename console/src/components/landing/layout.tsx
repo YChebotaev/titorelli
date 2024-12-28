@@ -15,12 +15,12 @@ export function Header() {
             <ul className="flex items-center gap-4">
               <li>
                 <Button asChild variant="ghost">
-                  <Link href="/authorization/signin">Sign In</Link>
+                  <Link href="/authorization/signin">Войти</Link>
                 </Button>
               </li>
               <li>
                 <Button asChild>
-                  <Link href="/authorization/signup">Sign Up</Link>
+                  <Link href="/authorization/signup">Зарегистрироваться</Link>
                 </Button>
               </li>
             </ul>

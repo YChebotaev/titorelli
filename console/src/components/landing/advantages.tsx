@@ -10,23 +10,23 @@ import { Container } from "./container";
 
 const advantages = [
   {
-    title: "Easy Setup",
+    title: "Удобство и простота использования.",
     description:
-      "Get started in minutes with our user-friendly interface and straightforward configurations.",
+      "Наша платформа позволяет легко управлять вашими ботами, настраивать их работу и получать отчёты о результатах. Вы сможете сосредоточиться на развитии своего бизнеса, а мы возьмём на себя заботу о ваших ботах.",
     // image: "/images/landing/advantages/adv-1.jpeg",
     image: "/images/landing/advantages/yandexart-fbvm6ina8s37dh7tg98j.jpeg",
   },
   {
-    title: "Advanced Analytics",
+    title: "Надёжная защита от спама.",
     description:
-      "Gain insights into your community's activity with real-time analytics.",
+      "Наши алгоритмы автоматически распознают и блокируют спам-сообщения, что позволяет вам сохранить репутацию и доверие своих подписчиков.",
     // image: "/images/landing/advantages/adv-2.jpeg",
     image: "/images/landing/advantages/yandexart-fbvagphelp85jhk26uh6.jpeg",
   },
   {
-    title: "High-Quality Spam Detection",
+    title: "Безопасность данных.",
     description:
-      "Utilize cutting-edge algorithms designed to identify and eliminate spam with precision.",
+      "Мы гарантируем сохранность ваших данных и не передаём их третьим лицам. Ваша информация остаётся конфиденциальной.",
     // image: "/images/landing/advantages/adv-3.jpeg",
     image: "/images/landing/advantages/yandexart-fbvit7vj0ubaqva8lgms.jpeg",
   },
