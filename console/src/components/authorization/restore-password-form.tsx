@@ -22,7 +22,7 @@ export type RestoreFormState = {
   };
 };
 
-export function RestoreForm({ className, action, ...props }: RestoreFormProps) {
+export function RestorePasswordForm({ className, action, ...props }: RestoreFormProps) {
   const [{ success, defaultValues, errors }, formAction] =
     useActionState<RestoreFormState>(action, restoreFormInitialState);
 

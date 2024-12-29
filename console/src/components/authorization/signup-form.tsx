@@ -111,7 +111,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
             name="password_confirm"
             required
           />
-          <FieldError errors={errors} field="password" />
+          <FieldError errors={errors} field="password_confirm" />
         </div>
         <div className="grid gap-2">
           <div>

@@ -1,6 +1,7 @@
 'use server'
 
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { UserService } from '@/lib/server/services/user-service'
 import { UserSessionService } from '@/lib/server/services/user-session-service'
 import { sessionTokenCookieName, signinFormInitialState } from '@/constants'
@@ -48,5 +49,5 @@ export async function signin(prevState: SigninFormState, form: FormData) {
     secure: false // TODO: Enable for production
   })
 
-  return nextState
+  redirect('/my/profile')
 }

@@ -3,11 +3,14 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { prismaClient } from '@/lib/server/prisma-client'
 import { PrismaClient } from '@prisma/client'
 import { EmailValidationService } from '@/lib/server/services/email-validation-service'
+import { EmailService } from '@/lib/server/services/email-service'
+import { unmaskNumber } from '@/lib/server/keymask'
 
 export class UserService {
   private passwordPepper: string
   private prisma: PrismaClient
   private emailValidationService: EmailValidationService
+  private emailService: EmailService
 
   constructor() {
     if (process.env.PASSWORD_PEPPER == null)
@@ -16,6 +19,7 @@ export class UserService {
     this.prisma = prismaClient
     this.passwordPepper = process.env.PASSWORD_PEPPER
     this.emailValidationService = new EmailValidationService()
+    this.emailService = new EmailService()
   }
 
   /**
@@ -108,6 +112,9 @@ export class UserService {
     })
   }
 
+  /**
+   * @todo Логин должен осуществляться только по подтвежденным креденшелам
+   */
   async tryLogin(identity: string, rawPassword: string): Promise<[boolean, number | null]> {
     const user = await this.getUserByIdentnty(identity)
 
@@ -133,6 +140,34 @@ export class UserService {
     return [false, null]
   }
 
+  async tryReset(token: string, rawPassword: string) {
+    const userId = await this.getUserIdFromResetPasswordToken(token)
+
+    if (!userId)
+      return false
+
+    const passwordSalt = this.generateSalt()
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        passwordHash: this.hashPassword(rawPassword, passwordSalt),
+        passwordSalt
+      }
+    })
+
+    return true
+  }
+
+  private async getUserIdFromResetPasswordToken(token: string) {
+    const parsedToken = await this.emailService.parseRestorePasswordTokenFromEmail(token)
+
+    if (!parsedToken || !parsedToken.sub)
+      return null
+
+    return unmaskNumber(parsedToken.sub)
+  }
+
   private async getUserByIdentnty(identity: string) {
     let user = await this.getUserByUsername(identity)
 
@@ -141,7 +176,7 @@ export class UserService {
     }
 
     if (user == null) {
-      user = await this.getUserByUsername(identity)
+      user = await this.getUserByPhone(identity)
     }
 
     return user

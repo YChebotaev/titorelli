@@ -1,6 +1,7 @@
 'use server'
 
 import { cookies } from "next/headers"
+import { redirect } from 'next/navigation'
 import { isValidPhoneNumber } from "libphonenumber-js"
 import { sessionTokenCookieName, signupFormInitialState } from '@/constants'
 import { EmailValidationService } from "@/lib/server/services/email-validation-service"
@@ -66,6 +67,12 @@ export async function signup(prevState: SignupFormState, form: FormData) {
     return nextState
   }
 
+  if (password !== passwordConfirm) {
+    errors.password_confirm = 'Подтверждение не совпадает с паролем'
+
+    return nextState
+  }
+
   if (!userService.validateUsername(username)) {
     errors.username = 'Ник должен быть не меньше трех букв длиной, содержать только латинские буквы или цифры в нижнем регистре, начинаться и заканчиваться буквой, может содержаьь "-" или "_" в середине, но не два раза подряд'
 
@@ -102,12 +109,6 @@ export async function signup(prevState: SignupFormState, form: FormData) {
     return nextState
   }
 
-  if (password !== passwordConfirm) {
-    errors.password_confirm = 'Подтверждение не совпадает с паролем'
-
-    return nextState
-  }
-
   const userId = await userService.createUserWithSignupData(
     username,
     email,
@@ -125,5 +126,5 @@ export async function signup(prevState: SignupFormState, form: FormData) {
     secure: false // TODO: Enable for production
   })
 
-  return nextState
+  redirect('/my/profile')
 }

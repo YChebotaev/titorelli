@@ -15,11 +15,13 @@ import {
 } from "@react-email/components";
 
 interface PasswordResetEmailProps {
-  userFirstName: string;
+  username: string;
+  resetHref: string;
 }
 
 export default function ResetPasswordEmail({
-  userFirstName = "Уважаемый пользователь",
+  username,
+  resetHref,
 }: PasswordResetEmailProps) {
   return (
     <Tailwind>
@@ -39,7 +41,7 @@ export default function ResetPasswordEmail({
               Запрос на сброс пароля
             </Heading>
             <Text className="text-zinc-300 text-base mb-4">
-              Здравствуйте, {userFirstName}!
+              Здравствуйте, {username ?? "уважаемый пользователь"}!
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
               Мы получили запрос на сброс пароля для вашего аккаунта Titorelli.
@@ -48,7 +50,7 @@ export default function ResetPasswordEmail({
             </Text>
             <Section className="text-center my-8">
               <Button
-                href="https://titorelli.ru/authorization/restore/reset"
+                href={resetHref}
                 className="bg-emerald-500 hover:bg-emerald-600 text-white py-4 px-8 rounded-full text-lg font-semibold no-underline inline-block transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg"
               >
                 Сбросить пароль

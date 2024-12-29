@@ -35,10 +35,10 @@ export default function UserProfile() {
       <div className="container max-w-[1080px] px-5 md:px-0 mx-auto">
         <div className="space-y-8">
           <h1 className="text-3xl font-bold">User Profile</h1>
-          <UserAvatar initialAvatar={initialData.avatar} />
-          <EditableUsername initialUsername={initialData.username} />
-          <ContactsList initialContacts={initialData.contacts} />
+          {/* <UserAvatar initialAvatar={initialData.avatar} /> */}
+          {/* <EditableUsername initialUsername={initialData.username} /> */}
           <AccountsList initialAccounts={initialData.accounts} />
+          <ContactsList initialContacts={initialData.contacts} />
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="destructive" className="font-bold">

@@ -1,6 +1,6 @@
 'use server'
 
-import { RestoreFormState } from "@/components/authorization/restore-form"
+import { RestoreFormState } from "@/components/authorization/restore-password-form"
 import { restoreFormInitialState } from "@/constants"
 import { EmailService } from "@/lib/server/services/email-service"
 import { EmailValidationService } from "@/lib/server/services/email-validation-service"
@@ -10,7 +10,7 @@ import { UserService } from "@/lib/server/services/user-service"
  * Из соображений безопасности, на фронт
  * не уходят данные, что пользователь не найден
  */
-export async function restore(prevState: RestoreFormState, form: FormData) {
+export async function restorePassword(prevState: RestoreFormState, form: FormData) {
   const userService = new UserService()
   const emailService = new EmailService()
   const emailValidationService = new EmailValidationService()
