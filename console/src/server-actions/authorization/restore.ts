@@ -3,6 +3,7 @@
 import { RestoreFormState } from "@/components/authorization/restore-form"
 import { restoreFormInitialState } from "@/constants"
 import { EmailService } from "@/lib/server/services/email-service"
+import { EmailValidationService } from "@/lib/server/services/email-validation-service"
 import { UserService } from "@/lib/server/services/user-service"
 
 /**
@@ -12,6 +13,7 @@ import { UserService } from "@/lib/server/services/user-service"
 export async function restore(prevState: RestoreFormState, form: FormData) {
   const userService = new UserService()
   const emailService = new EmailService()
+  const emailValidationService = new EmailValidationService()
 
   const identity = form.get('identity')?.toString()
 
@@ -34,7 +36,9 @@ export async function restore(prevState: RestoreFormState, form: FormData) {
   if (!success || userId == null) {
     console.warn(`Пользователя с идентификатором "${identity}" не удалось найти`)
   } else {
-    await emailService.sendRestorePasswordEmail(userId)
+    const isEmail = emailValidationService.isEmail(identity)
+
+    await emailService.sendRestorePasswordEmail(userId, isEmail ? identity : '*')
   }
 
   nextState.success = true

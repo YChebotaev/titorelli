@@ -6,6 +6,10 @@ export class EmailValidationService {
     return Boolean(parseOneAddress(email))
   }
 
+  isEmail(email: string) {
+    return Boolean(parseOneAddress(email))
+  }
+
   async disposable(email: string) {
     const domain = this.getEmailDomain(email)
     const list = await this.getDisposableDomainsList()
@@ -35,7 +39,7 @@ export class EmailValidationService {
     try {
       const resp = await fetch('https://disposable.github.io/disposable-email-domains/domains.json')
       const list = await resp.json() as Awaited<string[]>
-  
+
       return list
     } catch (e) {
       console.error(e)
