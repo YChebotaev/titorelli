@@ -2,6 +2,7 @@ import Generator from "do-usernames";
 import toKebab from "kebab-case";
 import { PrismaClient } from "@prisma/client";
 import { prismaClient } from "../prisma-client";
+import { ProfileAccountRoles } from "@/types/my-profile";
 
 export class AccountService {
   private usernameGenerator = new Generator();
@@ -25,6 +26,9 @@ export class AccountService {
     await this.createAccountWithSingleOwner(userId, name);
   }
 
+  /**
+   * @todo Излишний запрос, подумать как избавиться
+   */
   async getUserRoleInAccount(userId: number, accountId: number) {
     const membership = await this.prisma.accountMember.findFirst({
       where: {
@@ -33,7 +37,7 @@ export class AccountService {
       },
     });
 
-    return membership?.role ?? null;
+    return ((membership?.role ?? null) as ProfileAccountRoles) || null;
   }
 
   async getAccountsUserMemberOf(userId: number) {

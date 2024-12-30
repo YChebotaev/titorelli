@@ -3,6 +3,7 @@
 import { getUserInAction } from "@/lib/server/get-user-in-action"
 import { maskNumber } from "@/lib/server/keymask"
 import { AccountService } from "@/lib/server/services/account-service"
+import { mapFilterAsync } from "@/lib/utils"
 import { ProfileAccountVm } from "@/types/my-profile"
 import { AccountMember, User } from "@prisma/client"
 
@@ -14,23 +15,21 @@ export const getAccounts = async () => {
   const accountService = new AccountService()
   const accounts = await accountService.getAccountsUserMemberOf(user.id)
 
-  return (await Promise.all(
-    accounts.map(async ({ id, name, members }) => {
-      const owner = getOwnerFromMembers(members)
-      const role = await accountService.getUserRoleInAccount(user.id, id)
+  return mapFilterAsync(accounts, async ({ id, name, members }) => {
+    const owner = getOwnerFromMembers(members)
+    const role = await accountService.getUserRoleInAccount(user.id, id)
 
-      if (!owner || !role)
-        return null
+    if (!owner || !role)
+      return null
 
-      return {
-        id: maskNumber(id),
-        name,
-        owner: {
-          id: maskNumber(owner.user.id),
-          username: owner.user.username
-        },
-        role
-      } as ProfileAccountVm
-    })
-  )).filter(profileAccount => profileAccount) as ProfileAccountVm[]
+    return {
+      id: maskNumber(id),
+      name,
+      owner: {
+        id: maskNumber(owner.user.id),
+        username: owner.user.username
+      },
+      role
+    } satisfies ProfileAccountVm
+  })
 }
