@@ -1,3 +1,4 @@
+import { QueryClientProvider } from "@/components/query-client-providet";
 import "../globals.css";
 import { Geist } from "next/font/google";
 
@@ -16,7 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={geist.className}>{children}</body>
+      <body className={geist.className}>
+        <QueryClientProvider>{children}</QueryClientProvider>
+      </body>
     </html>
   );
 }

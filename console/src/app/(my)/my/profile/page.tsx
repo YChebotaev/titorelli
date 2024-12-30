@@ -2,7 +2,7 @@ import Layout from "@/components/my-profile/layout";
 // import UserAvatar from "@/components/my-profile/user-avatar";
 // import EditableUsername from "@/components/my-profile/editable-username";
 import { ContactsList } from "@/components/my-profile/contacts-list";
-import AccountsList from "@/components/my-profile/accounts-list";
+import { AccountsList } from "@/components/my-profile/accounts-list";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

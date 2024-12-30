@@ -67,6 +67,65 @@ export class AccountService {
     return accounts ?? [];
   }
 
+  async getAccountMembers(accountId: number) {
+    const memberships = await this.prisma.accountMember.findMany({
+      where: {
+        accountId,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return memberships.map(({ user }) => user);
+  }
+
+  /**
+   * @todo Добавить удаление других объектов
+   */
+  async wipeAndRemoveAccount(accountId: number) {
+    await this.prisma.$transaction(async (t) => {
+      await t.accountMember.deleteMany({
+        where: {
+          accountId,
+        },
+      });
+
+      await t.account.delete({
+        where: {
+          id: accountId,
+        },
+      });
+    });
+
+    return true;
+  }
+
+  async transferOwnership(accountId: number, newOwnerId: number) {
+    return this.prisma.$transaction(async (t) => {
+      const newOwnerMember = await t.accountMember.findFirst({
+        where: { accountId, userId: newOwnerId },
+      });
+      const oldOwnerMember = await t.accountMember.findFirst({
+        where: { accountId, role: "owner" },
+      });
+
+      if (!newOwnerMember || !oldOwnerMember) return false;
+
+      await t.accountMember.update({
+        where: { id: newOwnerMember.id },
+        data: { role: "owner" },
+      });
+
+      await t.accountMember.update({
+        where: { id: oldOwnerMember.id },
+        data: { role: "editor" },
+      });
+
+      return true;
+    });
+  }
+
   private generateAccountName() {
     return toKebab(this.usernameGenerator.getName(), false)!;
   }
