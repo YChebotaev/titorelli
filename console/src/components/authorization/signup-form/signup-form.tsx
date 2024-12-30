@@ -11,6 +11,8 @@ import { FieldHelp } from "@/components/form/field-help";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PhoneInput } from "@/components/form/phone-input";
 import { signupFormInitialState } from "@/constants";
+import { AccountOptions } from "./account-options";
+import type { AccountValueTypes } from "@/types/authoriaztion";
 
 export type SignupFormProps = React.ComponentPropsWithoutRef<"form">;
 
@@ -19,6 +21,8 @@ export type SignupFormState = {
     username: string;
     email: string;
     phone: string;
+    account: AccountValueTypes;
+    account_name?: string;
     accept_terms: boolean;
     accept_pdp: boolean;
     accept_subscription: boolean;
@@ -29,6 +33,8 @@ export type SignupFormState = {
     phone?: string;
     password?: string;
     password_confirm?: string;
+    account?: string;
+    account_name?: string;
     accept_terms?: string;
     accept_pdp?: string;
     accept_subscription?: string;
@@ -48,13 +54,12 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-3xl font-bold">Регистрация</h1>
         <p className="text-balance text-sm text-muted-foreground">
-          Заполните информацию, чтобы зарегистрироваться
+          Заполните информацию, чтобы создать профиль
         </p>
       </div>
       <div className="grid gap-6">
         <div className="grid gap-2">
           <Label htmlFor="username">Ник</Label>
-          <FieldError errors={errors} field="username" />
           <Input
             id="username"
             type="text"
@@ -63,6 +68,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
             placeholder=""
             required
           />
+          <FieldError errors={errors} field="username" />
           <FieldHelp>Через ник можно будет войти</FieldHelp>
         </div>
         <div className="grid gap-2">
@@ -99,7 +105,9 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
           </div>
           <Input id="password" type="password" name="password" required />
           <FieldError errors={errors} field="password" />
-          <FieldHelp>Запомните, запишите или сохрание пароль в надежном месте</FieldHelp>
+          <FieldHelp>
+            Запомните, запишите или сохрание пароль в надежном месте
+          </FieldHelp>
         </div>
         <div className="grid gap-2">
           <div className="flex items-center">
@@ -113,6 +121,7 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
           />
           <FieldError errors={errors} field="password_confirm" />
         </div>
+        <AccountOptions defaultValue={defaultValues.account} errors={errors} />
         <div className="grid gap-2">
           <div>
             <div className="flex items-center space-x-2">
@@ -173,12 +182,12 @@ export function SignupForm({ className, action, ...props }: SignupFormProps) {
           </div>
         </div>
         <Button type="submit" className="w-full">
-          Зарегистрироваться
+          Создать профиль
         </Button>
         <FieldError errors={{}} field="_global" />
       </div>
       <div className="text-center text-sm">
-        Уже есть аккаунт?{" "}
+        Уже есть профиль?{" "}
         <Link
           href="/authorization/signin"
           className="underline underline-offset-4"

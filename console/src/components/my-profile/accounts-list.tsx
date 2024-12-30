@@ -1,30 +1,28 @@
-"use client";
+// "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getAccounts } from "@/server-actions/my-profile/get-accounts";
 
-interface Account {
-  id: string;
-  name: string;
-  ownerUsername: string;
-  role: "viewer" | "editor" | "owner" | "invited";
-}
+// interface Account {
+//   id: string;
+//   name: string;
+//   ownerUsername: string;
+//   role: "viewer" | "editor" | "owner" | "invited";
+// }
 
-export default function AccountsList({
-  initialAccounts,
-}: {
-  initialAccounts: Account[];
-}) {
-  const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
+export default async function AccountsList() {
+  // const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
 
-  const leaveAccount = (id: string) => {
-    setAccounts(accounts.filter((account) => account.id !== id));
-  };
+  // const leaveAccount = (id: string) => {
+  //   setAccounts(accounts.filter((account) => account.id !== id));
+  // };
 
-  const requestRoleChange = (id: string) => {
-    // Here you would typically send a request to your backend
-    console.log(`Requesting role change for account ${id}`);
-  };
+  // const requestRoleChange = (id: string) => {
+  //   // Here you would typically send a request to your backend
+  //   console.log(`Requesting role change for account ${id}`);
+  // };
+  const accounts = await getAccounts();
 
   return (
     <div className="bg-muted p-6 rounded-lg">
@@ -47,7 +45,7 @@ export default function AccountsList({
                   <p className="text-sm font-medium text-muted-foreground">
                     Owner
                   </p>
-                  <p>{account.ownerUsername}</p>
+                  <p>{account.owner.username}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
@@ -60,14 +58,14 @@ export default function AccountsList({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => requestRoleChange(account.id)}
+                  // onClick={() => requestRoleChange(account.id)}
                 >
                   Request Role Change
                 </Button>
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => leaveAccount(account.id)}
+                  // onClick={() => leaveAccount(account.id)}
                 >
                   Leave
                 </Button>

@@ -69,7 +69,7 @@ export function SigninForm({ className, action, ...props }: SigninFormProps) {
         <FieldError errors={{}} field="_global" />
       </div>
       <div className="text-center text-sm">
-        Нет аккаунта?{" "}
+        Нет профиля?{" "}
         <Link
           href="/authorization/signup"
           className="underline underline-offset-4"

@@ -8,11 +8,14 @@ import { EmailValidationService } from "@/lib/server/services/email-validation-s
 import { UserService } from "@/lib/server/services/user-service"
 import { UserSessionService } from "@/lib/server/services/user-session-service"
 import { type SignupFormState } from "@/components/authorization/signup-form"
+import { AccountService } from "@/lib/server/services/account-service"
+import { AccountValueTypes } from "@/types/authoriaztion"
 
 export async function signup(prevState: SignupFormState, form: FormData) {
   const userService = new UserService()
   const emailValidationService = new EmailValidationService()
   const sessionService = new UserSessionService()
+  const accountService = new AccountService()
   const c = await cookies()
 
   const errors: Record<keyof typeof prevState['errors'], string> = Object.create(Object.prototype)
@@ -21,6 +24,8 @@ export async function signup(prevState: SignupFormState, form: FormData) {
   const phone = form.get('phone')?.toString()
   const password = form.get('password')?.toString()
   const passwordConfirm = form.get('password_confirm')?.toString()
+  const account = form.get('account')?.toString() as AccountValueTypes | undefined
+  const accountName = form.get('account_name')?.toString()
   const acceptTerms = form.get('accept_terms')?.toString() === 'on'
   const acceptPdp = form.get('accept_pdp')?.toString() === 'on'
   const acceptSubscription = form.get('accept_subscription')?.toString() === 'on'
@@ -30,6 +35,8 @@ export async function signup(prevState: SignupFormState, form: FormData) {
       username: username ?? signupFormInitialState.defaultValues.username,
       email: email ?? signupFormInitialState.defaultValues.email,
       phone: phone ?? signupFormInitialState.defaultValues.phone,
+      account: account ?? signupFormInitialState.defaultValues.account,
+      account_name: account ?? signupFormInitialState.defaultValues.account_name,
       accept_terms: signupFormInitialState.defaultValues.accept_terms,
       accept_pdp: signupFormInitialState.defaultValues.accept_pdp,
       accept_subscription: signupFormInitialState.defaultValues.accept_subscription
@@ -69,6 +76,18 @@ export async function signup(prevState: SignupFormState, form: FormData) {
 
   if (password !== passwordConfirm) {
     errors.password_confirm = 'Подтверждение не совпадает с паролем'
+
+    return nextState
+  }
+
+  if (!account) {
+    errors.account = 'Не выбрано что сделать с аккаунтом при геристрации'
+
+    return nextState
+  }
+
+  if (account === 'set_name' && !accountName) {
+    errors.account_name = 'Не выбрано имя аккаунта'
 
     return nextState
   }
@@ -118,6 +137,18 @@ export async function signup(prevState: SignupFormState, form: FormData) {
     acceptPdp,
     acceptSubscription
   )
+
+  switch (account) {
+    case "default_name":
+      await accountService.createDefaultAccountForUser(userId)
+      break
+    case 'no_account':
+      // Do nothing
+      break
+    case 'set_name':
+      await accountService.createAccountWithNameForUser(userId, accountName!)
+      break
+  }
 
   const token = await sessionService.createSession(userId)
 

@@ -19,6 +19,7 @@ model User {
   sessions              UserSession[]
   consents              UserConsent[]
   resetPasswordRequests UserResetPasswordRequest[]
+  accountMembership     AccountMember[]
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
   @@index([username])
@@ -88,11 +89,11 @@ model UserResetPasswordRequest {
 }
 
 model Account {
-  id            Int         @id @default(autoincrement())
-  name          String      @unique
-  members       AccountMember[]
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  members       AccountMember[] 
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
   @@index([name])
 }
 
@@ -101,7 +102,9 @@ model AccountMember {
   // 'owner' | 'viewer' | 'editor' | 'invited'
   role          String
   // 'viwer' | 'editor'
-  invitedRole   String
+  invitedRole   String?
+  user          User        @relation(fields: [userId], references: [id])
+  userId        Int
   account       Account     @relation(fields: [accountId], references: [id])
   accountId     Int
   createdAt     DateTime    @default(now())

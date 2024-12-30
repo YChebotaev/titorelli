@@ -1,6 +1,6 @@
 import Layout from "@/components/my-profile/layout";
-import UserAvatar from "@/components/my-profile/user-avatar";
-import EditableUsername from "@/components/my-profile/editable-username";
+// import UserAvatar from "@/components/my-profile/user-avatar";
+// import EditableUsername from "@/components/my-profile/editable-username";
 import { ContactsList } from "@/components/my-profile/contacts-list";
 import AccountsList from "@/components/my-profile/accounts-list";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ export default function UserProfile() {
           <h1 className="text-3xl font-bold">User Profile</h1>
           {/* <UserAvatar initialAvatar={initialData.avatar} /> */}
           {/* <EditableUsername initialUsername={initialData.username} /> */}
-          <AccountsList initialAccounts={initialData.accounts} />
+          <AccountsList />
           <ContactsList initialContacts={initialData.contacts} />
           <Dialog>
             <DialogTrigger asChild>

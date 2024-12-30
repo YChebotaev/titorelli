@@ -9,3 +9,7 @@ declare global {
     }
   }
 }
+
+declare module 'do-usernames' {
+  export default any
+}

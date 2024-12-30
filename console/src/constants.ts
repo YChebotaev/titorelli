@@ -11,6 +11,8 @@ export const signupFormInitialState: SignupFormState = {
     username: "",
     email: "",
     phone: "",
+    account: 'default_name',
+    account_name: '',
     accept_terms: false,
     accept_pdp: false,
     accept_subscription: false,
