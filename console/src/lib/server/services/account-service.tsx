@@ -80,6 +80,12 @@ export class AccountService {
     return memberships.map(({ user }) => user);
   }
 
+  async countAccountMembers(accountId: number) {
+    return this.prisma.accountMember.count({
+      where: { accountId },
+    });
+  }
+
   /**
    * @todo Добавить удаление других объектов
    */

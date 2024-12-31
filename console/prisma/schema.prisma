@@ -51,6 +51,10 @@ model UserContact {
   @@index([updatedAt])
 }
 
+/*
+Todo:
+1. Add a job to clean expired user sessions
+*/
 model UserSession {
   id            Int         @id @default(autoincrement())
   token         String      
@@ -77,6 +81,11 @@ model UserConsent {
   updatedAt     DateTime    @updatedAt
 }
 
+
+/*
+Add a `AccountDeletionRequest`
+or get rid of `UserResetPasswordRequest`
+*/
 model UserResetPasswordRequest {
   id            Int         @id @default(autoincrement())
   token         String
@@ -89,6 +98,13 @@ model UserResetPasswordRequest {
   @@index([userId])
 }
 
+/*
+When account is deleted,
+should be some of backup and restore with all data
+processes to be performed by administrator
+In case if account deleted maliciously or
+in result of tragic coincidence
+*/
 model Account {
   id            Int             @id @default(autoincrement())
   name          String          @unique
@@ -98,6 +114,9 @@ model Account {
   @@index([name])
 }
 
+/*
+Should be viewer role at all?
+*/
 model AccountMember {
   id            Int         @id @default(autoincrement())
   // 'owner' | 'viewer' | 'editor' | 'invited'
@@ -113,6 +132,12 @@ model AccountMember {
   @@index([accountId])
 }
 
+/*
+This model exists ony for edit purposes.
+
+Reading of client data should be
+performed in another servcie
+*/
 model Client {
   id            Int         @id @default(autoincrement())
   secretHash    String

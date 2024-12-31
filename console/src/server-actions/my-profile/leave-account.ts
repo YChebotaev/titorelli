@@ -33,7 +33,13 @@ export const leaveAccount = async (prevState: LeaveFormState, form: FormData) =>
 
   switch (intent) {
     case 'wipe':
-      nextState.success = await emailService.sendWipeAccountConfirmationEmail(accountId)
+      const membersCount = await accountService.countAccountMembers(accountId)
+
+      if (membersCount === 1 /* only owner */) {
+        nextState.success = await accountService.wipeAndRemoveAccount(accountId)
+      } else {
+        nextState.success = await emailService.sendWipeAccountConfirmationEmail(accountId)
+      }
 
       break
     case 'new_owner':

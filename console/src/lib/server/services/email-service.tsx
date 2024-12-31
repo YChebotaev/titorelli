@@ -148,7 +148,7 @@ export class EmailService {
       });
     }
 
-    return null;
+    return true;
   }
 
   private async getAccountRemovalConfirmationHref(accountId: number) {
