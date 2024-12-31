@@ -15,23 +15,23 @@ import {
 } from "@react-email/components";
 
 interface ProjectRemovalNotificationProps {
-  memberName: string;
-  projectName: string;
-  ownerName: string;
+  memberName?: string;
+  accountName?: string;
+  ownerName?: string;
   supportLink: string;
 }
 
-export default function ProjectRemovalNotification({
+export function AccountRemovalNotificationEmail({
   memberName = "Уважаемый участник",
-  projectName = "Название проекта",
+  accountName = "Название проекта",
   ownerName = "Владелец проекта",
-  supportLink = "https://titorelli.ru/support",
+  supportLink,
 }: ProjectRemovalNotificationProps) {
   return (
     <Html>
       <Head />
       <Preview>
-        Уведомление об удалении проекта {projectName} на Titorelli
+        Уведомление об удалении проекта {accountName} на Titorelli
       </Preview>
       <Tailwind>
         <Body className="bg-zinc-900 font-sans">
@@ -50,7 +50,7 @@ export default function ProjectRemovalNotification({
               Здравствуйте, {memberName}!
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
-              Мы сообщаем вам, что проект "{projectName}", участником которого
+              Мы сообщаем вам, что проект "{accountName}", участником которого
               вы являлись, был удален владельцем {ownerName}.
             </Text>
             <Text className="text-zinc-300 text-base mb-4">

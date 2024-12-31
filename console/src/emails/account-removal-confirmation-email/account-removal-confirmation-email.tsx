@@ -15,23 +15,23 @@ import {
 } from "@react-email/components";
 
 interface ProjectRemovalConfirmationProps {
-  ownerName: string;
-  projectName: string;
+  ownerName?: string;
+  accountName: string;
   confirmationLink: string;
   cancellationLink: string;
 }
 
 export default function AccountRemovalConfirmation({
   ownerName = "Уважаемый пользователь",
-  projectName = "Мой проект",
-  confirmationLink = "https://titorelli.ru/confirm-project-deletion?token=abc123",
-  cancellationLink = "https://titorelli.ru/cancel-project-deletion?token=abc123",
+  accountName,
+  confirmationLink,
+  cancellationLink,
 }: ProjectRemovalConfirmationProps) {
   return (
     <Html>
       <Head />
       <Preview>
-        Подтверждение удаления проекта {projectName} на Titorelli
+        Подтверждение удаления проекта {accountName} на Titorelli
       </Preview>
       <Tailwind>
         <Body className="bg-zinc-900 font-sans">
@@ -50,7 +50,7 @@ export default function AccountRemovalConfirmation({
               Здравствуйте, {ownerName}!
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
-              Мы получили запрос на удаление проекта "{projectName}" из вашего
+              Мы получили запрос на удаление проекта "{accountName}" из вашего
               аккаунта на платформе Titorelli. Для обеспечения безопасности и
               предотвращения случайного удаления, мы просим вас подтвердить это
               действие.

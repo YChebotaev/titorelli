@@ -3,9 +3,11 @@
 import { LeaveFormState, LeaveIntents } from "@/components/my-profile/accounts-list/account-item/leave-button"
 import { unmaskNumber } from "@/lib/server/keymask"
 import { AccountService } from "@/lib/server/services/account-service"
+import { EmailService } from "@/lib/server/services/email-service"
 
 export const leaveAccount = async (prevState: LeaveFormState, form: FormData) => {
   const accountService = new AccountService()
+  const emailService = new EmailService()
 
   const intent = form.get('intent')?.toString() as LeaveIntents | undefined
   const accountIdMasked = form.get('account_id')?.toString()
@@ -31,7 +33,7 @@ export const leaveAccount = async (prevState: LeaveFormState, form: FormData) =>
 
   switch (intent) {
     case 'wipe':
-      nextState.success = await accountService.wipeAndRemoveAccount(accountId)
+      nextState.success = await emailService.sendWipeAccountConfirmationEmail(accountId)
 
       break
     case 'new_owner':

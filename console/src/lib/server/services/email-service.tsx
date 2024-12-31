@@ -1,5 +1,5 @@
 import { createSecretKey, type KeyObject } from "crypto";
-import { jwtDecrypt, jwtVerify, SignJWT } from "jose";
+import { jwtVerify, SignJWT } from "jose";
 import { createTransport, Transporter } from "nodemailer";
 import { addHours, differenceInHours } from "date-fns";
 import { PrismaClient, User, UserContact } from "@prisma/client";
@@ -7,6 +7,8 @@ import { prismaClient } from "@/lib/server/prisma-client";
 import { render } from "@react-email/components";
 import ResetPasswordEmail from "@/emails/reset-password/reset-password";
 import { maskNumber } from "@/lib/server/keymask";
+import { AccountRemovalNotificationEmail } from "@/emails/account-removal-notification";
+import AccountRemovalConfirmation from "@/emails/account-removal-confirmation-email/account-removal-confirmation-email";
 
 export class EmailService {
   private nodemailer: Transporter;
@@ -95,6 +97,118 @@ export class EmailService {
         subject: "Восстановление пароля на платформе Titorelli",
         html: emailHtml,
       });
+    }
+  }
+
+  async sendWipeAccountConfirmationEmail(accountId: number) {
+    const ownerMember = await this.prisma.accountMember.findFirst({
+      where: {
+        accountId,
+        role: "owner",
+      },
+      include: {
+        user: {
+          include: {
+            contacts: {
+              where: { type: "email", emailConfirmed: true },
+            },
+          },
+        },
+        account: true,
+      },
+    });
+
+    if (!ownerMember)
+      throw new Error(
+        `Account owner not found in account id = ${accountId} members list`,
+      );
+
+    for (const { email } of ownerMember.user.contacts) {
+      if (email == null) continue;
+      if (email === "") continue;
+
+      const emailHtml = await render(
+        <AccountRemovalConfirmation
+          ownerName={ownerMember.user.username}
+          accountName={ownerMember.account.name}
+          confirmationLink={await this.getAccountRemovalConfirmationHref(
+            accountId,
+          )}
+          cancellationLink={await this.getAccountRemovalCancellationHref(
+            accountId,
+          )}
+        />,
+      );
+
+      await this.nodemailer.sendMail({
+        from: "noreply@titorelli.ru",
+        to: email,
+        subject: `Подтвердите удаление аккаунта "${ownerMember.account.name}" на Titorelli`,
+        html: emailHtml,
+      });
+    }
+
+    return null;
+  }
+
+  private async getAccountRemovalConfirmationHref(accountId: number) {
+    return "";
+  }
+
+  private async getAccountRemovalCancellationHref(accountId: number) {
+    return "";
+  }
+
+  async sendWipeAccountNotificationEmail(accountId: number) {
+    const members = await this.prisma.accountMember.findMany({
+      where: { accountId },
+      include: {
+        user: {
+          include: {
+            contacts: {
+              where: {
+                type: "email",
+                emailConfirmed: true,
+              },
+            },
+          },
+        },
+        account: true,
+      },
+    });
+
+    const ownerMember = members.find(({ role }) => role === "owner");
+
+    if (!ownerMember)
+      throw new Error(
+        `Account owner not found in account id = ${accountId} members list`,
+      );
+
+    for (const {
+      user,
+      user: { contacts },
+      account,
+    } of members) {
+      for (const { email } of contacts) {
+        if (email == null) continue;
+        if (email === "") continue;
+
+        const emailHtml = await render(
+          <AccountRemovalNotificationEmail
+            memberName={user.username}
+            accountName={account.name}
+            ownerName={ownerMember.user.username}
+            supportLink={`${this.siteOrigin}/support`}
+          />,
+        );
+
+        await this.nodemailer.sendMail({
+          from: "noreply@titorelli.ru",
+          to: email,
+          subject: `Удаление аккаунта "${account.name}" на Titorelli`,
+          html: emailHtml,
+        });
+      }
     }
   }
 
