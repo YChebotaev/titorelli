@@ -22,3 +22,11 @@ export async function mapFilterAsync<T, U>(
   // Then, filter out nullish values
   return results.filter((result): result is NonNullable<Awaited<U>> => result != null);
 }
+
+export function createArrayWithSingleValue<T>(v: T, i = 0): (T | undefined)[] {
+  const result = Array(i + 1)
+
+  result[i] = v
+
+  return result
+}

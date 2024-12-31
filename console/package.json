@@ -34,6 +34,7 @@
     "clsx": "^2.1.1",
     "company-email-validator": "^1.1.0",
     "date-fns": "^4.1.0",
+    "decode-formdata": "^0.8.0",
     "do-usernames": "^1.0.2",
     "dotenv": "^16.4.7",
     "email-addresses": "^5.0.0",

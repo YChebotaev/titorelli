@@ -1,4 +1,5 @@
 import { getAccounts } from "@/server-actions/my-profile/get-accounts";
+import { AddAccountModal } from "@/components/my-profile/create-account-btn";
 import { AccountItem } from "./account-item";
 
 export async function AccountsList() {
@@ -20,6 +21,9 @@ export async function AccountsList() {
             />
           ))}
         </div>
+      </div>
+      <div className="mt-6 flex justify-end">
+        <AddAccountModal />
       </div>
     </div>
   );
