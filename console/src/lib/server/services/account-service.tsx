@@ -10,9 +10,14 @@ export class AccountService {
 
   async createDefaultAccountForUser(userId: number) {
     let name: string;
+    let attemptLeft = 10;
 
     do {
+      attemptLeft -= 1;
+
       name = this.generateAccountName();
+
+      if (!attemptLeft) throw new Error("Account name generation hangs");
     } while (await this.accountNameTaken(name));
 
     await this.createAccountWithSingleOwner(userId, name);

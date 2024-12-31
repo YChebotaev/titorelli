@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "tsx --test $(find src -type f -name '*.test.ts')",
+    "test:watch": "tsx --watch --test $(find src -type f -name '*.test.ts')",
     "lint": "next lint",
     "prisma:seed": "tsx --require dotenv/config prisma/seed.ts",
     "email:preview": "email dev --dir src/emails --port 3001"
