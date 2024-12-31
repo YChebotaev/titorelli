@@ -65,11 +65,12 @@ model UserSession {
 
 model UserConsent {
   id            Int         @id @default(autoincrement())
-  // 'terms' | 'pdp' | 'subsc'
+  // 'terms' | 'pdp' | 'subsc' | 'cookie'
   type          String
   terms         Boolean?
   pdp           Boolean?
   sub           Boolean?
+  cookie        Boolean?
   user          User        @relation(fields: [userId], references: [id])
   userId        Int
   createdAt     DateTime    @default(now())
