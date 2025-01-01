@@ -85,6 +85,8 @@ model UserConsent {
 /*
 Add a `AccountDeletionRequest`
 or get rid of `UserResetPasswordRequest`
+
+At least, create a job to garbage collect
 */
 model UserResetPasswordRequest {
   id            Int         @id @default(autoincrement())

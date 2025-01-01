@@ -7,8 +7,8 @@ import { prismaClient } from "@/lib/server/prisma-client";
 import { render } from "@react-email/components";
 import ResetPasswordEmail from "@/emails/reset-password/reset-password";
 import { maskNumber } from "@/lib/server/keymask";
-import { AccountRemovalNotificationEmail } from "@/emails/account-removal-notification";
-import AccountRemovalConfirmation from "@/emails/account-removal-confirmation-email/account-removal-confirmation-email";
+import AccountRemovalNotificationEmail from "@/emails/account-removal-notification";
+import AccountRemovalConfirmation from "@/emails/account-removal-confirmation-email";
 
 export class EmailService {
   private nodemailer: Transporter;
@@ -18,7 +18,8 @@ export class EmailService {
   private smtpPass: string;
   private siteOrigin: string;
   private secretKey: KeyObject;
-  private tokenValidityPeriodInHours = 24;
+  private tokenResetPasswordValidityPeriodInHours = 24;
+  private tokenDeleteAccountValidityPeriodInHours = 24;
 
   constructor() {
     if (!process.env.SMTP_PASS_RESTORE_PASSWORD)
@@ -34,6 +35,11 @@ export class EmailService {
 
     this.prisma = prismaClient;
     this.smtpPass = process.env.SMTP_PASS_RESTORE_PASSWORD;
+
+    /**
+     * @todo
+     * Make a multiple emails transport
+     */
     this.nodemailer = createTransport({
       host: this.smtpHost,
       secure: false,
@@ -100,7 +106,7 @@ export class EmailService {
     }
   }
 
-  async sendWipeAccountConfirmationEmail(accountId: number) {
+  async sendDeleteAccountConfirmationEmail(accountId: number) {
     const ownerMember = await this.prisma.accountMember.findFirst({
       where: {
         accountId,
@@ -131,11 +137,13 @@ export class EmailService {
         <AccountRemovalConfirmation
           ownerName={ownerMember.user.username}
           accountName={ownerMember.account.name}
-          confirmationLink={await this.getAccountRemovalConfirmationHref(
+          confirmationLink={await this.getAccountDeletionConfirmationHref(
             accountId,
+            ownerMember.user.id,
           )}
-          cancellationLink={await this.getAccountRemovalCancellationHref(
+          cancellationLink={await this.getAccountDeletionCancellationHref(
             accountId,
+            ownerMember.user.id,
           )}
         />,
       );
@@ -151,12 +159,22 @@ export class EmailService {
     return true;
   }
 
-  private async getAccountRemovalConfirmationHref(accountId: number) {
-    return "";
+  private async getAccountDeletionConfirmationHref(
+    accountId: number,
+    userId: number,
+  ) {
+    const [token] = await this.generateDeleteAccountToken(accountId, userId);
+
+    return `${this.siteOrigin}/email-callbacks/account-delete-confirmation/${token}`;
   }
 
-  private async getAccountRemovalCancellationHref(accountId: number) {
-    return "";
+  private async getAccountDeletionCancellationHref(
+    accountId: number,
+    userId: number,
+  ) {
+    const [token] = await this.generateKeepAccountToken(accountId, userId);
+
+    return `${this.siteOrigin}/email-callbacks/account-delete-cancellation/${token}`;
   }
 
   async sendWipeAccountNotificationEmail(accountId: number) {
@@ -212,6 +230,11 @@ export class EmailService {
     }
   }
 
+  /**
+   * @todo
+   * Обработать ситуацию, когда токен на восстановление
+   * пароля неверный или протух
+   */
   async validateRestorePasswordTokenFromEmail(token: string) {
     const tokenValid = await this.verifyRestoreToken(token);
 
@@ -228,9 +251,12 @@ export class EmailService {
 
     const { expiredAt } = resetPasswordRequest;
 
+    /**
+     * @todo Fix `expired` calculation. Now it's just wrong
+     */
     const expired =
       differenceInHours(new Date(), expiredAt) >
-      this.tokenValidityPeriodInHours;
+      this.tokenResetPasswordValidityPeriodInHours;
 
     if (expired) {
       return false;
@@ -277,17 +303,58 @@ export class EmailService {
   private async generateResetPasswordToken(
     userId: number,
   ): Promise<[string, Date]> {
-    const expiredAt = addHours(new Date(), this.tokenValidityPeriodInHours);
+    const expiredAt = addHours(
+      new Date(),
+      this.tokenResetPasswordValidityPeriodInHours,
+    );
     const token = await new SignJWT({
       sub: maskNumber(userId),
       exp: expiredAt.getTime() / 1000, // Date in future in seconds
     })
+      .setAudience(this.siteOrigin)
       .setProtectedHeader({ alg: "HS256" })
       .sign(this.secretKey);
 
     return [token, expiredAt];
   }
 
+  private async generateDeleteAccountToken(accountId: number, userId: number) {
+    const expiredAt = addHours(
+      new Date(),
+      this.tokenDeleteAccountValidityPeriodInHours,
+    );
+    const token = await new SignJWT({
+      sub: maskNumber(userId),
+      accountId: maskNumber(accountId),
+      exp: expiredAt.getTime() / 1000, // Date in future in seconds
+    })
+      .setAudience(this.siteOrigin)
+      .setProtectedHeader({ alg: "HS256" })
+      .sign(this.secretKey);
+
+    return [token, expiredAt];
+  }
+
+  private async generateKeepAccountToken(accountId: number, userId: number) {
+    const expiredAt = addHours(
+      new Date(),
+      this.tokenDeleteAccountValidityPeriodInHours,
+    );
+    const token = await new SignJWT({
+      sub: maskNumber(userId),
+      accountId: maskNumber(accountId),
+      exp: expiredAt.getTime() / 1000, // Date in future in seconds
+    })
+      .setAudience(this.siteOrigin)
+      .setProtectedHeader({ alg: "HS256" })
+      .sign(this.secretKey);
+
+    return [token, expiredAt];
+  }
+
+  /**
+   * @todo Maybe get rid of concept of separate request
+   */
   private async createResetPasswordRequest(
     userId: number,
     token: string,

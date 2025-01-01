@@ -1,1 +1,1 @@
-export * from './account-removal-notification'
+export { default } from './account-removal-notification'

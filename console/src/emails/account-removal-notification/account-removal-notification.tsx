@@ -21,7 +21,7 @@ interface ProjectRemovalNotificationProps {
   supportLink: string;
 }
 
-export function AccountRemovalNotificationEmail({
+export default function AccountRemovalNotificationEmail({
   memberName = "Уважаемый участник",
   accountName = "Название проекта",
   ownerName = "Владелец проекта",

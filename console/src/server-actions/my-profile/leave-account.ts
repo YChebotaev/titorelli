@@ -38,7 +38,7 @@ export const leaveAccount = async (prevState: LeaveFormState, form: FormData) =>
       if (membersCount === 1 /* only owner */) {
         nextState.success = await accountService.wipeAndRemoveAccount(accountId)
       } else {
-        nextState.success = await emailService.sendWipeAccountConfirmationEmail(accountId)
+        nextState.success = await emailService.sendDeleteAccountConfirmationEmail(accountId)
       }
 
       break

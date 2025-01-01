@@ -1,1 +1,1 @@
-export * from './account-removal-confirmation-email'
+export { default } from './account-removal-confirmation-email'

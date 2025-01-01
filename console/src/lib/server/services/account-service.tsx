@@ -5,9 +5,24 @@ import { prismaClient } from "../prisma-client";
 import { ProfileAccountRoles } from "@/types/my-profile";
 
 export class AccountService {
+  /**
+   * `usernameGenerator` генерирует имена по Digital Ocean-овски,
+   * т.е. на морскую тематику.
+   * А надо генерировать на какую-то другую тематику, но с
+   * таким же принципом
+   */
   private usernameGenerator = new Generator();
   private prisma: PrismaClient = prismaClient;
 
+  /**
+   * @todo
+   * Нужно понять, что происходит и что делать,
+   * когда не удалось сгенерировать имя с `attemptLeft`
+   * попыток. Вероятно, это означает, что все имена уже заняты
+   * Но, поскольку аккаунт идентифицируется только с помощью имени,
+   * это важно, чтобы все они были уникальными
+   * Задача на подумать
+   */
   async createDefaultAccountForUser(userId: number) {
     let name: string;
     let attemptLeft = 10;
@@ -23,6 +38,10 @@ export class AccountService {
     await this.createAccountWithSingleOwner(userId, name);
   }
 
+  /**
+   * @todo
+   * Обработать сценарий, когда название аккаунта занято
+   */
   async createAccountWithNameForUser(userId: number, name: string) {
     if (await this.accountNameTaken(name)) {
       throw new Error(`Account name = "${name}" taken`);
