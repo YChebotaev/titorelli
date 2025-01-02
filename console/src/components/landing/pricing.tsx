@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Container } from "./container";
+import { Container } from "../site/container";
 
 const plans = [
   {

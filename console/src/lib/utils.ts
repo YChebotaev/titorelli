@@ -5,6 +5,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export function mapAsync<T, U>(
+  array: T[],
+  callback: (element: T, index: number, array: T[]) => U
+): Promise<U[]> {
+  return Promise.all(array.map(callback))
+}
+
 export function mapFilter<T, U>(
   array: T[],
   callback: (element: T, index: number, array: T[]) => U | null | undefined

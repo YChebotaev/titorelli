@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Image from "next/image";
-import { Container } from "./container";
+import { Container } from "../site/container";
 
 const advantages = [
   {

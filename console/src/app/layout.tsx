@@ -1,6 +1,6 @@
 import { QueryClientProvider } from "@/components/query-client-providet";
-import "../globals.css";
 import { Geist } from "next/font/google";
+import "./globals.css";
 
 const geist = Geist({ subsets: ["latin"] });
 

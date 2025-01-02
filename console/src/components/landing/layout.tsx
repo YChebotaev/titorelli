@@ -1,35 +1,5 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Container } from "./container";
-
-export function Header() {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Container>
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <TitorelliLogo />
-            <span className="text-xl font-bold">Titorelli</span>
-          </div>
-          <nav>
-            <ul className="flex items-center gap-4">
-              <li>
-                <Button asChild variant="ghost">
-                  <Link href="/authorization/signin">Войти</Link>
-                </Button>
-              </li>
-              <li>
-                <Button asChild>
-                  <Link href="/authorization/signup">Зарегистрироваться</Link>
-                </Button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </Container>
-    </header>
-  );
-}
+import { Container } from "../site/container";
 
 export function Footer() {
   const links = [
@@ -64,23 +34,5 @@ export function Footer() {
         </nav>
       </Container>
     </footer>
-  );
-}
-
-export function TitorelliLogo(props: any) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="h-6 w-6"
-      {...props}
-    >
-      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-    </svg>
   );
 }

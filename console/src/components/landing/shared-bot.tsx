@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Container } from "./container";
+import { Container } from "../site/container";
 
 export function SharedBot() {
   return (

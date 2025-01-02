@@ -1,4 +1,5 @@
-import { Header, Footer } from "@/components/landing/layout";
+import { Footer } from "@/components/landing/layout";
+import { Header } from "@/components/site/header";
 import { Hero } from "@/components/landing/hero";
 import { Advantages } from "@/components/landing/advantages";
 import { DataSafety } from "@/components/landing/data-safety";

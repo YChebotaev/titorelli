@@ -1,5 +1,5 @@
-import { TitorelliLogo } from "./layout";
-import { Container } from "./container";
+import { TitorelliLogo } from "../site/titorelli-logo";
+import { Container } from "../site/container";
 
 export function Hero() {
   return (
