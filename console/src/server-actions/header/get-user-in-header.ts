@@ -7,9 +7,11 @@ import { HeaderUserVm } from "@/types/header"
 export const getUserInHeader = async () => {
   const user = await getUserInPage()
 
-  return {
-    id: maskNumber(user.id),
-    name: 'ychebotaev',
-    email: 'hello@world.com',
-  } as HeaderUserVm
+  return user
+    ? {
+      id: maskNumber(user.id),
+      username: 'ychebotaev',
+      email: 'hello@world.com',
+    } as HeaderUserVm
+    : null
 }

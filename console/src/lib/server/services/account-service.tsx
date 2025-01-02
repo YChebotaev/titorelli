@@ -51,7 +51,7 @@ export class AccountService {
       if (!attemptLeft) throw new Error("Account name generation hangs");
     } while (await this.accountNameTaken(name));
 
-    await this.createAccountWithSingleOwner(userId, name);
+    return this.createAccountWithSingleOwner(userId, name);
   }
 
   /**
@@ -63,7 +63,7 @@ export class AccountService {
       throw new Error(`Account name = "${name}" taken`);
     }
 
-    await this.createAccountWithSingleOwner(userId, name);
+    return this.createAccountWithSingleOwner(userId, name);
   }
 
   /**
@@ -172,6 +172,10 @@ export class AccountService {
     return ((membership?.role ?? null) as ProfileAccountRoles) || null;
   }
 
+  /**
+   * @todo
+   * Rewrite to query `accountMember`
+   */
   async getAccountsUserMemberOf(userId: number) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -197,6 +201,12 @@ export class AccountService {
     const accounts = user?.accountMembership.map(({ account }) => account);
 
     return accounts ?? [];
+  }
+
+  async countAccountsUserMemberOf(userId: number) {
+    return this.prisma.accountMember.count({
+      where: { userId },
+    });
   }
 
   async getAccountMembers(accountId: number) {
@@ -280,7 +290,7 @@ export class AccountService {
   }
 
   private async createAccountWithSingleOwner(userId: number, name: string) {
-    await this.prisma.$transaction(async (t) => {
+    return this.prisma.$transaction(async (t) => {
       const account = await t.account.create({
         data: {
           name,
@@ -294,6 +304,8 @@ export class AccountService {
           userId,
         },
       });
+
+      return account.id;
     });
   }
 }

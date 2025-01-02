@@ -2,12 +2,11 @@
 
 import { LeaveFormState, LeaveIntents } from "@/components/my-profile/accounts-list/account-item/leave-button"
 import { unmaskNumber } from "@/lib/server/keymask"
-import { AccountService } from "@/lib/server/services/account-service"
-import { EmailService } from "@/lib/server/services/email-service"
+import { getAccountService, getEmailService } from "@/lib/server/services/instances"
 
 export const leaveAccount = async (prevState: LeaveFormState, form: FormData) => {
-  const accountService = new AccountService()
-  const emailService = new EmailService()
+  const accountService = getAccountService()
+  const emailService = getEmailService()
 
   const intent = form.get('intent')?.toString() as LeaveIntents | undefined
   const accountIdMasked = form.get('account_id')?.toString()

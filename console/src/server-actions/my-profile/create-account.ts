@@ -1,10 +1,13 @@
 'use server'
 
 import { AddAccountFormValues } from "@/components/my-profile/create-account-btn"
+import { activeAccountCookueName } from "@/constants"
 import { formDataToObject } from "@/lib/form-data"
 import { getUserInAction } from "@/lib/server/get-user-in-action"
-import { AccountService } from "@/lib/server/services/account-service"
+import { maskNumber } from "@/lib/server/keymask"
+import { getAccountService } from "@/lib/server/services/instances"
 import { createArrayWithSingleValue } from "@/lib/utils"
+import { cookies } from "next/headers"
 
 export type CreateAccountActionResult = {
   success: boolean
@@ -33,8 +36,8 @@ export type CreateAccountActionResult = {
  *    Need some kind of user stitching
  */
 export async function createAccount(form: FormData): Promise<CreateAccountActionResult> {
-  const accountService = new AccountService()
-
+  const accountService = getAccountService()
+  const c = await cookies()
   const user = await getUserInAction()
   const { accountName, members } = formDataToObject<AddAccountFormValues>(form)
 
@@ -70,6 +73,14 @@ export async function createAccount(form: FormData): Promise<CreateAccountAction
 
   try {
     await accountService.createAccountWithNameAndMembers(accountName, [{ identity: user.username, role: 'owner' }, ...members])
+
+    const accountsCount = await accountService.countAccountsUserMemberOf(user.id)
+
+    if (accountsCount === 1 /* Single primary account */) {
+      const [singleAccount] = await accountService.getAccountsUserMemberOf(user.id)
+
+      c.set(activeAccountCookueName, maskNumber(singleAccount.id), { httpOnly: false, secure: false })
+    }
   } catch (_e) {
     const e = _e as Error | null
 

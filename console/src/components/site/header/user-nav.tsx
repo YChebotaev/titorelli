@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import Link from "next/link";
 import Avatar from "boring-avatars";
 import { Button } from "@/components/ui/button";
@@ -23,17 +23,18 @@ import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetUserAccounts } from "@/hooks/use-get-user-accounts";
 import type { HeaderUserVm } from "@/types/header";
+import { useGetActiveAccountId } from "@/hooks/use-get-active-account-id";
 
 export function UserNav({ user }: { user: HeaderUserVm }) {
+  const activeAccountId = useGetActiveAccountId();
   const { data: accounts, isLoading } = useGetUserAccounts(user.id);
-
   const [isOpen, setIsOpen] = useState(false);
 
   const buttonWithAvatar = (
     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
       <Avatar
         size={32}
-        name={user.name}
+        name={user.username}
         variant="bauhaus"
         colors={["#A7D2CB", "#F2D388", "#C98474", "#874C62", "#3C3C3C"]}
         className="!w-8 !h-8"
@@ -68,7 +69,9 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user.name}</p>
+              <p className="text-sm font-medium leading-none">
+                {user.username}
+              </p>
               <p className="text-xs leading-none text-muted-foreground">
                 {user.email}
               </p>
@@ -102,7 +105,10 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
             {accounts!.map((account) => (
               <DropdownMenuItem
                 key={account.id}
-                className={cn("bg-accent text-accent-foreground")}
+                className={cn(
+                  account.id === activeAccountId &&
+                    "bg-accent text-accent-foreground",
+                )}
               >
                 {account.name}
               </DropdownMenuItem>

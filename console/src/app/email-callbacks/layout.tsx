@@ -1,4 +1,4 @@
-import { QueryClientProvider } from "@/components/query-client-providet";
+import { QueryClientProvider } from "@/components/query-client-provider";
 import "../globals.css";
 import { Geist } from "next/font/google";
 

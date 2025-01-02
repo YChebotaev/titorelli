@@ -4,13 +4,13 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { ContactType } from "@/components/my-profile/contacts-list";
 import { AddConcactFormState } from "@/components/my-profile/contacts-list/add-contact-form";
 import { getSession } from "@/lib/server/get-session";
-import { EmailValidationService } from "@/lib/server/services/email-validation-service";
 import { UserService } from "@/lib/server/services/user-service";
 import { addContactFormInitialState } from "@/constants";
+import { getEmailValidationService } from "@/lib/server/services/instances";
 
 export const addContact = async (prevState: AddConcactFormState, form: FormData) => {
   const userService = new UserService()
-  const emailValidationService = new EmailValidationService()
+  const emailValidationService = getEmailValidationService()
   const session = await getSession()
   const type = form.get('type')?.toString().trim() as ContactType | undefined
   const value = form.get('value')?.toString().trim()

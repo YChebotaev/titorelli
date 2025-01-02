@@ -1,3 +1,5 @@
+"use server";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Container } from "../container";
@@ -6,8 +8,8 @@ import { UserNav } from "./user-nav";
 import { getUserInHeader } from "@/server-actions/header/get-user-in-header";
 
 export async function Header() {
-  const isLoggedIn = true;
   const user = await getUserInHeader();
+  const isLoggedIn = Boolean(user);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -19,7 +21,7 @@ export async function Header() {
           </div>
           <nav>
             {isLoggedIn ? (
-              <UserNav user={user} />
+              <UserNav user={user!} />
             ) : (
               <ul className="flex items-center gap-4">
                 <li>

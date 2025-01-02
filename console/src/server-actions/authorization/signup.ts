@@ -3,19 +3,18 @@
 import { cookies } from "next/headers"
 import { redirect } from 'next/navigation'
 import { isValidPhoneNumber } from "libphonenumber-js"
-import { sessionTokenCookieName, signupFormInitialState } from '@/constants'
-import { EmailValidationService } from "@/lib/server/services/email-validation-service"
+import { activeAccountCookueName, sessionTokenCookieName, signupFormInitialState } from '@/constants'
 import { UserService } from "@/lib/server/services/user-service"
-import { UserSessionService } from "@/lib/server/services/user-session-service"
 import { type SignupFormState } from "@/components/authorization/signup-form"
-import { AccountService } from "@/lib/server/services/account-service"
 import { AccountValueTypes } from "@/types/authoriaztion"
+import { getAccountService, getEmailValidationService, getUserSessionService } from "@/lib/server/services/instances"
+import { maskNumber } from "@/lib/server/keymask"
 
 export async function signup(prevState: SignupFormState, form: FormData) {
   const userService = new UserService()
-  const emailValidationService = new EmailValidationService()
-  const sessionService = new UserSessionService()
-  const accountService = new AccountService()
+  const emailValidationService = getEmailValidationService()
+  const sessionService = getUserSessionService()
+  const accountService = getAccountService()
   const c = await cookies()
 
   const errors: Record<keyof typeof prevState['errors'], string> = Object.create(Object.prototype)
@@ -138,15 +137,17 @@ export async function signup(prevState: SignupFormState, form: FormData) {
     acceptSubscription
   )
 
+  let accountId: number | null = null
+
   switch (account) {
     case "default_name":
-      await accountService.createDefaultAccountForUser(userId)
+      accountId = await accountService.createDefaultAccountForUser(userId)
       break
     case 'no_account':
       // Do nothing
       break
     case 'set_name':
-      await accountService.createAccountWithNameForUser(userId, accountName!)
+      accountId = await accountService.createAccountWithNameForUser(userId, accountName!)
       break
   }
 
@@ -156,6 +157,10 @@ export async function signup(prevState: SignupFormState, form: FormData) {
     httpOnly: true,
     secure: false // TODO: Enable for production
   })
+
+  if (accountId != null) {
+    c.set(activeAccountCookueName, maskNumber(accountId), { httpOnly: false, secure: false })
+  }
 
   redirect('/my/profile')
 }

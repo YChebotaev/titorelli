@@ -5,6 +5,6 @@ export type UserAccountVm = {
 
 export type HeaderUserVm = {
   id: string
-  name: string
+  username: string
   email: string
 }

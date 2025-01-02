@@ -2,18 +2,16 @@
 
 import { RestoreFormState } from "@/components/authorization/restore-password-form"
 import { restoreFormInitialState } from "@/constants"
-import { EmailService } from "@/lib/server/services/email-service"
-import { EmailValidationService } from "@/lib/server/services/email-validation-service"
-import { UserService } from "@/lib/server/services/user-service"
+import { getEmailService, getEmailValidationService, getUserService } from "@/lib/server/services/instances"
 
 /**
  * Из соображений безопасности, на фронт
  * не уходят данные, что пользователь не найден
  */
 export async function restorePassword(prevState: RestoreFormState, form: FormData) {
-  const userService = new UserService()
-  const emailService = new EmailService()
-  const emailValidationService = new EmailValidationService()
+  const userService = getUserService()
+  const emailService = getEmailService()
+  const emailValidationService = getEmailValidationService()
 
   const identity = form.get('identity')?.toString()
 
