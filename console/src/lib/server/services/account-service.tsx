@@ -1,13 +1,10 @@
 import Generator from "do-usernames";
 import toKebab from "kebab-case";
 import { Account, AccountMember, PrismaClient } from "@prisma/client";
-import { prismaClient } from "../prisma-client";
 import { ProfileAccountRoles } from "@/types/my-profile";
-// import { EmailService } from "./email-service";
-// import { UserService } from "./user-service";
-import { mapAsync, mapFilter } from "@/lib/utils";
-// import { InviteService } from "./invite-service";
+import { mapFilter } from "@/lib/utils";
 import { getInviteService, getUserService } from "./instances";
+import { prismaClient } from "../prisma-client";
 
 export class AccountService {
   /**
@@ -18,8 +15,6 @@ export class AccountService {
    */
   private usernameGenerator = new Generator();
   private prisma: PrismaClient = prismaClient;
-  // private userService = new UserService();
-  // private inviteService = new InviteService();
 
   get userService() {
     return getUserService();
@@ -71,6 +66,10 @@ export class AccountService {
     await this.createAccountWithSingleOwner(userId, name);
   }
 
+  /**
+   * @todo
+   * Deduplicate members by user id
+   */
   async createAccountWithNameAndMembers(
     name: string,
     members: { identity: string; role: string }[],

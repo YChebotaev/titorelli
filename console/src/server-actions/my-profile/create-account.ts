@@ -20,10 +20,10 @@ export type CreateAccountActionResult = {
 
 /**
  * @todo
- * 0. Validate phone numbers, emails and usernames
+ * 0. Validate and normalize phone numbers, emails and usernames
  * 1. Deduplicate members by user id
- * 2. Send invites to unregistered members
- * 3. Send invites to registered members
+ * 2. Send invites to unregistered members ✅
+ * 3. Send invites to registered members ✅
  * 4. If one of identity is a registered user and another
  *    is same user, but unregistered, what to do?
  *    It manifests itself when user receives invite
@@ -58,7 +58,15 @@ export async function createAccount(form: FormData): Promise<CreateAccountAction
     return { success: false, errors: { accountName: 'Имя аккаунта занято. Впишите другое имя' } }
   }
 
-  // TODO: Check members has self (owner) identity and skip it
+  // TODO:
+  // Clean members list:
+  // 1. Clear duplicate values
+  // 1.2. Phones must be normalized
+  // 1.3. Emails should be normalized
+  // 1.4. Usernames should be trimmed
+  // 2. If raw value duplicates with different roles, raise error
+  // 2.1. If multiple identities points to same user,
+  //      send only one invite to this user
 
   try {
     await accountService.createAccountWithNameAndMembers(accountName, [{ identity: user.username, role: 'owner' }, ...members])
