@@ -1,25 +1,26 @@
 import { createHash, randomBytes } from 'crypto'
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
 import { prismaClient } from '@/lib/server/prisma-client'
 import { PrismaClient } from '@prisma/client'
-import { EmailValidationService } from '@/lib/server/services/email-validation-service'
-import { EmailService } from '@/lib/server/services/email-service'
 import { unmaskNumber } from '@/lib/server/keymask'
+import { env } from '@/lib/env'
+import { formatPhoneNumber } from '../format-phone-number'
+import { getEmailService, getEmailValidationService } from './instances'
 
 export class UserService {
   private passwordPepper: string
   private prisma: PrismaClient
-  private emailValidationService: EmailValidationService
-  private emailService: EmailService
+
+  get emailValidationService() {
+    return getEmailValidationService()
+  }
+
+  get emailService() {
+    return getEmailService()
+  }
 
   constructor() {
-    if (process.env.PASSWORD_PEPPER == null)
-      throw new Error('PASSWORD_PEPPER environment variable must be provided')
-
     this.prisma = prismaClient
-    this.passwordPepper = process.env.PASSWORD_PEPPER
-    this.emailValidationService = new EmailValidationService()
-    this.emailService = new EmailService()
+    this.passwordPepper = env.PASSWORD_PEPPER
   }
 
   /**
@@ -168,7 +169,7 @@ export class UserService {
     return unmaskNumber(parsedToken.sub)
   }
 
-  private async getUserByIdentnty(identity: string) {
+  async getUserByIdentnty(identity: string) {
     let user = await this.getUserByUsername(identity)
 
     if (user == null) {
@@ -182,6 +183,9 @@ export class UserService {
     return user
   }
 
+  /**
+   * @todo Apply username validation
+   */
   async getUserByUsername(username: string) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -192,6 +196,9 @@ export class UserService {
     return user ?? null
   }
 
+  /**
+   * @todo Apply email validation
+   */
   async getUserByEmail(email: string) {
     const contact = await this.prisma.userContact.findFirst({
       where: {
@@ -208,6 +215,9 @@ export class UserService {
 
   async getUserByPhone(rawPhone: string) {
     const phone = this.formatPhoneNumber(rawPhone)
+
+    if (!phone)
+      return null
 
     const contact = await this.prisma.userContact.findFirst({
       where: {
@@ -313,8 +323,7 @@ export class UserService {
   }
 
   private formatPhoneNumber(phone: string) {
-    const parsedPhone = parsePhoneNumberFromString(phone, 'RU')
-    return parsedPhone?.formatInternational()
+    return formatPhoneNumber(phone)
   }
 
   private hashPassword(rawPassword: string, salt: string) {

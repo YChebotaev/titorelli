@@ -2,13 +2,14 @@ import { createSecretKey, type KeyObject } from "crypto";
 import { jwtVerify, SignJWT } from "jose";
 import { createTransport, Transporter } from "nodemailer";
 import { addHours, differenceInHours } from "date-fns";
-import { PrismaClient, User, UserContact } from "@prisma/client";
+import { Account, PrismaClient, User, UserContact } from "@prisma/client";
 import { prismaClient } from "@/lib/server/prisma-client";
 import { render } from "@react-email/components";
 import ResetPasswordEmail from "@/emails/reset-password/reset-password";
 import { maskNumber } from "@/lib/server/keymask";
 import AccountRemovalNotificationEmail from "@/emails/account-removal-notification";
 import AccountRemovalConfirmation from "@/emails/account-removal-confirmation-email";
+import { env } from "@/lib/env";
 
 export class EmailService {
   private nodemailer: Transporter;
@@ -22,19 +23,8 @@ export class EmailService {
   private tokenDeleteAccountValidityPeriodInHours = 24;
 
   constructor() {
-    if (!process.env.SMTP_PASS_RESTORE_PASSWORD)
-      throw new Error(
-        "SMTP_PASS_RESTORE_PASSWORD environment variable must be provided",
-      );
-
-    if (!process.env.SITE_ORIGIN)
-      throw new Error("SITE_ORIGIN environment variable must be provided");
-
-    if (!process.env.JWT_SECRET)
-      throw new Error("JWT_SECRET environment variable must be provided");
-
     this.prisma = prismaClient;
-    this.smtpPass = process.env.SMTP_PASS_RESTORE_PASSWORD;
+    this.smtpPass = env.SMTP_PASS_RESTORE_PASSWORD;
 
     /**
      * @todo
@@ -48,8 +38,8 @@ export class EmailService {
         pass: this.smtpPass,
       },
     });
-    this.siteOrigin = process.env.SITE_ORIGIN;
-    this.secretKey = createSecretKey(process.env.JWT_SECRET, "utf-8");
+    this.siteOrigin = env.SITE_ORIGIN;
+    this.secretKey = createSecretKey(env.JWT_SECRET, "utf-8");
   }
 
   async sendRestorePasswordEmail(userId: number, email: string | "*") {
@@ -129,6 +119,8 @@ export class EmailService {
         `Account owner not found in account id = ${accountId} members list`,
       );
 
+    if (!ownerMember.user) throw new Error("Owner model don't have user");
+
     for (const { email } of ownerMember.user.contacts) {
       if (email == null) continue;
       if (email === "") continue;
@@ -157,6 +149,24 @@ export class EmailService {
     }
 
     return true;
+  }
+
+  /**
+   * @todo To implement...
+   */
+  async sendInviteUnregisteredToAccount(email: string, account: Account) {
+    console.log(
+      `Invite to unregistered email = "${email}" sended successfully for account id = ${account.id}`,
+    );
+  }
+
+  /**
+   * @todo To implement...
+   */
+  async sendInviteToAccountByUsername(username: string, account: Account) {
+    console.log(
+      `Invite to user with username = "${username}" sended successfully for account id = ${account.id}`,
+    );
   }
 
   private async getAccountDeletionConfirmationHref(
@@ -202,12 +212,14 @@ export class EmailService {
         `Account owner not found in account id = ${accountId} members list`,
       );
 
-    for (const {
-      user,
-      user: { contacts },
-      account,
-    } of members) {
-      for (const { email } of contacts) {
+    if (!ownerMember.user) throw new Error("Owner member not have user");
+
+    for (const member of members) {
+      if (!member.user) continue;
+
+      const { user, account } = member;
+
+      for (const { email } of user?.contacts ?? []) {
         if (email == null) continue;
         if (email === "") continue;
 

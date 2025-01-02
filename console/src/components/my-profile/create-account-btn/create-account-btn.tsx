@@ -36,6 +36,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { objectToFormData } from "@/lib/form-data";
+import { userAccountRoleToDisplayName } from "@/lib/user-account-role";
 
 const memberSchema = z.object({
   identity: z.string().min(1, "Идентификатор участника обязателен"),
@@ -52,7 +53,7 @@ const formSchema = z.object({
 
 export type AddAccountFormValues = z.infer<typeof formSchema>;
 
-export function AddAccountModal() {
+export function AddAccountBtn() {
   const [open, setOpen] = useState(false);
   const form = useForm<AddAccountFormValues>({
     resolver: zodResolver(formSchema),
@@ -66,6 +67,10 @@ export function AddAccountModal() {
     const formData = objectToFormData(values);
 
     const result = await createAccount(formData);
+
+    for (const [name, message] of Object.entries(result)) {
+      form.setError(name, message)
+    }
 
     console.log("result =", result);
   };
@@ -84,7 +89,6 @@ export function AddAccountModal() {
         </DialogHeader>
         <Form {...form}>
           <form
-            // action={formAction}
             onSubmit={form.handleSubmit(submitHandler)}
             className="space-y-8"
           >
@@ -115,14 +119,23 @@ export function AddAccountModal() {
                       placeholder="Емейл, ник или номер телефона участника"
                       className="flex-grow"
                     />
-                    <Select>
+                    <Select
+                      {...form.register(`members.${index}.role`)}
+                      onValueChange={(value) =>
+                        form.setValue(`members.${index}.role`, value)
+                      }
+                    >
                       <SelectTrigger className="w-1/5">
                         <SelectValue placeholder="Роль" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectItem value="viewer">Просмотр</SelectItem>
-                          <SelectItem value="editor">Редактирование</SelectItem>
+                          <SelectItem value="viewer">
+                            {userAccountRoleToDisplayName("viewer")}
+                          </SelectItem>
+                          <SelectItem value="editor">
+                            {userAccountRoleToDisplayName("editor")}
+                          </SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>

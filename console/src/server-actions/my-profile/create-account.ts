@@ -2,11 +2,14 @@
 
 import { AddAccountFormValues } from "@/components/my-profile/create-account-btn"
 import { formDataToObject } from "@/lib/form-data"
+import { getUserInAction } from "@/lib/server/get-user-in-action"
+import { AccountService } from "@/lib/server/services/account-service"
 import { createArrayWithSingleValue } from "@/lib/utils"
 
 export type CreateAccountActionResult = {
   success: boolean
   errors: {
+    root?: string
     accountName?: string
     members?: ({
       identity?: string
@@ -30,6 +33,9 @@ export type CreateAccountActionResult = {
  *    Need some kind of user stitching
  */
 export async function createAccount(form: FormData): Promise<CreateAccountActionResult> {
+  const accountService = new AccountService()
+
+  const user = await getUserInAction()
   const { accountName, members } = formDataToObject<AddAccountFormValues>(form)
 
   if (!accountName) {
@@ -43,9 +49,31 @@ export async function createAccount(form: FormData): Promise<CreateAccountAction
       return { success: false, errors: { members: createArrayWithSingleValue({ identity: 'Идентификатор участника обязателен' }, i) } }
     }
 
-    if (['editor', 'viewer'].includes(member.role)) {
+    if (!(['editor', 'viewer'].includes(member.role))) {
       return { success: false, errors: { members: createArrayWithSingleValue({ role: 'Роль участника не указана' }, i) } }
     }
+  }
+
+  if (await accountService.accountNameTaken(accountName)) {
+    return { success: false, errors: { accountName: 'Имя аккаунта занято. Впишите другое имя' } }
+  }
+
+  // TODO: Check members has self (owner) identity and skip it
+
+  try {
+    await accountService.createAccountWithNameAndMembers(accountName, [{ identity: user.username, role: 'owner' }, ...members])
+  } catch (_e) {
+    const e = _e as Error | null
+
+    if (e != null) {
+      if (/Account name taken/.test(e.message)) {
+        return { success: false, errors: { accountName: 'Название аккаута занято' } }
+      }
+
+      console.error(e)
+    }
+
+    return { success: false, errors: { root: 'Не удалось создать аккаунт. Попробуйте позже' } }
   }
 
   return { success: true, errors: {} }

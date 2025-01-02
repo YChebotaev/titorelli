@@ -1,8 +1,13 @@
 import Generator from "do-usernames";
 import toKebab from "kebab-case";
-import { PrismaClient } from "@prisma/client";
+import { Account, AccountMember, PrismaClient } from "@prisma/client";
 import { prismaClient } from "../prisma-client";
 import { ProfileAccountRoles } from "@/types/my-profile";
+// import { EmailService } from "./email-service";
+// import { UserService } from "./user-service";
+import { mapAsync, mapFilter } from "@/lib/utils";
+// import { InviteService } from "./invite-service";
+import { getInviteService, getUserService } from "./instances";
 
 export class AccountService {
   /**
@@ -13,6 +18,22 @@ export class AccountService {
    */
   private usernameGenerator = new Generator();
   private prisma: PrismaClient = prismaClient;
+  // private userService = new UserService();
+  // private inviteService = new InviteService();
+
+  get userService() {
+    return getUserService();
+  }
+
+  get inviteService() {
+    return getInviteService();
+  }
+
+  async getAccount(accountId: number) {
+    return this.prisma.account.findFirst({
+      where: { id: accountId },
+    });
+  }
 
   /**
    * @todo
@@ -48,6 +69,94 @@ export class AccountService {
     }
 
     await this.createAccountWithSingleOwner(userId, name);
+  }
+
+  async createAccountWithNameAndMembers(
+    name: string,
+    members: { identity: string; role: string }[],
+  ) {
+    if (await this.accountNameTaken(name))
+      throw new Error(`Account name taken = "${name}"`);
+
+    let checkpoint = 0;
+    let account: Account;
+    const newMembers: AccountMember[] = [];
+
+    const getOrInviteAccountMember = async (
+      accountId: number,
+      identity: string,
+      role: string,
+    ) => {
+      const user = await this.userService.getUserByIdentnty(identity);
+
+      await this.inviteService.sendInviteToIdentity(identity, accountId, role);
+
+      return user
+        ? {
+            accountId,
+            role,
+            userId: user.id,
+          }
+        : {
+            accountId,
+            role: "invited",
+            invitedRole: role,
+          };
+    };
+
+    try {
+      account = await this.prisma.account.create({
+        data: { name },
+      });
+
+      checkpoint += 1;
+
+      for (const inputMember of members) {
+        if (inputMember.role === "owner") continue;
+
+        const insertMember = await getOrInviteAccountMember(
+          account.id,
+          inputMember.identity,
+          inputMember.role,
+        );
+
+        newMembers.push(
+          await this.prisma.accountMember.create({
+            data: insertMember,
+          }),
+        );
+
+        checkpoint += 1;
+      }
+    } catch (e) {
+      console.error(e);
+
+      if (checkpoint >= 1) {
+        try {
+          await this.prisma.account.delete({ where: { id: account!.id } });
+        } catch (e) {
+          // Just suppress error
+
+          console.error(e);
+        }
+      }
+
+      if (checkpoint > 1) {
+        for (const newMember of newMembers) {
+          try {
+            await this.prisma.accountMember.delete({
+              where: { id: newMember.id },
+            });
+          } catch (e) {
+            // Just suppress error
+
+            console.error(e);
+
+            continue;
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -95,13 +204,14 @@ export class AccountService {
     const memberships = await this.prisma.accountMember.findMany({
       where: {
         accountId,
+        role: { not: "invited" },
       },
       include: {
         user: true,
       },
     });
 
-    return memberships.map(({ user }) => user);
+    return mapFilter(memberships, ({ user }) => user);
   }
 
   async countAccountMembers(accountId: number) {
@@ -160,7 +270,7 @@ export class AccountService {
     return toKebab(this.usernameGenerator.getName(), false)!;
   }
 
-  private async accountNameTaken(name: string) {
+  async accountNameTaken(name: string) {
     const count = await this.prisma.account.count({
       where: {
         name,

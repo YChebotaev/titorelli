@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function mapAsync<T, U>(
   array: T[],
-  callback: (element: T, index: number, array: T[]) => U
+  callback: (element: T, index: number, array: T[]) => Promise<U>
 ): Promise<U[]> {
   return Promise.all(array.map(callback))
 }

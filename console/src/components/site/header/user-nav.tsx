@@ -22,10 +22,11 @@ import {
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetUserAccounts } from "@/hooks/use-get-user-accounts";
-import { HeaderUserVm } from "@/types/header";
+import type { HeaderUserVm } from "@/types/header";
 
 export function UserNav({ user }: { user: HeaderUserVm }) {
   const { data: accounts, isLoading } = useGetUserAccounts(user.id);
+
   const [isOpen, setIsOpen] = useState(false);
 
   const buttonWithAvatar = (

@@ -125,8 +125,10 @@ model AccountMember {
   role          String
   // 'viwer' | 'editor'
   invitedRole   String?
-  user          User        @relation(fields: [userId], references: [id])
-  userId        Int
+  // User may be null in one case: when membership added with 'invited' role
+  // Every other case, user is fulfilled
+  user          User?       @relation(fields: [userId], references: [id])
+  userId        Int?
   account       Account     @relation(fields: [accountId], references: [id])
   accountId     Int
   createdAt     DateTime    @default(now())

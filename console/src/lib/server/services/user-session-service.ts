@@ -3,16 +3,14 @@ import { jwtVerify, SignJWT } from 'jose'
 import { PrismaClient } from '@prisma/client'
 import { prismaClient } from '@/lib/server/prisma-client'
 import { maskNumber } from '../keymask'
+import { env } from '@/lib/env'
 
 export class UserSessionService {
   private prisma: PrismaClient = prismaClient
   private secretKey: KeyObject
 
   constructor() {
-    if (process.env.JWT_SECRET == null)
-      throw new Error('JWT_SECRET environment variable must be provided')
-
-    this.secretKey = createSecretKey(process.env.JWT_SECRET, 'utf-8')
+    this.secretKey = createSecretKey(env.JWT_SECRET, 'utf-8')
   }
 
   async createSession(userId: number) {

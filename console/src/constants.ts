@@ -6,6 +6,7 @@ import { type ResetFormState } from '@/components/authorization/reset-password-f
 import { type LeaveFormState } from '@/components/my-profile/accounts-list/account-item/leave-button'
 
 export const sessionTokenCookieName = 'SID'
+export const activeAccountCookueName = 'AA'
 
 export const signupFormInitialState: SignupFormState = {
   defaultValues: {

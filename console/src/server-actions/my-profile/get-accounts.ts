@@ -7,7 +7,7 @@ import { mapFilterAsync } from "@/lib/utils"
 import { ProfileAccountVm } from "@/types/my-profile"
 import { AccountMember, User } from "@prisma/client"
 
-const getOwnerFromMembers = (members: (AccountMember & { user: User })[]) =>
+const getOwnerFromMembers = (members: (AccountMember & { user: User | null })[]) =>
   members.find(({ role }) => role === 'owner')
 
 export const getAccounts = async () => {
@@ -19,7 +19,7 @@ export const getAccounts = async () => {
     const owner = getOwnerFromMembers(members)
     const role = await accountService.getUserRoleInAccount(user.id, id)
 
-    if (!owner || !role)
+    if (!owner || !role || owner.user == null)
       return null
 
     return {
