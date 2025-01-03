@@ -32,9 +32,10 @@ model User {
 
 // #region UserContact
 model UserContact {
-  id              Int         @id @default(autoincrement())
+  id              Int               @id @default(autoincrement())
   // 'email' | 'phone' | 'tg-username' | 'tg-user-id'
   type                  String
+  primary               Boolean     @default(false)
   email                 String?
   emailConfirmed        Boolean?
   emailDisposable       Boolean?

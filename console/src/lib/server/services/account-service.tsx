@@ -6,7 +6,7 @@ import { mapFilter, mapFilterAsync } from "@/lib/utils";
 import { getInviteService, getUserService } from "./instances";
 import { prismaClient } from "../prisma-client";
 import { addHours } from "date-fns";
-import { first, forEach, groupBy } from "lodash";
+import { first, forEach, groupBy, includes } from "lodash";
 
 export class AccountService {
   /**
@@ -200,6 +200,17 @@ export class AccountService {
     const accounts = user?.accountMembership.map(({ account }) => account);
 
     return accounts ?? [];
+  }
+
+  async getAccountUserMemberOf(userId: number, accountId: number) {
+    const accountMember = await this.prisma.accountMember.findFirst({
+      where: { userId, accountId },
+      include: {
+        account: true,
+      },
+    });
+
+    return accountMember?.account ?? null;
   }
 
   async countAccountsUserMemberOf(userId: number) {

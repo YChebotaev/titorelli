@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Avatar from "boring-avatars";
 import { Button } from "@/components/ui/button";
@@ -23,11 +23,15 @@ import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetUserAccounts } from "@/hooks/use-get-user-accounts";
 import type { HeaderUserVm } from "@/types/header";
-import { useGetActiveAccountId } from "@/hooks/use-get-active-account-id";
+import { useGetActiveAccount } from "@/hooks/use-get-active-account";
 
 export function UserNav({ user }: { user: HeaderUserVm }) {
-  const activeAccountId = useGetActiveAccountId();
-  const { data: accounts, isLoading } = useGetUserAccounts(user.id);
+  const { data: activeAccount, isLoading: activeAccountLoading } =
+    useGetActiveAccount(user.id);
+  const { data: accounts, isLoading: accountsLoading } = useGetUserAccounts(
+    user.id,
+  );
+  const isLoading = activeAccountLoading || accountsLoading;
   const [isOpen, setIsOpen] = useState(false);
 
   const buttonWithAvatar = (
@@ -45,12 +49,14 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
   if (isLoading) {
     return (
       <div className="flex items-center gap-4">
-        <Link
-          href="/project/titorelli"
-          className="text-sm font-medium hover:underline"
-        >
-          Work Project
-        </Link>
+        {activeAccount && (
+          <Link
+            href="/project/titorelli"
+            className="text-sm font-medium hover:underline"
+          >
+            {activeAccount?.name}
+          </Link>
+        )}
         {buttonWithAvatar}
       </div>
     );
@@ -62,7 +68,7 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
         href="/project/titorelli"
         className="text-sm font-medium hover:underline"
       >
-        Work Project
+        {activeAccount?.name}
       </Link>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>{buttonWithAvatar}</DropdownMenuTrigger>
@@ -106,7 +112,7 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
               <DropdownMenuItem
                 key={account.id}
                 className={cn(
-                  account.id === activeAccountId &&
+                  account.id === activeAccount?.id &&
                     "bg-accent text-accent-foreground",
                 )}
               >

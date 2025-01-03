@@ -77,6 +77,7 @@ export class UserService {
         data: [
           {
             type: 'email',
+            primary: true,
             userId: user.id,
             email,
             emailConfirmed: false,
@@ -85,6 +86,7 @@ export class UserService {
           },
           {
             type: 'phone',
+            primary: true,
             userId: user.id,
             phone: formattedPhone,
           }
