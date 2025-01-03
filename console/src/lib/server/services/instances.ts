@@ -1,4 +1,5 @@
 import { AccountService } from "./account-service";
+import { EmailClient } from "./email-client";
 import { EmailService } from "./email-service";
 import { EmailValidationService } from "./email-validation-service";
 import { InviteService } from "./invite-service";
@@ -19,3 +20,4 @@ export const getInviteService = memoize(() => new InviteService())
 export const getSmsService = memoize(() => new SmsService())
 export const getUserService = memoize(() => new UserService())
 export const getUserSessionService = memoize(() => new UserSessionService())
+export const getEmailClient = memoize(() => new EmailClient)

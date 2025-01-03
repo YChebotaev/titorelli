@@ -1,6 +1,5 @@
 import { createSecretKey, type KeyObject } from "crypto";
 import { jwtVerify, SignJWT } from "jose";
-import { createTransport, Transporter } from "nodemailer";
 import { addHours, differenceInHours } from "date-fns";
 import { Account, PrismaClient, User, UserContact } from "@prisma/client";
 import { prismaClient } from "@/lib/server/prisma-client";
@@ -10,34 +9,21 @@ import { maskNumber } from "@/lib/server/keymask";
 import AccountRemovalNotificationEmail from "@/emails/account-removal-notification";
 import AccountRemovalConfirmation from "@/emails/account-removal-confirmation-email";
 import { env } from "@/lib/env";
+import { getEmailClient } from "./instances";
 
 export class EmailService {
-  private nodemailer: Transporter;
   private prisma: PrismaClient;
-  private smtpHost = "mail.netangels.ru";
-  private smptUser = "restore-password@titorelli.ru";
-  private smtpPass: string;
   private siteOrigin: string;
   private secretKey: KeyObject;
   private tokenResetPasswordValidityPeriodInHours = 24;
   private tokenDeleteAccountValidityPeriodInHours = 24;
 
+  get emailClient() {
+    return getEmailClient();
+  }
+
   constructor() {
     this.prisma = prismaClient;
-    this.smtpPass = env.SMTP_PASS_RESTORE_PASSWORD;
-
-    /**
-     * @todo
-     * Make a multiple emails transport
-     */
-    this.nodemailer = createTransport({
-      host: this.smtpHost,
-      secure: false,
-      auth: {
-        user: this.smptUser,
-        pass: this.smtpPass,
-      },
-    });
     this.siteOrigin = env.SITE_ORIGIN;
     this.secretKey = createSecretKey(env.JWT_SECRET, "utf-8");
   }
@@ -87,12 +73,12 @@ export class EmailService {
         <ResetPasswordEmail username={user.username} resetHref={resetHref} />,
       );
 
-      await this.nodemailer.sendMail({
-        from: "restore-password@titorelli.ru",
-        to: contact.email,
-        subject: "Восстановление пароля на платформе Titorelli",
-        html: emailHtml,
-      });
+      await this.emailClient.sendHTML(
+        "restore-password@titorelli.ru",
+        contact.email,
+        "Восстановление пароля на платформе Titorelli",
+        emailHtml,
+      );
     }
   }
 
@@ -140,12 +126,12 @@ export class EmailService {
         />,
       );
 
-      await this.nodemailer.sendMail({
-        from: "noreply@titorelli.ru",
-        to: email,
-        subject: `Подтвердите удаление аккаунта "${ownerMember.account.name}" на Titorelli`,
-        html: emailHtml,
-      });
+      await this.emailClient.sendHTML(
+        "noreply@titorelli.ru",
+        email,
+        `Подтвердите удаление аккаунта "${ownerMember.account.name}" на Titorelli`,
+        emailHtml,
+      );
     }
 
     return true;
@@ -232,12 +218,12 @@ export class EmailService {
           />,
         );
 
-        await this.nodemailer.sendMail({
-          from: "noreply@titorelli.ru",
-          to: email,
-          subject: `Удаление аккаунта "${account.name}" на Titorelli`,
-          html: emailHtml,
-        });
+        await this.emailClient.sendHTML(
+          "noreply@titorelli.ru",
+          email,
+          `Удаление аккаунта "${account.name}" на Titorelli`,
+          emailHtml,
+        );
       }
     }
   }
