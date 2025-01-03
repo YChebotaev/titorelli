@@ -24,7 +24,7 @@ export type CreateAccountActionResult = {
 /**
  * @todo
  * 0. Validate and normalize phone numbers, emails and usernames
- * 1. Deduplicate members by user id
+ * 1. Deduplicate members by user id ✅
  * 2. Send invites to unregistered members ✅
  * 3. Send invites to registered members ✅
  * 4. If one of identity is a registered user and another
@@ -72,14 +72,19 @@ export async function createAccount(form: FormData): Promise<CreateAccountAction
   //      send only one invite to this user
 
   try {
-    await accountService.createAccountWithNameAndMembers(accountName, [{ identity: user.username, role: 'owner' }, ...members])
+    await accountService.createAccountAndInviteMembers(user.id, accountName, members)
 
-    const accountsCount = await accountService.countAccountsUserMemberOf(user.id)
+    /**
+     * If it's first account for user, set user's active account
+     */
+    {
+      const accountsCount = await accountService.countAccountsUserMemberOf(user.id)
 
-    if (accountsCount === 1 /* Single primary account */) {
-      const [singleAccount] = await accountService.getAccountsUserMemberOf(user.id)
+      if (accountsCount === 1 /* Single primary account */) {
+        const [singleAccount] = await accountService.getAccountsUserMemberOf(user.id)
 
-      c.set(activeAccountCookueName, maskNumber(singleAccount.id), { httpOnly: false, secure: false })
+        c.set(activeAccountCookueName, maskNumber(singleAccount.id), { httpOnly: false, secure: false })
+      }
     }
   } catch (_e) {
     const e = _e as Error | null

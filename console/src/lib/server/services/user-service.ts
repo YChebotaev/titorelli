@@ -6,6 +6,8 @@ import { env } from '@/lib/env'
 import { formatPhoneNumber } from '../format-phone-number'
 import { getEmailService, getEmailValidationService } from './instances'
 
+export type IdentityTypes = 'email' | 'phone' | 'username'
+
 export class UserService {
   private passwordPepper: string
   private prisma: PrismaClient
@@ -169,24 +171,39 @@ export class UserService {
     return unmaskNumber(parsedToken.sub)
   }
 
+  getIdentityType(identity: string): IdentityTypes | null {
+    if (this.emailValidationService.isEmail(identity))
+      return 'email'
+
+    if (this.formatPhoneNumber(identity)) {
+      return 'phone'
+    }
+
+    if (this.validateUsername(identity))
+      return 'username'
+
+    return null
+  }
+
   async getUserByIdentnty(identity: string) {
-    let user = await this.getUserByUsername(identity)
+    const identityType = this.getIdentityType(identity)
 
-    if (user == null) {
-      user = await this.getUserByEmail(identity)
+    switch (identityType) {
+      case 'email': return this.getUserByEmail(identity)
+      case 'phone': return this.getUserByPhone(identity)
+      case 'username': return this.getUserByUsername(identity)
+      default:
+        return null
     }
-
-    if (user == null) {
-      user = await this.getUserByPhone(identity)
-    }
-
-    return user
   }
 
   /**
    * @todo Apply username validation
    */
   async getUserByUsername(username: string) {
+    if (this.validateUsername(username))
+      return null
+
     const user = await this.prisma.user.findFirst({
       where: {
         username
@@ -196,10 +213,10 @@ export class UserService {
     return user ?? null
   }
 
-  /**
-   * @todo Apply email validation
-   */
   async getUserByEmail(email: string) {
+    if (!this.emailValidationService.isEmail(email))
+      return null
+
     const contact = await this.prisma.userContact.findFirst({
       where: {
         type: 'email',

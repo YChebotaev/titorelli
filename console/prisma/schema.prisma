@@ -10,6 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// #region User
 model User {
   id                    Int         @id @default(autoincrement())
   username              String      @unique
@@ -20,13 +21,16 @@ model User {
   consents              UserConsent[]
   resetPasswordRequests UserResetPasswordRequest[]
   accountMembership     AccountMember[]
+  accountInvites        AccountInvite[]
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
   @@index([username])
   @@index([createdAt])
   @@index([updatedAt])
 }
+// #endregion
 
+// #region UserContact
 model UserContact {
   id              Int         @id @default(autoincrement())
   // 'email' | 'phone' | 'tg-username' | 'tg-user-id'
@@ -50,7 +54,9 @@ model UserContact {
   @@index([createdAt])
   @@index([updatedAt])
 }
+// #endregion
 
+// #region UserSession
 /*
 Todo:
 1. Add a job to clean expired user sessions
@@ -66,7 +72,9 @@ model UserSession {
   @@index([token])
   @@index([userId])
 }
+// #endregion
 
+// #region UserConsent
 model UserConsent {
   id            Int         @id @default(autoincrement())
   // 'terms' | 'pdp' | 'subsc' | 'cookie'
@@ -80,8 +88,10 @@ model UserConsent {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 }
+// #endregion
 
 
+// #region UserResetPasswordRequest
 /*
 Add a `AccountDeletionRequest`
 or get rid of `UserResetPasswordRequest`
@@ -99,7 +109,9 @@ model UserResetPasswordRequest {
   @@index([token])
   @@index([userId])
 }
+// #endregion
 
+// #region Account
 /*
 When account is deleted,
 should be some of backup and restore with all data
@@ -111,31 +123,62 @@ model Account {
   id            Int             @id @default(autoincrement())
   name          String          @unique
   members       AccountMember[] 
+  invites       AccountInvite[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   @@index([name])
 }
+// #endregion
 
+// #region AccountMember
 /*
 Should be viewer role at all?
 */
 model AccountMember {
   id            Int         @id @default(autoincrement())
-  // 'owner' | 'viewer' | 'editor' | 'invited'
+  // 'owner' | 'viewer' | 'editor'
   role          String
-  // 'viwer' | 'editor'
-  invitedRole   String?
-  // User may be null in one case: when membership added with 'invited' role
-  // Every other case, user is fulfilled
-  user          User?       @relation(fields: [userId], references: [id])
-  userId        Int?
+  user          User       @relation(fields: [userId], references: [id])
+  userId        Int
   account       Account     @relation(fields: [accountId], references: [id])
   accountId     Int
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   @@index([accountId])
 }
+// #endregion
 
+// #region AccountInvite
+/*
+Add garbadge collection job to remove expired invites
+*/
+model AccountInvite {
+  id            Int         @id @default(autoincrement())
+  // 'viwer' | 'editor'
+  role          String
+  user          User?       @relation(fields: [userId], references: [id])
+  // Set if and only if invite issued to registered user
+  userId        Int?
+  // 'email' | 'phone' | 'username'
+  identityType  String
+  email         String?
+  phone         String?
+  username      String?
+  account       Account     @relation(fields: [accountId], references: [id])
+  accountId     Int
+  expiredAt     DateTime
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  @@index([identityType])
+  @@index([email])
+  @@index([phone])
+  @@index([username])
+  @@index([userId])
+  @@index([accountId])
+}
+// #endregion
+
+// #region Client
 /*
 This model exists ony for edit purposes.
 
@@ -162,3 +205,4 @@ model Client {
   @@index([createdAt])
   @@index([updatedAt])
 }
+// #endregion
