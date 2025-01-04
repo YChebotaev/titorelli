@@ -6,7 +6,7 @@ import { mapFilter, mapFilterAsync } from "@/lib/utils";
 import { getInviteService, getUserService } from "./instances";
 import { prismaClient } from "../prisma-client";
 import { addHours } from "date-fns";
-import { first, forEach, groupBy, includes } from "lodash";
+import { first, forEach, groupBy } from "lodash";
 
 export class AccountService {
   /**
@@ -78,83 +78,63 @@ export class AccountService {
       throw new Error(`Account name = "${name}" taken`);
     }
 
-    const uniqueByUserIdInviteInputs = await this.prisma.$transaction(
-      async (t) => {
-        const account = await t.account.create({
-          data: {
-            name: accountName,
-          },
-        });
+    const createdInvites = await this.prisma.$transaction(async (t) => {
+      const account = await t.account.create({
+        data: {
+          name: accountName,
+        },
+      });
 
-        await t.accountMember.create({
-          data: {
-            role: "owner",
+      await t.accountMember.create({
+        data: {
+          role: "owner",
+          accountId: account.id,
+          userId: ownerUserId,
+        },
+      });
+
+      const inviteInputs = await mapFilterAsync(
+        members,
+        async ({ identity, role }) => {
+          const identityType = this.userService.getIdentityType(identity);
+
+          if (!identityType) return null;
+
+          const user = await this.userService.getUserByIdentnty(identity);
+
+          if (user?.id === ownerUserId) return null;
+
+          return {
+            role,
+            userId: user?.id ?? undefined,
+            identityType,
+            email: identityType === "email" ? identity : undefined,
+            phone: identityType === "phone" ? identity : undefined,
+            username: identityType === "username" ? identity : undefined,
             accountId: account.id,
-            userId: ownerUserId,
-          },
-        });
+            expiredAt: addHours(new Date(), this.inviteValidityPeriodInHours),
+          };
+        },
+      );
 
-        const inviteInputs = await mapFilterAsync(
-          members,
-          async ({ identity, role }) => {
-            const identityType = this.userService.getIdentityType(identity);
+      const uniqueByUserIdInviteInputs: typeof inviteInputs = [];
 
-            if (!identityType) return null;
+      forEach(groupBy(inviteInputs, "userId"), (invites, userIdStr) => {
+        if (userIdStr === "undefined") {
+          uniqueByUserIdInviteInputs.push(...invites);
+        } else {
+          uniqueByUserIdInviteInputs.push(first(invites)!);
+        }
+      });
 
-            const user = await this.userService.getUserByIdentnty(identity);
+      const createdInvites = await t.accountInvite.createManyAndReturn({
+        data: uniqueByUserIdInviteInputs,
+      });
 
-            return {
-              role,
-              userId: user?.id ?? undefined,
-              identityType,
-              email: identityType === "email" ? identity : undefined,
-              phone: identityType === "phone" ? identity : undefined,
-              username: identityType === "username" ? identity : undefined,
-              accountId: account.id,
-              expiredAt: addHours(new Date(), this.inviteValidityPeriodInHours),
-            };
-          },
-        );
+      return createdInvites;
+    });
 
-        const uniqueByUserIdInviteInputs: typeof inviteInputs = [];
-
-        forEach(groupBy(inviteInputs, "userId"), (invites, userIdStr) => {
-          if (userIdStr === "undefined") {
-            uniqueByUserIdInviteInputs.push(...invites);
-          } else {
-            uniqueByUserIdInviteInputs.push(first(invites)!);
-          }
-        });
-
-        await t.accountInvite.createMany({
-          data: uniqueByUserIdInviteInputs,
-        });
-
-        return uniqueByUserIdInviteInputs;
-      },
-    );
-
-    for (const {
-      role,
-      accountId,
-      identityType,
-      email,
-      phone,
-      username,
-    } of uniqueByUserIdInviteInputs) {
-      const identity =
-        identityType === "email"
-          ? (email ?? null)
-          : identityType === "phone"
-            ? (phone ?? null)
-            : identityType === "username"
-              ? (username ?? null)
-              : null;
-
-      if (!identity) continue;
-
-      await this.inviteService.sendInviteToIdentity(identity, accountId, role);
-    }
+    await this.inviteService.sendInvites(createdInvites);
   }
 
   /**

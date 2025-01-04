@@ -203,7 +203,7 @@ export class UserService {
    * @todo Apply username validation
    */
   async getUserByUsername(username: string) {
-    if (this.validateUsername(username))
+    if (!this.validateUsername(username))
       return null
 
     const user = await this.prisma.user.findFirst({

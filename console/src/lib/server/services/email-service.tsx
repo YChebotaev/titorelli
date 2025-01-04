@@ -1,7 +1,13 @@
 import { createSecretKey, type KeyObject } from "crypto";
 import { jwtVerify, SignJWT } from "jose";
 import { addHours, differenceInHours } from "date-fns";
-import { Account, PrismaClient, User, UserContact } from "@prisma/client";
+import {
+  Account,
+  AccountInvite,
+  PrismaClient,
+  User,
+  UserContact,
+} from "@prisma/client";
 import { prismaClient } from "@/lib/server/prisma-client";
 import { render } from "@react-email/components";
 import ResetPasswordEmail from "@/emails/reset-password/reset-password";
@@ -140,20 +146,24 @@ export class EmailService {
   /**
    * @todo To implement...
    */
-  async sendInviteUnregisteredToAccount(email: string, account: Account) {
+  async sendInviteToEmail(
+    email: string,
+    account: Account,
+    invite: AccountInvite,
+  ) {
     console.log(
       `Invite to unregistered email = "${email}" sended successfully for account id = ${account.id}`,
     );
   }
 
-  /**
-   * @todo To implement...
-   */
-  async sendInviteToAccountByUsername(username: string, account: Account) {
-    console.log(
-      `Invite to user with username = "${username}" sended successfully for account id = ${account.id}`,
-    );
-  }
+  // /**
+  //  * @todo To implement...
+  //  */
+  // async sendInviteToAccountByUsername(username: string, account: Account) {
+  //   console.log(
+  //     `Invite to user with username = "${username}" sended successfully for account id = ${account.id}`,
+  //   );
+  // }
 
   private async getAccountDeletionConfirmationHref(
     accountId: number,

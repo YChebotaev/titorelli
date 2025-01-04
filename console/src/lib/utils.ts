@@ -12,6 +12,19 @@ export function mapAsync<T, U>(
   return Promise.all(array.map(callback))
 }
 
+export function mapAsyncTry<T, U, E extends Error>(
+  array: T[],
+  callback: (element: T, index: number, array: T[]) => Promise<U | E>
+): Promise<(U | E)[]> {
+  return Promise.all(array.map(async (element, index, array) => {
+    try {
+      return await callback(element, index, array);
+    } catch (error) {
+      return error as E;
+    }
+  }));
+}
+
 export function mapFilter<T, U>(
   array: T[],
   callback: (element: T, index: number, array: T[]) => U | null | undefined

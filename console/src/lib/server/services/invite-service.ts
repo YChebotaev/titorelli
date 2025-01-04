@@ -1,9 +1,14 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
-import { Account } from "@prisma/client";
+import { Account, AccountInvite } from "@prisma/client";
+import _, { bind } from "lodash";
 import { formatPhoneNumber } from "../format-phone-number";
+import { mapAsyncTry } from "@/lib/utils";
 import { getAccountService, getEmailService, getEmailValidationService, getSmsService } from "./instances";
+import { prismaClient } from "../prisma-client";
+import type { IdentityTypes } from "./user-service";
 
 export class InviteService {
+  private prisma = prismaClient
+
   get emailService() {
     return getEmailService()
   }
@@ -20,49 +25,63 @@ export class InviteService {
     return getAccountService()
   }
 
-  async sendInviteToIdentity(identity: string, accountId: number, role: string) {
-    const account = await this.accountService.getAccount(accountId)
+  async sendInvites(invites: AccountInvite[]) {
+    return mapAsyncTry(invites, this.sendInvite.bind(this))
+  }
+
+  async sendInvite(invite: AccountInvite) {
+    const account = await this.accountService.getAccount(invite.accountId)
 
     if (!account)
-      throw new Error(`Cant find account by id = ${accountId}`)
+      throw new Error(`Can't find account by id = ${invite.accountId}`)
 
-    if (this.isEmail(identity)) {
-      await this.sendEmailInviteToEmail(identity, account)
-    } else
-      if (this.isPhoneNumber(identity)) {
-        await this.sendSmsInviteToPhone(identity, account)
+    if (invite.userId) {
+      await this.sendEmailInviteToRegisteredUser(invite.userId, account, invite)
+    } else {
+      switch (invite.identityType as IdentityTypes) {
+        case "email":
+          if (!invite.email)
+            throw new Error(`Can't send invite to email bc email not set in invite id = ${invite.id}`)
+
+          return this.sendEmailInviteToEmail(invite.email, account, invite)
+        case "phone":
+          if (!invite.phone)
+            throw new Error(`Can't send invite by sms bc phone not set in invite id = ${invite.id}`)
+
+          return this.sendSmsInviteToPhone(invite.phone, account, invite)
+        case "username":
+          throw new Error('Invite cannot be sent by username if user not registered')
       }
-      else if (this.isUsername(identity)) {
-        await this.sendEmailInviteToRegisteredUser(identity, account)
-      }
+    }
   }
 
-  private async sendEmailInviteToEmail(email: string, account: Account) {
-    await this.emailService.sendInviteUnregisteredToAccount(email, account)
+  private async sendEmailInviteToEmail(email: string, account: Account, invite: AccountInvite) {
+    await this.emailService.sendInviteToEmail(email, account, invite)
   }
 
-  private async sendSmsInviteToPhone(rawPhone: string, account: Account) {
+  private async sendSmsInviteToPhone(rawPhone: string, account: Account, invite: AccountInvite) {
     const phone = formatPhoneNumber(rawPhone)
 
     if (!phone)
       throw new Error(`Phone number = "${rawPhone}" cannot be formatted`)
 
-    await this.smsService.sendInviteToAccountSms(phone, account)
+    await this.smsService.sendInviteToAccountSms(phone, account, invite)
   }
 
-  private async sendEmailInviteToRegisteredUser(username: string, account: Account) {
-    await this.emailService.sendInviteToAccountByUsername(username, account)
-  }
+  private async sendEmailInviteToRegisteredUser(userId: number, account: Account, invite: AccountInvite) {
+    const contacts = await this.prisma.userContact.findMany({
+      where: {
+        userId,
+        OR: [{ type: 'email' }, { type: 'phone' }]
+      }
+    })
 
-  private isPhoneNumber(phone: string) {
-    return isValidPhoneNumber(phone, 'RU')
-  }
+    const emails = contacts.filter(({ type }) => type === 'email').map(({ email }) => email)
+    const phones = contacts.filter(({ type }) => type === 'phone').map(({ phone }) => phone)
 
-  private isEmail(email: string) {
-    return this.emailValidationService.isEmail(email)
-  }
-
-  private isUsername(username: string) {
-    return Boolean(username)
+    await Promise.all([
+      mapAsyncTry(emails, bind(this.sendEmailInviteToEmail, this, _, account, invite)),
+      mapAsyncTry(phones, bind(this.sendSmsInviteToPhone, this, _, account, invite))
+    ])
   }
 }
