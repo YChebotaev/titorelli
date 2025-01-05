@@ -222,9 +222,15 @@ export class AccountService {
   /**
    * @todo Добавить удаление других объектов
    */
-  async wipeAndRemoveAccount(accountId: number) {
+  async deleteAccount(accountId: number) {
     await this.prisma.$transaction(async (t) => {
       await t.accountMember.deleteMany({
+        where: {
+          accountId,
+        },
+      });
+
+      await t.accountInvite.deleteMany({
         where: {
           accountId,
         },

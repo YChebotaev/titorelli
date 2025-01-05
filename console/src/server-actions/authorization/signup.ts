@@ -5,16 +5,22 @@ import { redirect } from 'next/navigation'
 import { isValidPhoneNumber } from "libphonenumber-js"
 import { activeAccountCookueName, sessionTokenCookieName, signupFormInitialState } from '@/constants'
 import { UserService } from "@/lib/server/services/user-service"
-import { type SignupFormState } from "@/components/authorization/signup-form"
 import { AccountValueTypes } from "@/types/authoriaztion"
-import { getAccountService, getEmailValidationService, getUserSessionService } from "@/lib/server/services/instances"
+import {
+  getAccountService,
+  getEmailValidationService,
+  getInviteService,
+  getUserSessionService
+} from "@/lib/server/services/instances"
 import { maskNumber } from "@/lib/server/keymask"
+import { type SignupFormState } from "@/components/authorization/signup-form"
 
 export async function signup(prevState: SignupFormState, form: FormData) {
   const userService = new UserService()
   const emailValidationService = getEmailValidationService()
   const sessionService = getUserSessionService()
   const accountService = getAccountService()
+  const inviteService = getInviteService()
   const c = await cookies()
 
   const errors: Record<keyof typeof prevState['errors'], string> = Object.create(Object.prototype)
@@ -150,6 +156,8 @@ export async function signup(prevState: SignupFormState, form: FormData) {
       accountId = await accountService.createAccountWithNameForUser(userId, accountName!)
       break
   }
+
+  await inviteService.maybeJoinPendingInvites(userId, email, phone, username)
 
   const token = await sessionService.createSession(userId)
 

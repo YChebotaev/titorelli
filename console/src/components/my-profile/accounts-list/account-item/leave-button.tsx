@@ -47,6 +47,14 @@ const LeaveButtonInternal: FC<{
     leaveFormInitialState,
   );
 
+  if (!owner) {
+    return (
+      <Button variant="destructive" size="sm" className="font-bold">
+        Покинуть
+      </Button>
+    );
+  }
+
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>

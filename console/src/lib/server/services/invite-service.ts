@@ -5,6 +5,7 @@ import { mapAsyncTry } from "@/lib/utils";
 import { getAccountService, getEmailService, getEmailValidationService, getSmsService } from "./instances";
 import { prismaClient } from "../prisma-client";
 import type { IdentityTypes } from "./user-service";
+import { unmaskNumber } from "../keymask";
 
 export class InviteService {
   private prisma = prismaClient
@@ -53,6 +54,59 @@ export class InviteService {
           throw new Error('Invite cannot be sent by username if user not registered')
       }
     }
+  }
+
+  async getAccountAndInviteFromAccountJoinTokenFromEmail(token: string): Promise<[Account | null, AccountInvite | null]> {
+    const payload = await this.emailService.parseAccountJoinTokenFromEmail(token)
+
+    if (!payload)
+      return [null, null]
+
+    const invite = await this.prisma.accountInvite.findFirst({
+      where: { id: unmaskNumber(payload.inviteId) }
+    })
+
+    if (!invite)
+      return [null, null]
+
+    const account = await this.prisma.account.findFirst({
+      where: { id: invite.accountId }
+    })
+
+    return [account, invite]
+  }
+
+  async joinRegisteredUserToAccount(invite: AccountInvite, userId?: number) {
+    await this.prisma.$transaction(async (t) => {
+      await t.accountMember.create({
+        data: {
+          role: invite.role,
+          userId: userId ?? invite.userId!,
+          accountId: invite.accountId
+        }
+      })
+
+      await t.accountInvite.delete({
+        where: { id: invite.id }
+      })
+    })
+  }
+
+  async maybeJoinPendingInvites(userId: number, email: string, phone: string, username: string) {
+    const userInvites = await this.prisma.accountInvite.findMany({
+      where: {
+        OR: [
+          { userId },
+          { email, userId: null },
+          { phone, userId: null },
+          { username, userId: null },
+        ]
+      }
+    })
+
+    console.log('userInvites =', userInvites)
+
+    return mapAsyncTry(userInvites, bind(this.joinRegisteredUserToAccount, this, _, userId))
   }
 
   private async sendEmailInviteToEmail(email: string, account: Account, invite: AccountInvite) {

@@ -14,7 +14,9 @@ import { signupFormInitialState } from "@/constants";
 import { AccountOptions } from "./account-options";
 import type { AccountValueTypes } from "@/types/authoriaztion";
 
-export type SignupFormProps = React.ComponentPropsWithoutRef<"form">;
+export type SignupFormProps = React.ComponentPropsWithoutRef<"form"> & {
+  initialValues: SignupFormInitialValues | null;
+};
 
 export type SignupFormState = {
   defaultValues: {
@@ -41,9 +43,27 @@ export type SignupFormState = {
   };
 };
 
-export function SignupForm({ className, action, ...props }: SignupFormProps) {
+export type SignupFormInitialValues = {
+  username?: string;
+  email?: string;
+  phone?: string;
+  account?: AccountValueTypes;
+};
+
+export function SignupForm({
+  className,
+  action,
+  initialValues,
+  ...props
+}: SignupFormProps) {
   const [{ defaultValues, errors }, formAction] =
-    useActionState<SignupFormState>(action, signupFormInitialState);
+    useActionState<SignupFormState>(action, {
+      ...signupFormInitialState,
+      defaultValues: {
+        ...signupFormInitialState.defaultValues,
+        ...initialValues,
+      },
+    });
 
   return (
     <form

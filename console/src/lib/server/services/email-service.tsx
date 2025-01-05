@@ -11,11 +11,12 @@ import {
 import { prismaClient } from "@/lib/server/prisma-client";
 import { render } from "@react-email/components";
 import ResetPasswordEmail from "@/emails/reset-password/reset-password";
-import { maskNumber } from "@/lib/server/keymask";
+import { maskNumber, unmaskNumber } from "@/lib/server/keymask";
 import AccountRemovalNotificationEmail from "@/emails/account-removal-notification";
 import AccountRemovalConfirmation from "@/emails/account-removal-confirmation-email";
 import { env } from "@/lib/env";
 import { getEmailClient } from "./instances";
+import AccountJoinInvite from "@/emails/account-join-email/account-join-email";
 
 export class EmailService {
   private prisma: PrismaClient;
@@ -23,6 +24,7 @@ export class EmailService {
   private secretKey: KeyObject;
   private tokenResetPasswordValidityPeriodInHours = 24;
   private tokenDeleteAccountValidityPeriodInHours = 24;
+  private tokenAccountJoinValidityPeriodInHours = 24;
 
   get emailClient() {
     return getEmailClient();
@@ -143,27 +145,54 @@ export class EmailService {
     return true;
   }
 
-  /**
-   * @todo To implement...
-   */
   async sendInviteToEmail(
     email: string,
     account: Account,
     invite: AccountInvite,
   ) {
-    console.log(
-      `Invite to unregistered email = "${email}" sended successfully for account id = ${account.id}`,
+    if (!invite.email)
+      throw new Error(
+        `In invite with id = ${invite.id} email props doesn't set `,
+      );
+
+    const ownerMember = await this.prisma.accountMember.findFirst({
+      where: {
+        accountId: account.id,
+        role: "owner",
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    if (!ownerMember)
+      throw new Error(`Owner can't be found in account id = ${account.id}`);
+
+    const joinLink = await this.getAccountJoinHref(invite);
+
+    const emailHtml = await render(
+      <AccountJoinInvite
+        inviteeEmail={invite.email}
+        inviterName={ownerMember.user.username}
+        projectName={account.name}
+        invitedRole={invite.role}
+        joinLink={joinLink}
+      />,
+    );
+
+    await this.emailClient.sendHTML(
+      "noreply@titorelli.ru",
+      email,
+      `Вас пригласили в аккаунт "${account.name}" на Titorelli`,
+      emailHtml,
     );
   }
 
-  // /**
-  //  * @todo To implement...
-  //  */
-  // async sendInviteToAccountByUsername(username: string, account: Account) {
-  //   console.log(
-  //     `Invite to user with username = "${username}" sended successfully for account id = ${account.id}`,
-  //   );
-  // }
+  private async getAccountJoinHref(invite: AccountInvite) {
+    const [token] = await this.generateAccountJoinToken(invite.id);
+
+    return `${this.siteOrigin}/from-email/account-join-confirmation?t=${token}`;
+  }
 
   private async getAccountDeletionConfirmationHref(
     accountId: number,
@@ -171,7 +200,7 @@ export class EmailService {
   ) {
     const [token] = await this.generateDeleteAccountToken(accountId, userId);
 
-    return `${this.siteOrigin}/email-callbacks/account-delete-confirmation/${token}`;
+    return `${this.siteOrigin}/from-email/account-delete-confirmation?t=${token}`;
   }
 
   private async getAccountDeletionCancellationHref(
@@ -180,7 +209,7 @@ export class EmailService {
   ) {
     const [token] = await this.generateKeepAccountToken(accountId, userId);
 
-    return `${this.siteOrigin}/email-callbacks/account-delete-cancellation/${token}`;
+    return `${this.siteOrigin}/from-email/account-delete-cancellation?t=${token}`;
   }
 
   async sendWipeAccountNotificationEmail(accountId: number) {
@@ -244,7 +273,7 @@ export class EmailService {
    * пароля неверный или протух
    */
   async validateRestorePasswordTokenFromEmail(token: string) {
-    const tokenValid = await this.verifyRestoreToken(token);
+    const tokenValid = await this.verifyToken(token);
 
     if (!tokenValid) return false;
 
@@ -273,17 +302,49 @@ export class EmailService {
     return true;
   }
 
+  async validateAccountJoinTokenFromEmail(token: string) {
+    const tokenValid = await this.verifyToken(token);
+
+    if (!tokenValid) return false;
+
+    const payload = await this.parseAccountJoinTokenFromEmail(token);
+
+    if (!payload) return false;
+
+    const inviteId = unmaskNumber(payload.inviteId);
+
+    const invite = await this.prisma.accountInvite.findFirst({
+      where: {
+        id: inviteId,
+      },
+    });
+
+    if (!invite) return false;
+
+    const expired = invite.expiredAt.getTime() - new Date().getTime() < 0;
+
+    if (expired) {
+      return false;
+    }
+
+    return true;
+  }
+
   async parseRestorePasswordTokenFromEmail(token: string) {
     if (!(await this.validateRestorePasswordTokenFromEmail(token))) return null;
-
-    console.log("token =", token);
 
     const { payload } = await jwtVerify(token, this.secretKey);
 
     return payload;
   }
 
-  private async verifyRestoreToken(token: string) {
+  async parseAccountJoinTokenFromEmail(token: string) {
+    const { payload } = await jwtVerify(token, this.secretKey);
+
+    return payload as typeof payload & { inviteId: string };
+  }
+
+  private async verifyToken(token: string) {
     try {
       await jwtVerify(token, this.secretKey);
 
@@ -352,6 +413,22 @@ export class EmailService {
       sub: maskNumber(userId),
       accountId: maskNumber(accountId),
       exp: expiredAt.getTime() / 1000, // Date in future in seconds
+    })
+      .setAudience(this.siteOrigin)
+      .setProtectedHeader({ alg: "HS256" })
+      .sign(this.secretKey);
+
+    return [token, expiredAt];
+  }
+
+  private async generateAccountJoinToken(inviteId: number) {
+    const expiredAt = addHours(
+      new Date(),
+      this.tokenAccountJoinValidityPeriodInHours,
+    );
+    const token = await new SignJWT({
+      inviteId: maskNumber(inviteId),
+      exp: expiredAt.getTime() / 1000,
     })
       .setAudience(this.siteOrigin)
       .setProtectedHeader({ alg: "HS256" })

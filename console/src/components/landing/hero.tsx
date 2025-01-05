@@ -8,7 +8,7 @@ export function Hero() {
         <div className="text-center">
           <TitorelliLogo className="w-32 h-32 mx-auto mb-8" />
           <h1 className="text-4xl font-bold mb-4">
-            Антиспам платформа для телеграм ботов
+            Платформа для антиспам-ботов в телеграмме
           </h1>
           <p className="text-xl text-muted-foreground">
             API, cloud bot, on-premise bot

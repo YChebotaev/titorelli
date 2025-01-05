@@ -4,6 +4,7 @@ import { EmailService } from "./email-service";
 import { EmailValidationService } from "./email-validation-service";
 import { InviteService } from "./invite-service";
 import { SmsService } from "./sms-service";
+import { TokenService } from "./token-service";
 import { UserService } from "./user-service";
 import { UserSessionService } from "./user-session-service";
 
@@ -21,3 +22,4 @@ export const getSmsService = memoize(() => new SmsService())
 export const getUserService = memoize(() => new UserService())
 export const getUserSessionService = memoize(() => new UserSessionService())
 export const getEmailClient = memoize(() => new EmailClient)
+export const getTokenService = memoize(() => new TokenService)
