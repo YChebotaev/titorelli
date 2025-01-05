@@ -113,6 +113,9 @@ model UserResetPasswordRequest {
 // #endregion
 
 // #region FlashMessage
+/*
+Add garbadge collection job to remove received messages
+*/
 model FlashMessage {
   id                Int         @id @default(autoincrement())
   kind              String      // 'notification' | 'cookie'
