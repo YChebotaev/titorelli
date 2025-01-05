@@ -12,7 +12,7 @@ export function mapAsync<T, U>(
   return Promise.all(array.map(callback))
 }
 
-export function mapAsyncTry<T, U, E extends Error>(
+export function mapAsyncTry<T, U, E extends Error = Error>(
   array: T[],
   callback: (element: T, index: number, array: T[]) => Promise<U | E>
 ): Promise<(U | E)[]> {

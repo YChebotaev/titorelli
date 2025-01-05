@@ -1,23 +1,16 @@
 import { cookies } from "next/headers"
-import { UserSessionService } from '@/lib/server/services/user-session-service'
 import { sessionTokenCookieName } from "@/constants"
+import { getIsAuthenticated } from "./get-is-authenticated"
+import { getUserSessionService } from "./services/instances"
 
 export const getUserInRoute = async () => {
-  const userSessionService = new UserSessionService()
+  const userSessionService = getUserSessionService()
   const c = await cookies()
-
   const sessionToken = c.get(sessionTokenCookieName)?.value
 
-  if (!sessionToken)
-    throw new Error('Can\'t access page without authorization')
+  if (await getIsAuthenticated(sessionToken)) {
+    return userSessionService.getUserBySessionToken(sessionToken!)
+  }
 
-  if (!await userSessionService.verifySessionToken(sessionToken))
-    throw new Error('Token invalid')
-
-  const user = await userSessionService.getUserBySessionToken(sessionToken)
-
-  if (!user)
-    throw new Error('Such user not authorized')
-
-  return user
+  return null
 }

@@ -112,6 +112,23 @@ model UserResetPasswordRequest {
 }
 // #endregion
 
+// #region FlashMessage
+model FlashMessage {
+  id                Int         @id @default(autoincrement())
+  kind              String      // 'notification' | 'cookie'
+  channel           String      // 'user/:maskedUserId'
+  cookieType        String?     // 'set' | 'drop'
+  notificationType  String?     // 'default' | 'description' | 'success' | 'info' | 'warning' | 'error' | 'action/:actionId' | 'custom/:customId'
+  payload           String?
+  received          Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  @@index([kind])
+  @@index([channel])
+  @@index([createdAt])
+}
+// #endregion
+
 // #region Account
 /*
 When account is deleted,

@@ -1,7 +1,7 @@
 import { Account, AccountInvite } from "@prisma/client";
 import _, { bind } from "lodash";
 import { formatPhoneNumber } from "../format-phone-number";
-import { mapAsyncTry } from "@/lib/utils";
+import { mapAsyncTry, mapFilter } from "@/lib/utils";
 import { getAccountService, getEmailService, getEmailValidationService, getSmsService } from "./instances";
 import { prismaClient } from "../prisma-client";
 import type { IdentityTypes } from "./user-service";
@@ -77,7 +77,7 @@ export class InviteService {
   }
 
   async joinRegisteredUserToAccount(invite: AccountInvite, userId?: number) {
-    await this.prisma.$transaction(async (t) => {
+    return this.prisma.$transaction(async (t) => {
       await t.accountMember.create({
         data: {
           role: invite.role,
@@ -89,6 +89,8 @@ export class InviteService {
       await t.accountInvite.delete({
         where: { id: invite.id }
       })
+
+      return { accountId: invite.accountId }
     })
   }
 
@@ -104,9 +106,11 @@ export class InviteService {
       }
     })
 
-    console.log('userInvites =', userInvites)
+    const results = await mapAsyncTry<typeof userInvites[number], { accountId: number }>(userInvites, bind(this.joinRegisteredUserToAccount, this, _, userId))
 
-    return mapAsyncTry(userInvites, bind(this.joinRegisteredUserToAccount, this, _, userId))
+    return {
+      accountIds: mapFilter(results, r => 'accountId' in r ? r.accountId : null)
+    }
   }
 
   private async sendEmailInviteToEmail(email: string, account: Account, invite: AccountInvite) {

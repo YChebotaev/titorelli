@@ -9,11 +9,13 @@ import { AccountValueTypes } from "@/types/authoriaztion"
 import {
   getAccountService,
   getEmailValidationService,
+  getFlashMessageService,
   getInviteService,
   getUserSessionService
 } from "@/lib/server/services/instances"
 import { maskNumber } from "@/lib/server/keymask"
 import { type SignupFormState } from "@/components/authorization/signup-form"
+import { mapFilterAsync } from "@/lib/utils"
 
 export async function signup(prevState: SignupFormState, form: FormData) {
   const userService = new UserService()
@@ -21,6 +23,7 @@ export async function signup(prevState: SignupFormState, form: FormData) {
   const sessionService = getUserSessionService()
   const accountService = getAccountService()
   const inviteService = getInviteService()
+  const flashMessageService = getFlashMessageService()
   const c = await cookies()
 
   const errors: Record<keyof typeof prevState['errors'], string> = Object.create(Object.prototype)
@@ -157,17 +160,27 @@ export async function signup(prevState: SignupFormState, form: FormData) {
       break
   }
 
-  await inviteService.maybeJoinPendingInvites(userId, email, phone, username)
+  // Set session token cookie and active account
+  {
+    const token = await sessionService.createSession(userId)
 
-  const token = await sessionService.createSession(userId)
+    c.set(sessionTokenCookieName, token, {
+      httpOnly: true,
+      secure: false // TODO: Enable for production
+    })
 
-  c.set(sessionTokenCookieName, token, {
-    httpOnly: true,
-    secure: false // TODO: Enable for production
-  })
+    if (accountId != null) {
+      c.set(activeAccountCookueName, maskNumber(accountId), { httpOnly: false, secure: false })
+    }
+  }
 
-  if (accountId != null) {
-    c.set(activeAccountCookueName, maskNumber(accountId), { httpOnly: false, secure: false })
+  // Join into accounts if any invite pending
+  {
+    const { accountIds } = await inviteService.maybeJoinPendingInvites(userId, email, phone, username)
+
+    const accounts = (await mapFilterAsync(accountIds, accountService.getAccount))
+
+    await flashMessageService.pushAccountJoinNotificationToUser(userId, accounts)
   }
 
   redirect('/my/profile')
