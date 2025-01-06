@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -53,7 +53,7 @@ const formSchema = z.object({
 
 export type AddAccountFormValues = z.infer<typeof formSchema>;
 
-export function AddAccountBtn() {
+export function AddAccountBtn({ buttonNode }: {  buttonNode: ReactNode }) {
   const [open, setOpen] = useState(false);
   const form = useForm<AddAccountFormValues>({
     resolver: zodResolver(formSchema),
@@ -78,7 +78,7 @@ export function AddAccountBtn() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Добавить аккаунт</Button>
+        {buttonNode}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>

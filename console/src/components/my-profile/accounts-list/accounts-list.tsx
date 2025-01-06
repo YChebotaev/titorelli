@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { getAccounts } from "@/server-actions/my-profile/get-accounts";
 import { AddAccountBtn } from "@/components/my-profile/create-account-btn";
 import { EmptyState } from "@/components/my-profile/empty-state";
@@ -30,7 +31,9 @@ export async function AccountsList() {
         </div>
       </div>
       <div className="mt-6 flex justify-end">
-        <AddAccountBtn />
+        <AddAccountBtn
+          buttonNode={<Button variant="outline">Добавить аккаунт</Button>}
+        />
       </div>
     </div>
   );

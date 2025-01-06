@@ -13,17 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetUserAccounts } from "@/hooks/use-get-user-accounts";
 import type { HeaderUserVm } from "@/types/header";
 import { useGetActiveAccount } from "@/hooks/use-get-active-account";
+import { AddAccountBtn } from "@/components/my-profile/create-account-btn";
+import { Notifications } from "./notifications";
+
+import { useGetNotifications } from "./use-get-notifications";
 
 export function UserNav({ user }: { user: HeaderUserVm }) {
   const { data: activeAccount, isLoading: activeAccountLoading } =
@@ -33,6 +31,9 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
   );
   const isLoading = activeAccountLoading || accountsLoading;
   const [isOpen, setIsOpen] = useState(false);
+
+  const { notifications, hasMore, markAsRead, markAllAsRead, loadMore } =
+    useGetNotifications(user.id);
 
   const buttonWithAvatar = (
     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -70,6 +71,13 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
       >
         {activeAccount?.name}
       </Link>
+      <Notifications
+        notifications={notifications}
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+        onMarkAllAsRead={markAllAsRead}
+        onMarkAsRead={markAsRead}
+      />
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>{buttonWithAvatar}</DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -95,18 +103,13 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
                   ? "Создать аккаунт"
                   : "Выберите аккаунт"}
               </DropdownMenuLabel>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Создать аккаунт</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <AddAccountBtn
+                buttonNode={
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                }
+              />
             </div>
             {accounts!.map((account) => (
               <DropdownMenuItem
