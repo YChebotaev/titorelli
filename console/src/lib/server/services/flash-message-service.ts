@@ -11,34 +11,34 @@ export type NotificationTypes =
   | 'warning'
   | 'error'
   | `action/${ActionIds}`
-export type NotificationPositions =
-  | 'top-left'
-  | 'top-center'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-center'
-  | 'bottom-right'
+  // Custom types:
+  | 'join-to-accounts'
 export type UserNotificationPayloadType =
-  | { message?: string, description?: string, position?: NotificationPositions }
+  | { message?: string, description?: string }
   | JsonObject
 
 export class FlashMessageService {
   private prisma = prismaClient
 
   async pushAccountJoinNotificationToUser(userId: number, accountNames: { name: string }[]) {
-    if (accountNames.length === 0) {
-      // Do nothing
-    } else
-      if (accountNames.length === 1) {
-        await this.pushNotificationToUser(userId, 'success', {
-          message: `Вы присоединились к аккаунту "${accountNames[0].name}"`
-        })
-      } else
-        if (accountNames.length > 1) {
-          await this.pushNotificationToUser(userId, 'success', {
-            message: `Вы успешно присоединились к аккаунтам: ${accountNames.map(({ name }) => name).join(', ')}`
-          })
-        }
+
+    await this.pushNotificationToUser(userId, 'join-to-accounts', {
+      accountNames: accountNames.map(({ name }) => name)
+    })
+
+    // if (accountNames.length === 0) {
+    //   // Do nothing
+    // } else
+    //   if (accountNames.length === 1) {
+    //     await this.pushNotificationToUser(userId, 'success', {
+    //       message: `Вы присоединились к аккаунту "${accountNames[0].name}"`
+    //     })
+    //   } else
+    //     if (accountNames.length > 1) {
+    //       await this.pushNotificationToUser(userId, 'success', {
+    //         message: `Вы успешно присоединились к аккаунтам: ${accountNames.map(({ name }) => name).join(', ')}`
+    //       })
+    //     }
   }
 
   async getUnreceivedUserNotifications(userId: number) {

@@ -19,6 +19,52 @@ const receiveNotifications = async (
   });
 };
 
+const spawnJoinToAccountsToast = ({
+  id,
+  payload: { accountNames },
+}: UserFlashNotificationVm<{ accountNames: string[] }>) => {
+  const message =
+    accountNames.length === 1
+      ? "Вы присоединились к аккаунту"
+      : "Вы присоединились к аккаунтам:";
+
+  return toast(message, {
+    id,
+    description: (
+      <ul>
+        {accountNames.map((name, i) => (
+          <li key={i}>{name}</li>
+        ))}
+      </ul>
+    ),
+  });
+};
+
+const spawnToast = (item: UserFlashNotificationVm) => {
+  const { id, type, payload } = item;
+  const message = payload.message?.toString();
+  const description = payload.description?.toString();
+
+  switch (type) {
+    case "default":
+      return toast(message, { id });
+    case "description":
+      return toast(message, { id, description });
+    case "success":
+      return toast.success(message, { id, description });
+    case "info":
+      return toast.info(message, { id, description });
+    case "warning":
+      return toast.warning(message, { id, description });
+    case "error":
+      return toast.error(message, { id, description });
+    case "join-to-accounts":
+      return spawnJoinToAccountsToast(item);
+    default:
+      return null;
+  }
+};
+
 const InternalFlashNotificationsReceiver: FC<{ userId: string }> = ({
   userId,
 }) => {
@@ -33,45 +79,7 @@ const InternalFlashNotificationsReceiver: FC<{ userId: string }> = ({
   useEffect(() => {
     if (!data) return;
 
-    for (const { id, type, payload } of data) {
-      switch (type) {
-        case "default":
-          if (payload.message) {
-            toast(payload.message.toString(), { id });
-          }
-          break;
-        case "description":
-          if (payload.message && payload.description) {
-            toast(payload.message.toString(), {
-              id,
-              description: payload.description.toString(),
-            });
-          }
-          break;
-        case "success":
-          if (payload.message) {
-            toast.success(payload.message.toString(), { id });
-          }
-          break;
-        case "info":
-          if (payload.message) {
-            toast.info(payload.message.toString(), { id });
-          }
-          break;
-        case "warning":
-          if (payload.message) {
-            toast.warning(payload.message.toString(), { id });
-          }
-          break;
-        case "error":
-          if (payload.message) {
-            toast.error(payload.message.toString(), { id });
-          }
-          break;
-        case "action/noop":
-          break;
-      }
-    }
+    data.forEach(spawnToast);
   }, [data]);
 
   return <Toaster />;
