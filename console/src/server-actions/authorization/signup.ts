@@ -10,11 +10,12 @@ import {
   getAccountService,
   getEmailValidationService,
   getInviteService,
-  getNotificationsService,
+  getUserNotificationService,
   getUserSessionService
 } from "@/lib/server/services/instances"
 import { maskNumber } from "@/lib/server/keymask"
 import { type SignupFormState } from "@/components/authorization/signup-form"
+import { mapFilterAsync } from "@/lib/utils"
 
 export async function signup(prevState: SignupFormState, form: FormData) {
   const userService = new UserService()
@@ -22,7 +23,7 @@ export async function signup(prevState: SignupFormState, form: FormData) {
   const sessionService = getUserSessionService()
   const accountService = getAccountService()
   const inviteService = getInviteService()
-  const notificationService = getNotificationsService()
+  const notificationService = getUserNotificationService()
   const c = await cookies()
 
   const errors: Record<keyof typeof prevState['errors'], string> = Object.create(Object.prototype)
@@ -176,8 +177,9 @@ export async function signup(prevState: SignupFormState, form: FormData) {
   // Join into accounts if any invite pending
   {
     const { accountIds } = await inviteService.maybeJoinPendingInvites(userId, email, phone, username)
+    const accounts = await mapFilterAsync(accountIds, accountService.getAccount.bind(accountService))
 
-    await notificationService.accountsJoinOnRegistration(userId, accountIds)
+    await notificationService.accountsJoin(userId, accounts)
   }
 
   redirect('/my/profile')

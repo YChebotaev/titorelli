@@ -1,5 +1,5 @@
 import { Account, AccountInvite } from "@prisma/client";
-import _, { bind } from "lodash";
+import _, { bind, first, groupBy, identity, mapValues, values } from "lodash";
 import { formatPhoneNumber } from "../format-phone-number";
 import { mapAsyncTry, mapFilter } from "@/lib/utils";
 import { getAccountService, getEmailService, getEmailValidationService, getSmsService } from "./instances";
@@ -106,7 +106,14 @@ export class InviteService {
       }
     })
 
-    const results = await mapAsyncTry<typeof userInvites[number], { accountId: number }>(userInvites, bind(this.joinRegisteredUserToAccount, this, _, userId))
+    const uniqueByAccountInvites: AccountInvite[] = mapFilter(
+      values(
+        mapValues(groupBy(userInvites, 'accountId'), first)
+      ),
+      identity
+    )
+
+    const results = await mapAsyncTry<AccountInvite, { accountId: number }>(uniqueByAccountInvites, bind(this.joinRegisteredUserToAccount, this, _, userId))
 
     return {
       accountIds: mapFilter(results, r => 'accountId' in r ? r.accountId : null)
