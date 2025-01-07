@@ -22,6 +22,7 @@ model User {
   resetPasswordRequests UserResetPasswordRequest[]
   accountMembership     AccountMember[]
   accountInvites        AccountInvite[]
+  notifications         UserNotification[]
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
   @@index([username])
@@ -112,22 +113,25 @@ model UserResetPasswordRequest {
 }
 // #endregion
 
-// #region FlashMessage
+// #region UserNotification
 /*
-Add garbadge collection job to remove received messages
+Make a job that automatically receives offline notifications
 */
-model FlashMessage {
+model UserNotification {
   id                Int         @id @default(autoincrement())
-  kind              String      // 'notification' | 'cookie'
-  channel           String      // 'user/:maskedUserId'
-  cookieType        String?     // 'set' | 'drop'
-  notificationType  String?     // 'default' | 'description' | 'success' | 'info' | 'warning' | 'error' | 'action/:actionId' | 'custom/:customId'
-  payload           String?
+  flash             Boolean     @default(false)
+  user              User        @relation(fields: [userId], references: [id])
+  userId            Int
+  type              String
+  payload           String
   received          Boolean     @default(false)
+  read              Boolean     @default(false)
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
-  @@index([kind])
-  @@index([channel])
+  @@index([flash])
+  @@index([userId])
+  @@index([received])
+  @@index([read])
   @@index([createdAt])
 }
 // #endregion

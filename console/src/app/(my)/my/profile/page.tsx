@@ -1,6 +1,4 @@
 import Layout from "@/components/my-profile/layout";
-// import UserAvatar from "@/components/my-profile/user-avatar";
-// import EditableUsername from "@/components/my-profile/editable-username";
 import { ContactsList } from "@/components/my-profile/contacts-list";
 import { AccountsList } from "@/components/my-profile/accounts-list";
 import { Button } from "@/components/ui/button";
@@ -13,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { getUserNotificationService } from "@/lib/server/services/instances";
 
 export default function UserProfile() {
   // This data would typically come from your backend
@@ -29,6 +28,8 @@ export default function UserProfile() {
       { id: "2", name: "Project B", ownerUsername: "bob", role: "viewer" },
     ],
   };
+
+  getUserNotificationService().pushGenericToast(1, { type: 'warning', message: 'Warning!', description: 'World!' })
 
   return (
     <Layout>

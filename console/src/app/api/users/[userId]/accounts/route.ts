@@ -7,6 +7,10 @@ import { getAccountService } from "@/lib/server/services/instances"
 export const GET = async () => {
   const accountService = getAccountService()
   const user = await getUserInRoute()
+
+  if (!user)
+    return NextResponse.json([])
+
   const accounts = await accountService.getAccountsUserMemberOf(user.id)
   const accountsVm = accounts.map(({ id, name }) => ({ id: maskNumber(id), name } as UserAccountVm))
 

@@ -4,8 +4,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Container } from "../container";
 import { TitorelliLogo } from "../titorelli-logo";
-import { UserNav } from "./user-nav";
+import { UserNav } from "./user-nav/user-nav";
 import { getUserInHeader } from "@/server-actions/header/get-user-in-header";
+import { Suspense } from "react";
+import { renderAvatar, UserNavSkeleton } from "./user-nav";
 
 export async function Header() {
   const user = await getUserInHeader();
@@ -21,7 +23,13 @@ export async function Header() {
           </div>
           <nav>
             {isLoggedIn ? (
-              <UserNav user={user!} />
+              <Suspense
+                fallback={
+                  <UserNavSkeleton buttonWithAvatar={renderAvatar({ user: user! })} />
+                }
+              >
+                <UserNav user={user!} />
+              </Suspense>
             ) : (
               <ul className="flex items-center gap-4">
                 <li>

@@ -4,13 +4,17 @@ import { useEffect, type FC } from "react";
 import dynamic from "next/dynamic";
 import { toast, Toaster } from "sonner";
 import { useGetUserFlashNotifications } from "@/hooks/use-get-user-flash-notifications";
-import { UserFlashNotificationVm } from "@/types/flash-notifications";
+import type {
+  UserNotificationVm,
+  JoinToAccountsPayload,
+  GenericToasPayload,
+} from "@/types/user-notification";
 
 const receiveNotifications = async (
   userId: string,
-  notifications: UserFlashNotificationVm[],
+  notifications: UserNotificationVm[],
 ) => {
-  await fetch(`/api/users/${userId}/flash-notifications/receive`, {
+  await fetch(`/api/users/${userId}/notifications/flash/receive`, {
     method: "POST",
     body: JSON.stringify({ ids: notifications.map(({ id }) => id) }),
     headers: {
@@ -21,10 +25,10 @@ const receiveNotifications = async (
 
 const spawnJoinToAccountsToast = ({
   id,
-  payload: { accountNames },
-}: UserFlashNotificationVm<{ accountNames: string[] }>) => {
+  payload: { accounts },
+}: UserNotificationVm<JoinToAccountsPayload>) => {
   const message =
-    accountNames.length === 1
+    accounts.length === 1
       ? "Вы присоединились к аккаунту"
       : "Вы присоединились к аккаунтам:";
 
@@ -32,7 +36,7 @@ const spawnJoinToAccountsToast = ({
     id,
     description: (
       <ul>
-        {accountNames.map((name, i) => (
+        {accounts.map(({ name }, i) => (
           <li key={i}>{name}</li>
         ))}
       </ul>
@@ -40,15 +44,12 @@ const spawnJoinToAccountsToast = ({
   });
 };
 
-const spawnToast = (item: UserFlashNotificationVm) => {
-  const { id, type, payload } = item;
-  const message = payload.message?.toString();
-  const description = payload.description?.toString();
-
+const spawnGenericToast = (
+  id: string,
+  { type, message, description }: GenericToasPayload,
+) => {
   switch (type) {
     case "default":
-      return toast(message, { id });
-    case "description":
       return toast(message, { id, description });
     case "success":
       return toast.success(message, { id, description });
@@ -58,10 +59,23 @@ const spawnToast = (item: UserFlashNotificationVm) => {
       return toast.warning(message, { id, description });
     case "error":
       return toast.error(message, { id, description });
-    case "join-to-accounts":
-      return spawnJoinToAccountsToast(item);
     default:
-      return null;
+      return void null; // Do nothing
+  }
+};
+
+const spawnToast = (item: UserNotificationVm) => {
+  const { id, type, payload } = item;
+
+  switch (type) {
+    case "generic-toast":
+      return spawnGenericToast(id, payload as GenericToasPayload);
+    case "join-to-accounts":
+      return spawnJoinToAccountsToast(
+        item as UserNotificationVm<JoinToAccountsPayload>,
+      );
+    default:
+      return void null; // Do nothing
   }
 };
 
@@ -73,14 +87,14 @@ const InternalFlashNotificationsReceiver: FC<{ userId: string }> = ({
   useEffect(() => {
     if (!data) return;
 
-    void receiveNotifications(userId, data);
-  }, [data, userId]);
+    data.forEach(spawnToast);
+  }, [data]);
 
   useEffect(() => {
     if (!data) return;
 
-    data.forEach(spawnToast);
-  }, [data]);
+    void receiveNotifications(userId, data);
+  }, [data, userId]);
 
   return <Toaster />;
 };

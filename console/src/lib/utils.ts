@@ -51,48 +51,19 @@ export function createArrayWithSingleValue<T>(v: T, i = 0): (T | undefined)[] {
   return result
 }
 
-import { Notification, NotificationGroup } from "@/types/notifications"
+import type { HeaderNotificationGroupVm, HeaderNotificationVm } from "@/types/user-notification"
+import { formatDistanceToNow } from "date-fns";
+import { ru } from 'date-fns/locale/ru'
 
-export function formatTimeAgo(date: Date): string {
-  const now = new Date()
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-  const minutes = Math.floor(seconds / 60)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
+export function groupNotifications(notifications: HeaderNotificationVm[]): HeaderNotificationGroupVm[] {
+  const groups: Record<string, HeaderNotificationVm[]> = {}
+  
+  for (const notification of notifications) {
+    const { createdAt: createdAtStr } = notification
+    const groupKey = formatDistanceToNow(createdAtStr, { locale: ru })
 
-  if (seconds < 60) return "Just now"
-  if (minutes < 60) return `${minutes} mins ago`
-  if (hours < 24) return `${hours}h ago`
-  return `${days}d ago`
-}
+    groups[groupKey] = groups[groupKey]?.concat(notification) ?? [notification]
+  }
 
-export function groupNotifications(notifications: Notification[]): NotificationGroup[] {
-  const groups: Record<string, Notification[]> = {}
-  const now = new Date()
-
-  notifications.forEach((notification) => {
-    const date = new Date(notification.timestamp)
-    const isToday = date.toDateString() === now.toDateString()
-    const isYesterday = new Date(now.setDate(now.getDate() - 1)).toDateString() === date.toDateString()
-
-    let groupKey
-    if (isToday) {
-      groupKey = "Today"
-    } else if (isYesterday) {
-      groupKey = "Yesterday"
-    } else {
-      const days = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-      groupKey = `${days} days ago`
-    }
-
-    if (!groups[groupKey]) {
-      groups[groupKey] = []
-    }
-    groups[groupKey].push(notification)
-  })
-
-  return Object.entries(groups).map(([label, notifications]) => ({
-    label,
-    notifications
-  }))
+  return Object.entries(groups).map(([label, notifications]) => ({ label, notifications }))
 }

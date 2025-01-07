@@ -2,9 +2,8 @@ import { AccountService } from "./account-service";
 import { EmailClient } from "./email-client";
 import { EmailService } from "./email-service";
 import { EmailValidationService } from "./email-validation-service";
-import { FlashMessageService } from "./flash-message-service";
+import { UserNotificationService } from "./user-notification-service";
 import { InviteService } from "./invite-service";
-import { NotificationService } from "./notification-service";
 import { SmsService } from "./sms-service";
 import { TokenService } from "./token-service";
 import { UserService } from "./user-service";
@@ -25,5 +24,4 @@ export const getUserService = memoize(() => new UserService)
 export const getUserSessionService = memoize(() => new UserSessionService)
 export const getEmailClient = memoize(() => new EmailClient)
 export const getTokenService = memoize(() => new TokenService)
-export const getFlashMessageService = memoize(() => new FlashMessageService)
-export const getNotificationsService = memoize(() => new NotificationService)
+export const getUserNotificationService = memoize(() => new UserNotificationService)

@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query"
-import { type UserFlashNotificationVm } from "@/types/flash-notifications"
+import { type UserNotificationVm } from "@/types/user-notification"
 
 export const useGetUserFlashNotifications = (userId: string) => {
   return useQuery({
-    queryKey: ['users', userId, 'flash-notifications'],
+    queryKey: ['users', userId, 'notifications', 'flash'],
     refetchInterval: 3000, /* each 3 seconds */
     async queryFn() {
-      const res = await fetch(`/api/users/${userId}/flash-notifications`)
+      const res = await fetch(`/api/users/${userId}/notifications/flash`)
 
-      return await res.json() as Awaited<UserFlashNotificationVm[]>
+      return await res.json() as Awaited<UserNotificationVm[]>
     }
   })
 }

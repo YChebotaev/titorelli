@@ -6,10 +6,10 @@ const lrTrainSmall = async () => {
   const classifier = new LogisticRegressionClassifier()
   const hamExamples = examples.filter(({ type }) => type === 'ham').slice(200, 220)
 
-  console.log(hamExamples)
-
   const smapExamples = examples.filter(({ type }) => type === 'spam').slice(0, 20)
   const combinedExamples = [...hamExamples, ...smapExamples]
+
+  console.log(JSON.stringify(combinedExamples, null, 2))
 
   for (const { type, text } of combinedExamples) {
     classifier.addDocument(text, type)
