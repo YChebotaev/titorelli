@@ -88,10 +88,12 @@ export const HeaderNotificationsCenter: FC<{ userId: string }> = ({
                 <div className="sticky top-0 z-10 bg-background px-4 py-2 text-xs font-medium text-muted-foreground">
                   {group.label}
                 </div>
-                {group.notifications.map((notification) => (
+                {group.notifications.map((notification, i, list) => (
                   <NotificationItem
                     key={notification.id}
                     notification={notification}
+                    isFirst={i === 0}
+                    isLast={i === list.length - 1}
                     onMarkAsRead={markAsRead}
                   />
                 ))}
