@@ -20,9 +20,25 @@ export type UserNotificationPayloads =
 export class UserNotificationService {
   private prisma = prismaClient
 
+  // #region Domain methods
+
   async accountsJoin(userId: number, accounts: { name: string }[]) {
-    await this.pushNotification(userId, 'join-to-accounts', { accounts })
+    if (accounts.length) {
+      await this.pushNotification(userId, 'join-to-accounts', { accounts })
+    }
   }
+
+  async verificationEmailSent(userId: number, email: string) {
+    await this.pushGenericToast(userId, {
+      type: 'default',
+      message: `Требуется подтверждение email-а`,
+      description: `Запрос на подтверждение отправлен на почту: ${email}`
+    })
+  }
+
+  // #endregion
+
+  // #region Generic methods
 
   async pushGenericToast(userId: number, payload: GenericToasPayload) {
     await this.pushNotification(userId, 'generic-toast', payload)
@@ -72,4 +88,6 @@ export class UserNotificationService {
       }
     })
   }
+
+  // #endregion
 }

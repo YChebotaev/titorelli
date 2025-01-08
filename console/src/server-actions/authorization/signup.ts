@@ -8,6 +8,7 @@ import { UserService } from "@/lib/server/services/user-service"
 import { AccountValueTypes } from "@/types/authoriaztion"
 import {
   getAccountService,
+  getEmailService,
   getEmailValidationService,
   getInviteService,
   getUserNotificationService,
@@ -24,6 +25,8 @@ export async function signup(prevState: SignupFormState, form: FormData) {
   const accountService = getAccountService()
   const inviteService = getInviteService()
   const notificationService = getUserNotificationService()
+  const emailService = getEmailService()
+  const userNotificationService = getUserNotificationService()
   const c = await cookies()
 
   const errors: Record<keyof typeof prevState['errors'], string> = Object.create(Object.prototype)
@@ -158,6 +161,13 @@ export async function signup(prevState: SignupFormState, form: FormData) {
     case 'set_name':
       accountId = await accountService.createAccountWithNameForUser(userId, accountName!)
       break
+  }
+
+  // Send email verification request
+  {
+    await emailService.sendEmailVerificationRequest(userId, email)
+
+    await userNotificationService.verificationEmailSent(userId, email)
   }
 
   // Set session token cookie and active account

@@ -11,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getUserNotificationService } from "@/lib/server/services/instances";
 
 export default function UserProfile() {
   // This data would typically come from your backend
@@ -28,8 +27,6 @@ export default function UserProfile() {
       { id: "2", name: "Project B", ownerUsername: "bob", role: "viewer" },
     ],
   };
-
-  getUserNotificationService().pushGenericToast(1, { type: 'warning', message: 'Warning!', description: 'World!' })
 
   return (
     <Layout>

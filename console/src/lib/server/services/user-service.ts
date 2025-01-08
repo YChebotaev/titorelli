@@ -25,6 +25,12 @@ export class UserService {
     this.passwordPepper = env.PASSWORD_PEPPER
   }
 
+  async getUser(userId: number) {
+    return this.prisma.user.findUnique({
+      where: { id: userId }
+    })
+  }
+
   /**
    * @deprecated Used only in seed
    */

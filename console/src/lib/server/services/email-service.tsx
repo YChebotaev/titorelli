@@ -1,13 +1,7 @@
-import { createSecretKey, type KeyObject } from "crypto";
+import { createSecretKey } from "crypto";
 import { jwtVerify, SignJWT } from "jose";
 import { addHours, differenceInHours } from "date-fns";
-import {
-  Account,
-  AccountInvite,
-  PrismaClient,
-  User,
-  UserContact,
-} from "@prisma/client";
+import { Account, AccountInvite, User, UserContact } from "@prisma/client";
 import { prismaClient } from "@/lib/server/prisma-client";
 import { render } from "@react-email/components";
 import ResetPasswordEmail from "@/emails/reset-password/reset-password";
@@ -15,13 +9,14 @@ import { maskNumber, unmaskNumber } from "@/lib/server/keymask";
 import AccountRemovalNotificationEmail from "@/emails/account-removal-notification";
 import AccountRemovalConfirmation from "@/emails/account-removal-confirmation-email";
 import { env } from "@/lib/env";
-import { getEmailClient } from "./instances";
+import { getEmailClient, getTokenService, getUserService } from "./instances";
 import AccountJoinInvite from "@/emails/account-join-email/account-join-email";
+import EmailConfirmation from "@/emails/email-confirmation/email-confirmation";
 
 export class EmailService {
-  private prisma: PrismaClient;
-  private siteOrigin: string;
-  private secretKey: KeyObject;
+  private prisma = prismaClient;
+  private siteOrigin = env.SITE_ORIGIN;
+  private secretKey = createSecretKey(env.JWT_SECRET, "utf-8");
   private tokenResetPasswordValidityPeriodInHours = 24;
   private tokenDeleteAccountValidityPeriodInHours = 24;
   private tokenAccountJoinValidityPeriodInHours = 24;
@@ -30,10 +25,48 @@ export class EmailService {
     return getEmailClient();
   }
 
-  constructor() {
-    this.prisma = prismaClient;
-    this.siteOrigin = env.SITE_ORIGIN;
-    this.secretKey = createSecretKey(env.JWT_SECRET, "utf-8");
+  get userService() {
+    return getUserService();
+  }
+
+  get tokenService() {
+    return getTokenService();
+  }
+
+  async sendEmailVerificationRequest(userId: number, email: string) {
+    const user = await this.userService.getUser(userId);
+
+    if (!user) throw new Error(`Cannot find user by id = ${userId}`);
+
+    const confirmationHref = await this.getEmailConfirmationLink(userId, email);
+    const emailHtml = await render(
+      <EmailConfirmation
+        userFirstName={user.username}
+        confirmationLink={confirmationHref}
+      />,
+    );
+
+    await this.emailClient.sendHTML(
+      "noreply@titorelli.ru",
+      email,
+      "Подтвердите емейл, указанный при регистрации на Titorelli",
+      emailHtml,
+    );
+  }
+
+  async getEmailConfirmationLink(userId: number, email: string) {
+    const contact = await this.prisma.userContact.findFirstOrThrow({
+      where: {
+        userId,
+        email,
+      },
+    });
+
+    const [token] = await this.tokenService.generateEmailVerificationToken(
+      contact.id,
+    );
+
+    return `${this.siteOrigin}/from-email/email-confirmation?t=${token}`;
   }
 
   async sendRestorePasswordEmail(userId: number, email: string | "*") {

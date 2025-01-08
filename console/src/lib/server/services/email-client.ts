@@ -1,5 +1,6 @@
 import { env } from "@/lib/env"
 import { createTransport, Transporter } from "nodemailer"
+import { htmlToText } from 'html-to-text'
 
 export type FromEmails = 'noreply@titorelli.ru' | 'restore-password@titorelli.ru'
 
@@ -27,11 +28,14 @@ export class EmailClient {
     if (!transport)
       throw new Error(`Can't send email from address "${from}"`)
 
+    const text = htmlToText(html)
+
     await transport.sendMail({
       from,
       to,
       subject,
-      html
+      html,
+      text
     })
   }
 }

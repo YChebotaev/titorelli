@@ -1,5 +1,5 @@
 import { Footer } from "@/components/landing/layout";
-import { Header } from "@/components/site/header";
+import { AppHeader } from "@/components/site/header";
 import { Hero } from "@/components/landing/hero";
 import { Advantages } from "@/components/landing/advantages";
 import { DataSafety } from "@/components/landing/data-safety";
@@ -10,7 +10,7 @@ import { Pricing } from "@/components/landing/pricing";
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <AppHeader />
       <main className="flex-grow">
         <Hero />
         <Advantages />
