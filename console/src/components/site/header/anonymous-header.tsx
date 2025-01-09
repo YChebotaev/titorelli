@@ -1,7 +1,5 @@
-"use server";
-
 import { BaseHeader } from "./base-header";
 
-export async function AnonymousHeader() {
+export function AnonymousHeader() {
   return <BaseHeader />;
 }
