@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,17 +10,34 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { QRCodeSVG } from "qrcode.react";
+import { ZodError } from "zod";
+import { fromError, fromZodError } from "zod-validation-error";
+
+const tryToMakeZodError = (error: Error & { digest?: string }) => {
+  try {
+    const json = JSON.parse(error.message);
+    const r = new ZodError(json);
+
+    Reflect.set(r, "digest", error.digest);
+
+    return r as ZodError & { digest?: string };
+  } catch (e) {
+    console.trace("suppress error:", e);
+
+    return null;
+  }
+};
 
 export default function Error({
-  error,
+  error: propsError,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
+  const error = tryToMakeZodError(propsError) ?? propsError;
+  const message =
+    error instanceof ZodError ? fromZodError(error).message : error.message;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -34,14 +49,6 @@ export default function Error({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 px-4 sm:px-6">
-            <div className="flex justify-center">
-              <Image
-                src="/error-illustration.svg"
-                alt="Иллюстрация ошибки"
-                width={200}
-                height={200}
-              />
-            </div>
             <p className="text-center text-muted-foreground">
               Не волнуйтесь! Мы уже работаем над решением этой проблемы. Наша
               команда экспертов прилагает все усилия, чтобы все быстро
@@ -56,6 +63,9 @@ export default function Error({
               />
               <p className="text-sm text-center text-muted-foreground">
                 Код ошибки: {error.digest}
+              </p>
+              <p className="text-sm text-center text-muted-foreground">
+                Текст ошибки: {message}
               </p>
               <p className="text-sm text-center text-muted-foreground max-w-md">
                 Если эта операция важна для вас прямо сейчас, пожалуйста,

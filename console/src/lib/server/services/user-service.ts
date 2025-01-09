@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import { unmaskNumber } from '@/lib/server/keymask'
 import { env } from '@/lib/env'
 import { formatPhoneNumber } from '../format-phone-number'
-import { getEmailService, getEmailValidationService } from './instances'
+import { getEmailService, getEmailValidationService, getTokenService } from './instances'
 
 export type IdentityTypes = 'email' | 'phone' | 'username'
 
@@ -20,6 +20,10 @@ export class UserService {
     return getEmailService()
   }
 
+  get tokenService() {
+    return getTokenService()
+  }
+
   constructor() {
     this.prisma = prismaClient
     this.passwordPepper = env.PASSWORD_PEPPER
@@ -28,6 +32,16 @@ export class UserService {
   async getUser(userId: number) {
     return this.prisma.user.findUnique({
       where: { id: userId }
+    })
+  }
+
+  async markEmailConfirmedByToken(token: string) {
+    const { contactId: maskedContactId } = await this.tokenService.parseEmailVerificationToken(token)
+    const contactId = unmaskNumber(maskedContactId)
+
+    await this.prisma.userContact.update({
+      where: { id: contactId },
+      data: { emailConfirmed: true }
     })
   }
 

@@ -2,6 +2,7 @@ import { createSecretKey } from "crypto";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
 import { env } from "@/lib/env";
 import { addDays, endOfDay } from "date-fns";
+import { maskNumber } from "../keymask";
 
 export type EmailVerificationTokenPayload = JWTPayload & { contactId: string }
 
@@ -48,7 +49,7 @@ export class TokenService {
 
   async generateEmailVerificationToken(contactId: number) {
     const expiredAt = this.getExpiredAt(this.emailVerificationTokenValidityPeriodInDays)
-    const token = await new SignJWT({ contactId })
+    const token = await new SignJWT({ contactId: maskNumber(contactId) })
       .setAudience(this.siteOrigin)
       .setExpirationTime(expiredAt)
       .setNotBefore(new Date())

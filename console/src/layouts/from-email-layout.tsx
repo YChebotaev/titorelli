@@ -23,13 +23,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Container } from "@/components/site/container";
-
-import moroccanFlower from '../../public/images/from-email/p6.png'
+import Link from "next/link";
 
 interface EmailConfirmationLandingProps {
   title?: string;
   description?: string;
+  confirmText?: string | null;
   confirmButtonText?: string;
+  confirmButtonHref?: string;
   cancelButtonText?: string;
   alertTitle?: string;
   alertDescription?: string;
@@ -43,7 +44,9 @@ interface EmailConfirmationLandingProps {
 export function FromEmailLayout({
   title,
   description,
+  confirmText = "Пожалуйста, подтвердите ваше действие, нажав на кнопку ниже.",
   confirmButtonText,
+  confirmButtonHref,
   cancelButtonText,
   alertTitle,
   alertDescription,
@@ -63,26 +66,20 @@ export function FromEmailLayout({
     try {
       // await onConfirm(params.token);
       setIsConfirmed(true);
-    } catch (_err) {
+    } catch (err) {
+      console.error(err);
+
       setError("Произошла ошибка. Пожалуйста, попробуйте еще раз.");
     } finally {
       setIsConfirming(false);
     }
   };
 
-  const backgroundPattern = `URL("${moroccanFlower.src}")`;
-
   if (error) {
     return (
       <>
         {headerNode}
-        <div
-          className="relative min-h-screen bg-gray-50"
-          style={{
-            backgroundImage: backgroundPattern,
-            backgroundSize: "20px 20px",
-          }}
-        >
+        <div className="relative min-h-screen bg-gray-50">
           <div className="relative z-10">
             <Container className="pt-20">
               <Card className="w-full max-w-md mx-auto mt-8">
@@ -93,9 +90,9 @@ export function FromEmailLayout({
                   <p>{error}</p>
                 </CardContent>
                 <CardFooter>
-                  <Button onClick={() => router.push("/")}>
-                    Вернуться на главную
-                  </Button>
+                  <Link href="/">
+                    <Button>Вернуться на главную</Button>
+                  </Link>
                 </CardFooter>
               </Card>
             </Container>
@@ -109,13 +106,7 @@ export function FromEmailLayout({
     return (
       <>
         {headerNode}
-        <div
-          className="relative min-h-screen bg-gray-50"
-          style={{
-            backgroundImage: backgroundPattern,
-            backgroundSize: "20px 20px",
-          }}
-        >
+        <div className="relative min-h-screen bg-gray-50">
           <div className="relative z-10">
             <Container className="pt-20">
               <Card className="w-full max-w-md mx-auto mt-8">
@@ -141,13 +132,7 @@ export function FromEmailLayout({
   return (
     <>
       {headerNode}
-      <div
-        className="relative min-h-screen bg-gray-50"
-        style={{
-          backgroundImage: backgroundPattern,
-          // backgroundSize: "20px 20px",
-        }}
-      >
+      <div className="relative min-h-screen bg-gray-50">
         <div className="relative z-10">
           <Container className="py-20 flex flex-col items-center justify-center min-h-screen">
             <Card className="w-full max-w-md">
@@ -157,16 +142,19 @@ export function FromEmailLayout({
                   <CardDescription>{description}</CardDescription>
                 )}
               </CardHeader>
-              {confirmButtonText && (
+              {confirmButtonText && confirmText && (
                 <CardContent>
-                  <p>
-                    Пожалуйста, подтвердите ваше действие, нажав на кнопку ниже.
-                  </p>
+                  <p>{confirmText}</p>
                 </CardContent>
               )}
               {(confirmButtonText || cancelButtonText) && (
                 <CardFooter className="flex justify-end space-x-2">
-                  {confirmButtonText && (
+                  {confirmButtonHref && (
+                    <Link href={confirmButtonHref}>
+                      <Button variant="default">{confirmButtonText}</Button>
+                    </Link>
+                  )}
+                  {confirmButtonText && !confirmButtonHref && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="default">{confirmButtonText}</Button>
@@ -195,9 +183,9 @@ export function FromEmailLayout({
                     </AlertDialog>
                   )}
                   {cancelButtonText && (
-                    <Button variant="outline" onClick={() => router.push("/")}>
-                      {cancelButtonText}
-                    </Button>
+                    <Link href="/">
+                      <Button variant="outline">{cancelButtonText}</Button>
+                    </Link>
                   )}
                 </CardFooter>
               )}

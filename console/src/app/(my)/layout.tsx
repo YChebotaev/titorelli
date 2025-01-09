@@ -1,3 +1,4 @@
+import { type ReactNode } from "react";
 import { AppLayout } from "@/layouts/app-layout";
 
 export const metadata = {
@@ -6,10 +7,6 @@ export const metadata = {
     "Titorelli platform helps you manage classification models for Telegram bots, providing advanced spam protection features.",
 };
 
-export default async function LandingLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function MyLayout({ children }: { children: ReactNode }) {
   return <AppLayout>{children}</AppLayout>;
 }
