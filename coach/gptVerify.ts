@@ -12,7 +12,8 @@ type ExampleRecord = {
 
 const knex = createKnex({
     client: 'sqlite3',
-    connection: { filename: path.join(__dirname, 'data/db.sqlite3') }
+    connection: { filename: path.join(__dirname, 'data/db.sqlite3') },
+    acquireConnectionTimeout: 60 * 60 * 60 * 1000
   })
 
 const gptVerify = async () => {
