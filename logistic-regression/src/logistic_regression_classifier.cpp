@@ -1,13 +1,13 @@
-#include <napi.h>
+п»ї#include <napi.h>
 #include <vector>
 #include <unordered_map>
 #include <string>
 #include <sstream>
 #include <cmath>
 #include <numeric>
-#include <functional> // Для std::hash
+#include <functional> // Р”Р»СЏ std::hash
 #include <fstream>
-#include <iostream> // Для отладки
+#include <iostream> // Р”Р»СЏ РѕС‚Р»Р°РґРєРё
 
 class LogisticRegression : public Napi::ObjectWrap<LogisticRegression> {
 public:
@@ -24,10 +24,10 @@ private:
     std::vector<double> HashingVectorize(const std::string& text, size_t numFeatures);
 
     std::vector<double> weights;
-    std::unordered_map<std::string, size_t> featureDict; // Словарь для хранения признаков
+    std::unordered_map<std::string, size_t> featureDict; // РЎР»РѕРІР°СЂСЊ РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РїСЂРёР·РЅР°РєРѕРІ
     double learningRate = 0.01;
     int iterations = 1000;
-    size_t numFeatures = 1000; // Количество признаков
+    size_t numFeatures = 1000; // РљРѕР»РёС‡РµСЃС‚РІРѕ РїСЂРёР·РЅР°РєРѕРІ
 };
 
 Napi::Object LogisticRegression::Init(Napi::Env env, Napi::Object exports) {
@@ -68,17 +68,17 @@ std::vector<double> LogisticRegression::HashingVectorize(const std::string& text
     while (stream >> token) {
         size_t hashIndex = hasher(token) % numFeatures;
         if (featureDict.find(token) == featureDict.end()) {
-            featureDict[token] = hashIndex; // Добавляем новый признак в словарь
+            featureDict[token] = hashIndex; // Р”РѕР±Р°РІР»СЏРµРј РЅРѕРІС‹Р№ РїСЂРёР·РЅР°Рє РІ СЃР»РѕРІР°СЂСЊ
         }
-        vector[featureDict[token]] += 1.0; // Увеличиваем значение признака
+        vector[featureDict[token]] += 1.0; // РЈРІРµР»РёС‡РёРІР°РµРј Р·РЅР°С‡РµРЅРёРµ РїСЂРёР·РЅР°РєР°
     }
 
     return vector;
 }
 
 double LogisticRegression::Sigmoid(double z) {
-    if (z < -709) return 0.0; // избегаем переполнения
-    if (z > 709) return 1.0;  // избегаем переполнения
+    if (z < -709) return 0.0; // РёР·Р±РµРіР°РµРј РїРµСЂРµРїРѕР»РЅРµРЅРёСЏ
+    if (z > 709) return 1.0;  // РёР·Р±РµРіР°РµРј РїРµСЂРµРїРѕР»РЅРµРЅРёСЏ
     return 1.0 / (1.0 + std::exp(-z));
 }
 
@@ -101,6 +101,12 @@ Napi::Value LogisticRegression::Train(const Napi::CallbackInfo& info) {
         labels.push_back(labelArray.Get(i).As<Napi::Number>().Int32Value());
     }
 
+    // РџСЂРѕРІРµСЂРєР° РЅР° СЂР°Р·РјРµСЂ РІС…РѕРґРЅС‹С… РґР°РЅРЅС‹С…
+    if (inputs.size() == 0 || inputs[0].size() != numFeatures) {
+        Napi::Error::New(env, "Input data size does not match the expected number of features").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+
     weights = std::vector<double>(numFeatures, 0.0);
 
     for (int iter = 0; iter < iterations; iter++) {
@@ -111,9 +117,26 @@ Napi::Value LogisticRegression::Train(const Napi::CallbackInfo& info) {
                 weights[j] += learningRate * error * inputs[i][j];
             }
         }
+
+        // Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅРѕРµ Р»РѕРіРёСЂРѕРІР°РЅРёРµ РґР»СЏ РѕС‚СЃР»РµР¶РёРІР°РЅРёСЏ РїСЂРѕРіСЂРµСЃСЃР°
+        if (iter % 100 == 0) {
+            double loss = CalculateLoss(inputs, labels);
+            std::cout << "Iteration: " << iter << " Loss: " << loss << std::endl;
+        }
     }
 
     return env.Undefined();
+}
+
+double LogisticRegression::CalculateLoss(const std::vector<std::vector<double>>& inputs, const std::vector<int>& labels) {
+    double loss = 0.0;
+    const double epsilon = 1e-10; // РЅРµР±РѕР»СЊС€РѕР№ СЃРґРІРёРі РґР»СЏ РїСЂРµРґРѕС‚РІСЂР°С‰РµРЅРёСЏ Р»РѕРіР°СЂРёС„РјР° РЅСѓР»СЏ
+    for (size_t i = 0; i < inputs.size(); i++) {
+        double prediction = Sigmoid(std::inner_product(inputs[i].begin(), inputs[i].end(), weights.begin(), 0.0));
+        loss += -labels[i] * std::log(std::max(prediction, epsilon)) -
+            (1 - labels[i]) * std::log(std::max(1 - prediction, epsilon));
+    }
+    return loss / inputs.size();
 }
 
 Napi::Value LogisticRegression::Classify(const Napi::CallbackInfo& info) {
@@ -126,11 +149,23 @@ Napi::Value LogisticRegression::Classify(const Napi::CallbackInfo& info) {
     std::string input = info[0].As<Napi::String>().Utf8Value();
     std::vector<double> vector = HashingVectorize(input, numFeatures);
 
+    // РћС‚Р»Р°РґРѕС‡РЅС‹Р№ РІС‹РІРѕРґ
+    std::cout << "Input vector size: " << vector.size() << std::endl;
+    std::cout << "Weights size: " << weights.size() << std::endl;
+
+    if (vector.size() != weights.size()) {
+        Napi::Error::New(env, "Input vector size does not match weights size").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+
     double z = std::inner_product(vector.begin(), vector.end(), weights.begin(), 0.0);
     double probability = Sigmoid(z);
 
+    std::cout << "Prediction probability: " << probability << std::endl;
+
     return Napi::Number::New(env, probability);
 }
+
 
 Napi::Value LogisticRegression::SaveModel(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
@@ -142,23 +177,26 @@ Napi::Value LogisticRegression::SaveModel(const Napi::CallbackInfo& info) {
     std::string filename = info[0].As<Napi::String>();
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) {
-        Napi::Error::New(env, "Unable to open file").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "Unable to open file for writing").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
-    // Сохраняем веса
-    file.write(reinterpret_cast<const char*>(weights.data()), weights.size() * sizeof(double));
+    // РЎРѕС…СЂР°РЅСЏРµРј СЂР°Р·РјРµСЂС‹ Рё СЃР°РјРё РІРµСЃР°
+    size_t weightsSize = weights.size();
+    file.write(reinterpret_cast<const char*>(&weightsSize), sizeof(weightsSize));
+    file.write(reinterpret_cast<const char*>(weights.data()), weightsSize * sizeof(double));
 
-    // Сохраняем словарь признаков
+    // РЎРѕС…СЂР°РЅСЏРµРј СЂР°Р·РјРµСЂ СЃР»РѕРІР°СЂСЏ Рё РµРіРѕ СЃРѕРґРµСЂР¶РёРјРѕРµ
     size_t dictSize = featureDict.size();
-    file.write(reinterpret_cast<const char*>(&dictSize), sizeof(size_t));
+    file.write(reinterpret_cast<const char*>(&dictSize), sizeof(dictSize));
     for (const auto& pair : featureDict) {
         size_t keySize = pair.first.size();
-        file.write(reinterpret_cast<const char*>(&keySize), sizeof(size_t));
-        file.write(pair.first.c_str(), keySize);
-        file.write(reinterpret_cast<const char*>(&pair.second), sizeof(size_t));
+        file.write(reinterpret_cast<const char*>(&keySize), sizeof(keySize));
+        file.write(pair.first.data(), keySize);
+        file.write(reinterpret_cast<const char*>(&pair.second), sizeof(pair.second));
     }
 
+    file.close();
     return env.Undefined();
 }
 
@@ -172,34 +210,34 @@ Napi::Value LogisticRegression::LoadModel(const Napi::CallbackInfo& info) {
     std::string filename = info[0].As<Napi::String>();
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
-        Napi::Error::New(env, "Unable to open file").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "Unable to open file for reading").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
-    // Загружаем веса
-    file.seekg(0, std::ios::end);
-    std::streamsize size = file.tellg();
-    file.seekg(0, std::ios::beg);
+    // Р—Р°РіСЂСѓР¶Р°РµРј СЂР°Р·РјРµСЂС‹ Рё СЃР°РјРё РІРµСЃР°
+    size_t weightsSize;
+    file.read(reinterpret_cast<char*>(&weightsSize), sizeof(weightsSize));
+    weights.resize(weightsSize);
+    file.read(reinterpret_cast<char*>(weights.data()), weightsSize * sizeof(double));
 
-    weights.resize(size / sizeof(double));
-    file.read(reinterpret_cast<char*>(weights.data()), size);
-
-    // Загружаем словарь признаков
+    // Р—Р°РіСЂСѓР¶Р°РµРј СЂР°Р·РјРµСЂ СЃР»РѕРІР°СЂСЏ Рё РµРіРѕ СЃРѕРґРµСЂР¶РёРјРѕРµ
     size_t dictSize;
-    file.read(reinterpret_cast<char*>(&dictSize), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&dictSize), sizeof(dictSize));
     featureDict.clear();
     for (size_t i = 0; i < dictSize; i++) {
         size_t keySize;
-        file.read(reinterpret_cast<char*>(&keySize), sizeof(size_t));
+        file.read(reinterpret_cast<char*>(&keySize), sizeof(keySize));
         std::string key(keySize, '\0');
         file.read(&key[0], keySize);
         size_t value;
-        file.read(reinterpret_cast<char*>(&value), sizeof(size_t));
+        file.read(reinterpret_cast<char*>(&value), sizeof(value));
         featureDict[key] = value;
     }
 
+    file.close();
     return env.Undefined();
 }
+
 
 Napi::Object InitAll(Napi::Env env, napi_value exports) {
     Napi::Object result = Napi::Object::New(env);
