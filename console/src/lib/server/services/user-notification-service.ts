@@ -61,7 +61,8 @@ export class UserNotificationService {
       this.prisma.userNotification.findMany({
         where: { userId },
         skip: page * size,
-        take: size
+        take: size,
+        orderBy: { createdAt: 'desc' }
       }),
       this.prisma.userNotification.count({
         where: { userId }
@@ -69,12 +70,23 @@ export class UserNotificationService {
     ])
   }
 
-  async markReceivedUserNotifications(ids: number[]) {
+  async countUnread(userId: number) {
+    return this.prisma.userNotification.count({
+      where: { userId, read: false }
+    })
+  }
+
+  async markReceived(ids: number[]) {
     await this.prisma.userNotification.updateMany({
       where: { id: { in: ids } },
-      data: {
-        received: true
-      }
+      data: { received: true }
+    })
+  }
+
+  async markRead(ids: number[]) {
+    await this.prisma.userNotification.updateMany({
+      where: { id: { in: ids } },
+      data: { read: true }
     })
   }
 

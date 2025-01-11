@@ -42,3 +42,7 @@ export type GetHeaderNotificationsData = {
   page: number
   size: number
 }
+
+export type UnreadCountVm = {
+  unreadCount: number
+}

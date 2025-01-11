@@ -9,6 +9,7 @@ import type {
   JoinToAccountsPayload,
   GenericToasPayload,
 } from "@/types/user-notification";
+import { useQueryClient } from "@tanstack/react-query";
 
 const receiveNotifications = async (
   userId: string,
@@ -82,6 +83,7 @@ const spawnToast = (item: UserNotificationVm) => {
 const InternalFlashNotificationsReceiver: FC<{ userId: string }> = ({
   userId,
 }) => {
+  const queryClient = useQueryClient();
   const { data } = useGetUserFlashNotifications(userId);
 
   useEffect(() => {
@@ -89,6 +91,12 @@ const InternalFlashNotificationsReceiver: FC<{ userId: string }> = ({
 
     data.forEach(spawnToast);
   }, [data]);
+
+  useEffect(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["users", userId, "notifications", "unread-count"],
+    });
+  }, [...(data?.map(({ id }) => id) ?? [])]);
 
   useEffect(() => {
     if (!data) return;
