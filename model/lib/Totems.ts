@@ -22,7 +22,8 @@ export class Totems implements ITotems {
     this.knex = createKnex({
       client: 'sqlite3',
       connection: { filename: path.join(this.modelsDirname, `totems-${this.modelId}.sqlite3`) },
-      useNullAsDefault: true
+      useNullAsDefault: true,
+      acquireConnectionTimeout: 60 * 60 * 60 * 1000
     })
 
     this.ready = this.initialize()

@@ -199,12 +199,12 @@ export class Service {
         const { params: { modelId }, body: { text, tgUserId } } = req
 
         if (tgUserId != null) {
-          {
-            const casPrediction = await this.checkCas(tgUserId)
+          // {
+          //   const casPrediction = await this.checkCas(tgUserId)
 
-            if (casPrediction != null)
-              return casPrediction
-          }
+          //   if (casPrediction != null)
+          //     return casPrediction
+          // }
 
           {
             const totemPrediction = await this.checkTotem(modelId, tgUserId)
@@ -221,17 +221,17 @@ export class Service {
     )
   }
 
-  private async checkCas(tgUserId: number): Promise<Prediction | null> {
-    if (await this.cas.has(tgUserId)) {
-      return {
-        value: 'spam',
-        confidence: 1,
-        reason: 'cas'
-      }
-    }
+  // private async checkCas(tgUserId: number): Promise<Prediction | null> {
+  //   if (await this.cas.has(tgUserId)) {
+  //     return {
+  //       value: 'spam',
+  //       confidence: 1,
+  //       reason: 'cas'
+  //     }
+  //   }
 
-    return null
-  }
+  //   return null
+  // }
 
   private async checkTotem(modelId: string, tgUserId: number): Promise<Prediction | null> {
     const totems = await this.totemsStore.getOrCreate(modelId)

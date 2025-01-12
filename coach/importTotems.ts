@@ -8,7 +8,8 @@ const importTotems = async () => {
   })
   const exportKnex = createKnex({
     client: 'sqlite3',
-    connection: { filename: path.join(__dirname, 'data/totems-react_ru.sqlite3') }
+    connection: { filename: path.join(__dirname, 'data/totems-react_ru.sqlite3') },
+    acquireConnectionTimeout: 60 * 60 * 60 * 1000
   })
 
   const totems = await importKnex

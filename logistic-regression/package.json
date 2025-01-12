@@ -1,0 +1,23 @@
+{
+  "name": "@titorelli/logistic-regression",
+  "version": "1.0.0",
+  "description": "Native logistic regression classifier using Node-API.",
+  "main": "index.js",
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "install": "node-gyp configure build",
+    "test": "node test/test.js"
+  },
+  "gypfile": true,
+  "devDependencies": {
+    "eslint": "^9.17.0",
+    "node-gyp": "^11.0.0"
+  },
+  "dependencies": {
+    "natural": "^8.0.1",
+    "node-addon-api": "^8.3.0"
+  },
+  "engines": {
+    "node": ">= 10.0.0"
+  }
+}

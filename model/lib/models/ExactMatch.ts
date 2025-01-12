@@ -28,7 +28,8 @@ export class ExactMatchModel implements IModel {
     this.knex = createKnex({
       client: 'sqlite3',
       connection: { filename: this.modelFilename },
-      useNullAsDefault: true
+      useNullAsDefault: true,
+      acquireConnectionTimeout: 60 * 60 * 60 * 1000
     })
 
     this.ready = this.initialize()
