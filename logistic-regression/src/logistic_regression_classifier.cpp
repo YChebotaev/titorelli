@@ -77,9 +77,27 @@ std::vector<double> LogisticRegression::HashingVectorize(const std::string& text
 }
 
 double LogisticRegression::Sigmoid(double z) {
-    if (z < -709) return 0.0; // избегаем переполнения
-    if (z > 709) return 1.0;  // избегаем переполнения
+    // Обработка переполнения
+    if (z < -709) return 0.0; // возвращаем 0, если значение слишком низкое
+    if (z > 709) return 1.0;  // возвращаем 1, если значение слишком высокое
     return 1.0 / (1.0 + std::exp(-z));
+}
+
+double LogisticRegression::CalculateLoss(const std::vector<std::vector<double>>& inputs, const std::vector<int>& labels) {
+    double loss = 0.0;
+    const double epsilon = 1e-10; // Маленькое значение для предотвращения логарифма нуля
+
+    for (size_t i = 0; i < inputs.size(); i++) {
+        double prediction = Sigmoid(std::inner_product(inputs[i].begin(), inputs[i].end(), weights.begin(), 0.0));
+
+        // Избегаем переполнения и числовых ошибок, используя epsilon
+        prediction = std::max(std::min(prediction, 1.0 - epsilon), epsilon);
+
+        // Расчет потерь
+        loss += -labels[i] * std::log(prediction) - (1 - labels[i]) * std::log(1 - prediction);
+    }
+
+    return loss / inputs.size();
 }
 
 Napi::Value LogisticRegression::Train(const Napi::CallbackInfo& info) {
@@ -128,17 +146,6 @@ Napi::Value LogisticRegression::Train(const Napi::CallbackInfo& info) {
     return env.Undefined();
 }
 
-double LogisticRegression::CalculateLoss(const std::vector<std::vector<double>>& inputs, const std::vector<int>& labels) {
-    double loss = 0.0;
-    const double epsilon = 1e-10; // небольшой сдвиг для предотвращения логарифма нуля
-    for (size_t i = 0; i < inputs.size(); i++) {
-        double prediction = Sigmoid(std::inner_product(inputs[i].begin(), inputs[i].end(), weights.begin(), 0.0));
-        loss += -labels[i] * std::log(std::max(prediction, epsilon)) -
-            (1 - labels[i]) * std::log(std::max(1 - prediction, epsilon));
-    }
-    return loss / inputs.size();
-}
-
 Napi::Value LogisticRegression::Classify(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     if (info.Length() < 1 || !info[0].IsString()) {
@@ -149,10 +156,6 @@ Napi::Value LogisticRegression::Classify(const Napi::CallbackInfo& info) {
     std::string input = info[0].As<Napi::String>().Utf8Value();
     std::vector<double> vector = HashingVectorize(input, numFeatures);
 
-    // Отладочный вывод
-    std::cout << "Input vector size: " << vector.size() << std::endl;
-    std::cout << "Weights size: " << weights.size() << std::endl;
-
     if (vector.size() != weights.size()) {
         Napi::Error::New(env, "Input vector size does not match weights size").ThrowAsJavaScriptException();
         return env.Undefined();
@@ -161,11 +164,8 @@ Napi::Value LogisticRegression::Classify(const Napi::CallbackInfo& info) {
     double z = std::inner_product(vector.begin(), vector.end(), weights.begin(), 0.0);
     double probability = Sigmoid(z);
 
-    std::cout << "Prediction probability: " << probability << std::endl;
-
     return Napi::Number::New(env, probability);
 }
-
 
 Napi::Value LogisticRegression::SaveModel(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();

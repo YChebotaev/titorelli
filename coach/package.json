@@ -11,7 +11,9 @@
     "wordstat": "ts-node wordstat.ts",
     "importTotems": "ts-node importTotems.ts",
     "gptVerify": "ts-node gptVerify.ts",
-    "lrTrainSmall": "ts-node lrTrainSmall.ts"
+    "lrTrainSmall": "ts-node lrTrainSmall.ts",
+    "testNormalizeText": "ts-node testNormalizeText.ts",
+    "pretrainNew": "ts-node pretrainNew"
   },
   "author": "YChebotaev",
   "license": "UNLICENSED",
