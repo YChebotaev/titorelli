@@ -395,7 +395,7 @@ export class Service {
       Body: {
         tgUserId: number
       }
-    }>(this.casTrainPath, {
+    }>(this.casPredictPath, {
       onRequest: [this.verifyToken, this.allowScopeExact('cas/predict')],
       schema: {
         body: {
