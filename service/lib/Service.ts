@@ -53,6 +53,7 @@ export class Service {
   private modelTrainBulkPath = '/models/:modelId/train_bulk'
   private modelExactMatchTrainPath = '/models/:modelId/exact_match/train'
   private modelTotemsTrainPath = '/models/:modelId/totems/train'
+  private casPredictPath = '/cas/predict'
   private casTrainPath = '/cas/train'
   private ouathTokenPath = '/oauth2/token'
 
@@ -92,6 +93,7 @@ export class Service {
     await this.installModelTrainBulkRoute()
     await this.installModelExactMatchTrainRoute()
     await this.installModelTotemsTrainRoute()
+    await this.installCasPredictRoute()
     await this.installCasTrainRoute()
     await this.installOauthTokenRoute()
     await this.installPluginsEnd()
@@ -221,17 +223,17 @@ export class Service {
     )
   }
 
-  // private async checkCas(tgUserId: number): Promise<Prediction | null> {
-  //   if (await this.cas.has(tgUserId)) {
-  //     return {
-  //       value: 'spam',
-  //       confidence: 1,
-  //       reason: 'cas'
-  //     }
-  //   }
+  private async checkCas(tgUserId: number): Promise<Prediction | null> {
+    if (await this.cas.has(tgUserId)) {
+      return {
+        value: 'spam',
+        confidence: 1,
+        reason: 'cas'
+      }
+    }
 
-  //   return null
-  // }
+    return null
+  }
 
   private async checkTotem(modelId: string, tgUserId: number): Promise<Prediction | null> {
     const totems = await this.totemsStore.getOrCreate(modelId)
@@ -385,6 +387,37 @@ export class Service {
       const totems = await this.totemsStore.getOrCreate(modelId)
 
       await totems.add(tgUserId)
+    })
+  }
+
+  private async installCasPredictRoute() {
+    await this.service.post<{
+      Body: {
+        tgUserId: number
+      }
+    }>(this.casTrainPath, {
+      onRequest: [this.verifyToken, this.allowScopeExact('cas/predict')],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['tgUserId'],
+          properties: {
+            tgUserId: { type: 'number' }
+          }
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              banned: { type: 'boolean' }
+            }
+          }
+        }
+      }
+    }, async ({ body: { tgUserId } }) => {
+      const banned = await this.cas.has(tgUserId)
+
+      return { banned }
     })
   }
 

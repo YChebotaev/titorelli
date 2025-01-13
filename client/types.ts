@@ -21,6 +21,10 @@ export type Prediction = {
   confidence: number
 }
 
+export type CasPrediction = {
+  banned: boolean
+}
+
 export type AuthenticationResult = {
   access_token: string
   token_type: string
