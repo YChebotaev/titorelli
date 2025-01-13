@@ -12,3 +12,7 @@
 ## Swagger-документация
 
 https://titorelli.ru/documentation
+
+## Большое спасибо
+
+[kryostnii](https://kwork.ru/user/kryostnii) за C++ классификатор
