@@ -1,7 +1,7 @@
+import path from 'node:path'
 import { Worker } from 'node:worker_threads'
-import path, { resolve } from 'node:path'
 import { PorterStemmerRu } from 'natural'
-import { LabeledExample } from '../../../types'
+import type { LabeledExample } from '../../../types'
 
 export class LogisticRegressionWorker {
   private idSeq = 0
@@ -32,6 +32,27 @@ export class LogisticRegressionWorker {
     return this.awaitResponse<void>(req)
   }
 
+  private get workerPath() {
+    return path.join(__dirname, 'worker/worker.ts')
+  }
+
+  private get workerData() {
+    return {
+      modelFilename: this.modelFilename
+    }
+  }
+
+  private reinintialize = async () => {
+    await this.destroy()
+
+    this.impl = new Worker(this.workerPath, { workerData: this.workerData })
+
+    this.impl.on('error', this.exceptionHandler)
+    this.impl.on('exit', this.exceptionHandler)
+
+    return this.awaitEvent('ready')
+  }
+
   private async awaitResponse<R>(req: ReturnType<typeof this.createRequest>) {
     return new Promise<R>((resolve, reject) => {
       const handler = (res: { id: number, result: R, error: any }) => {
@@ -53,40 +74,36 @@ export class LogisticRegressionWorker {
     })
   }
 
-  private reinintialize = async () => {
+  private async awaitEvent<R = void>(eventName: string) {
+    return new Promise<R>(resolve => {
+      const handler = (evt: { method: string, result?: any }) => {
+        if (evt.method !== eventName)
+          return
+
+        resolve(evt.result)
+
+        this.impl!.removeListener('message', handler)
+      }
+
+      this.impl!.addListener('message', handler)
+    })
+  }
+
+  private async destroy() {
     if (this.impl) {
       this.impl.removeAllListeners()
+      this.impl.unref()
       await this.impl.terminate()
 
       this.impl = null
     }
-
-    const workerPath = path.join(__dirname, 'worker/worker.ts')
-
-    this.impl = new Worker(workerPath, { workerData: { modelFilename: this.modelFilename } })
-
-    const handleException = () => {
-      this.ready = this.reinintialize()
-    }
-
-    this.impl.on('error', handleException)
-    this.impl.on('exit', handleException)
-
-    return new Promise<void>(resolve => {
-      const readyHandler = (evt: { method: 'ready' }) => {
-        if (evt.method !== 'ready')
-          return
-
-        resolve()
-
-        this.impl!.removeListener('message', readyHandler)
-      }
-
-      this.impl!.addListener('message', readyHandler)
-    })
   }
 
-  private createRequest(method: string, ...params: any[]) {
+  private exceptionHandler = () => {
+    this.ready = this.reinintialize()
+  }
+
+  private createRequest<Ps extends unknown[]>(method: string, ...params: Ps) {
     return {
       id: this.idSeq++,
       method,

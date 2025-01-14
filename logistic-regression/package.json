@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Native logistic regression classifier using Node-API.",
   "main": "index.js",
+  "types": "types.d.ts",
   "scripts": {
     "build": "node-gyp rebuild",
     "install": "node-gyp configure build",

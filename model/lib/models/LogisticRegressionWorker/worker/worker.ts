@@ -13,27 +13,7 @@ const classifier = new LogisticRegression({ learningRate: 0.01, iterations: 1000
 if (existsSync(modelFilename)) {
   classifier.loadModel(modelFilename)
 } else {
-  const fullModelFilename = path.join(path.dirname(modelFilename), 'yandex-dataset.json')
-
-  if (existsSync(fullModelFilename)) {
-    const dataset = readFileSync(fullModelFilename, 'utf-8')
-      .trim()
-      .split('\n')
-      .map(text => JSON.parse(text.trim()))
-      .map(item => ({
-        text: PorterStemmerRu.tokenizeAndStem(item.text).join(' '),
-        label: item['спам'] ? 'spam' : 'ham'
-      }))
-
-    const docs = dataset.map(({ text }) => text)
-    const labels = dataset.map(({ label }) => label === 'ham' ? 0 : 1)
-
-    classifier.train(docs, labels)
-
-    classifier.saveModel(modelFilename)
-  } else {
-    throw new Error('Cannot pretrain classifier bc full dataset doesen\'t exist')
-  }
+  throw new Error(`Cannot load model bc file "${modelFilename}" doesen\'t exits`)
 }
 
 parentPort?.postMessage({ method: 'ready' })
