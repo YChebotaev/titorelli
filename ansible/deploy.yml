@@ -14,7 +14,6 @@
     - name: Install monorepo dependencies
       community.general.npm:
         path: "{{root_dir}}"
-        ci: true
     - name: Copy service env
       ansible.builtin.template:
         src: service/.env.j2
