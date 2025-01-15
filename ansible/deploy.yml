@@ -3,6 +3,10 @@
   hosts: titorelli
   remote_user: root
   tasks:
+    - name: Copy Caddyfile
+      ansible.builtin.template:
+        src: Caddyfile
+        dest: "/etc/caddy/Caddyfile"
     - name: Pull the code
       ansible.builtin.git:
         repo: "{{repository_url}}"
@@ -31,3 +35,7 @@
       ansible.builtin.shell:
         cmd: pm2 restart titorelli-service
         chdir: "{{root_dir}}"
+    - name: Restart caddy
+      ansible.builtin.systemd:
+        name: caddy
+        state: restarted

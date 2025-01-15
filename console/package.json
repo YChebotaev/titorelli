@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "dotenv -c .env -- next start",
     "test": "tsx --test $(find src -type f -name '*.test.ts')",
     "test:watch": "tsx --watch --test $(find src -type f -name '*.test.ts')",
     "lint": "next lint",
@@ -43,6 +43,7 @@
     "decode-formdata": "^0.8.0",
     "do-usernames": "^1.0.2",
     "dotenv": "^16.4.7",
+    "dotenv-cli": "^8.0.0",
     "email-addresses": "^5.0.0",
     "framer-motion": "^11.17.0",
     "html-to-text": "^9.0.5",
