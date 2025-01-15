@@ -1,12 +1,13 @@
 import { parentPort, workerData } from 'node:worker_threads'
-import { existsSync, readFileSync } from 'node:fs'
-import path from 'node:path'
-import { PorterStemmerRu } from 'natural'
+import { existsSync } from 'node:fs'
 import { LogisticRegression } from '@titorelli/logistic-regression'
+import { WorkerServer, HandlerContext } from '../../../../rpc-worker'
 
-const { modelFilename } = workerData as {
+export type WorkerData = {
   modelFilename: string
 }
+
+const { modelFilename } = workerData as WorkerData
 
 const classifier = new LogisticRegression({ learningRate: 0.01, iterations: 1000 })
 
@@ -16,58 +17,22 @@ if (existsSync(modelFilename)) {
   throw new Error(`Cannot load model bc file "${modelFilename}" doesen\'t exits`)
 }
 
-parentPort?.postMessage({ method: 'ready' })
+parentPort!.postMessage({ method: 'ready' })
 
-const classify = async (normalizedText: string) => {
-  return classifier.classify(normalizedText)
-}
+new WorkerServer<WorkerData>(
+  parentPort!,
+  workerData,
+  {
+    classify(normalizedText: string) {
+      return classifier.classify(normalizedText)
+    },
 
-const trainBulk = async (docs: string[], labels: number[]) => {
-  classifier.train(docs, labels)
+    trainBulk(this: HandlerContext<WorkerData>, docs: string[], labels: number[]) {
+      throw new Error('Not implemented yet')
 
-  classifier.saveModel(modelFilename)
-}
+      // classifier.train(docs, labels)
 
-const apply = async <F extends Function, P extends any[]>(fn: F, req: { id: number, method: string, params: any[] }) => {
-  try {
-    const result = await fn.apply(null, req.params)
-
-    const res = {
-      id: req.id,
-      result
+      // classifier.saveModel(this.workerData.modelFilename)
     }
-
-    return res
-  } catch (error) {
-    console.error(error)
-
-    const res = {
-      id: req.id,
-      error
-    }
-
-    return res
   }
-}
-
-const getHandler = (method: string) => {
-  switch (method) {
-    case 'classify':
-      return classify
-    case 'trainBulk':
-      return trainBulk
-  }
-}
-
-parentPort?.on('message', async (req: { id: number, method: string, params: any[] }) => {
-  const handler = getHandler(req.method)
-
-  if (!handler)
-    return
-
-  const res = await apply(handler, req)
-
-  parentPort?.postMessage(res)
-
-  return
-})
+)
