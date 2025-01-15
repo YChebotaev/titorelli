@@ -201,12 +201,12 @@ export class Service {
         const { params: { modelId }, body: { text, tgUserId } } = req
 
         if (tgUserId != null) {
-          // {
-          //   const casPrediction = await this.checkCas(tgUserId)
+          {
+            const casPrediction = await this.checkCas(tgUserId)
 
-          //   if (casPrediction != null)
-          //     return casPrediction
-          // }
+            if (casPrediction != null)
+              return casPrediction
+          }
 
           {
             const totemPrediction = await this.checkTotem(modelId, tgUserId)
