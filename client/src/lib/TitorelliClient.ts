@@ -43,6 +43,9 @@ export class TitorelliClient {
         if (scope === 'cas/train')
           return scope
 
+        if (scope === 'cas/predict')
+          return scope
+
         return `${this.modelId}/${scope}`
       })
 
