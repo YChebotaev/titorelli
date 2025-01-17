@@ -14,6 +14,9 @@ if __name__ == "__main__":
     vectorizer = TfidfVectorizer(lowercase=True, stop_words="english")
 
     feats_train = vectorizer.fit_transform(x_train)
+
+    joblib.dump(vectorizer, 'data/tfidf-v.pkl')
+
     feats_test = vectorizer.transform(x_test)
 
     model = MLPClassifier(
