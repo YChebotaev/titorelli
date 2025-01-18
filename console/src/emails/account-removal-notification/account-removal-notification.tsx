@@ -50,7 +50,7 @@ export default function AccountRemovalNotificationEmail({
               Здравствуйте, {memberName}!
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
-              Мы сообщаем вам, что проект "{accountName}", участником которого
+              Мы сообщаем вам, что проект &quot;{accountName}&quot;, участником которого
               вы являлись, был удален владельцем {ownerName}.
             </Text>
             <Text className="text-zinc-300 text-base mb-4">

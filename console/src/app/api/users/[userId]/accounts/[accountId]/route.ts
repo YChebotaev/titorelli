@@ -8,6 +8,10 @@ export const GET = async (req: NextRequest, { params }: { params: Promise<{ acco
   const accountId = unmaskNumber((await params).accountId)
   const accountService = getAccountService()
   const user = await getUserInRoute()
+
+  if (!user)
+    throw new Error('User not found')
+
   const account = await accountService.getAccountUserMemberOf(user.id, accountId)
 
   if (!account)

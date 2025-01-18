@@ -20,7 +20,8 @@ export default async function ResetPasswordEmailLandingPage(props: {
 
   return (
     <AuthorizationLayout coverImageVariant="restore">
-      <ResetPasswordForm token={token} action={resetPassword} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <ResetPasswordForm token={token} action={resetPassword as any} />
     </AuthorizationLayout>
   );
 }

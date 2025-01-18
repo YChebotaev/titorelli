@@ -8,8 +8,16 @@ import {
   Phone,
 } from "lucide-react";
 import { type FC } from "react";
+import { ContactType } from "./contacts-list";
 
-const getContactIcon = (type: any) => {
+type Contact = {
+  id: string;
+  type: ContactType;
+  value: string;
+  confirmed: boolean;
+};
+
+const getContactIcon = (type: ContactType) => {
   switch (type) {
     case "email":
       return <Mail className="w-5 h-5" />;
@@ -21,7 +29,7 @@ const getContactIcon = (type: any) => {
 };
 
 export const ContactItem: FC<{
-  contact: any;
+  contact: Contact;
   canRemove: boolean;
   // onRemove(id: string): void;
 }> = ({ contact, canRemove /*, onRemove*/ }) => {

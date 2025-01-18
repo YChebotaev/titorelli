@@ -1,4 +1,4 @@
-export function TitorelliLogo(props: any) {
+export function TitorelliLogo(props: Record<string, unknown>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

@@ -29,8 +29,11 @@ export function ResetPasswordForm({
   token,
   ...props
 }: RestoreFormProps) {
-  const [{ success, errors }, formAction] =
-    useActionState<ResetFormState>(action, resetFormInitialState);
+  const [{ success, errors }, formAction] = useActionState<ResetFormState>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    action as any,
+    resetFormInitialState,
+  );
 
   if (success) {
     return (

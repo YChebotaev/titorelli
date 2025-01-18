@@ -53,7 +53,7 @@ const formSchema = z.object({
 
 export type AddAccountFormValues = z.infer<typeof formSchema>;
 
-export function AddAccountBtn({ buttonNode }: {  buttonNode: ReactNode }) {
+export function AddAccountBtn({ buttonNode }: { buttonNode: ReactNode }) {
   const [open, setOpen] = useState(false);
   const form = useForm<AddAccountFormValues>({
     resolver: zodResolver(formSchema),
@@ -69,7 +69,8 @@ export function AddAccountBtn({ buttonNode }: {  buttonNode: ReactNode }) {
     const result = await createAccount(formData);
 
     for (const [name, message] of Object.entries(result)) {
-      form.setError(name, message)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      form.setError(name as any, message as any);
     }
 
     console.log("result =", result);
@@ -77,9 +78,7 @@ export function AddAccountBtn({ buttonNode }: {  buttonNode: ReactNode }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {buttonNode}
-      </DialogTrigger>
+      <DialogTrigger asChild>{buttonNode}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Добавить новый аккаунт</DialogTitle>
@@ -122,7 +121,8 @@ export function AddAccountBtn({ buttonNode }: {  buttonNode: ReactNode }) {
                     <Select
                       {...form.register(`members.${index}.role`)}
                       onValueChange={(value) =>
-                        form.setValue(`members.${index}.role`, value)
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        form.setValue(`members.${index}.role`, value as any)
                       }
                     >
                       <SelectTrigger className="w-1/5">

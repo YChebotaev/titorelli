@@ -10,9 +10,9 @@ import { Button } from "@/components/ui/button";
 // import { cancelAccountDeletion } from '@/app/actions/accountActions'
 
 export default async function CancelDeleteAccount({
-  params,
+  params: {},
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
   // const result = await cancelAccountDeletion(params.token)
 

@@ -5,7 +5,8 @@ import { signin } from "@/server-actions/authorization/signin";
 export default async function SigninPage() {
   return (
     <AuthorizationLayout coverImageVariant="signin">
-      <SigninForm action={signin} />
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <SigninForm action={signin as any} />
     </AuthorizationLayout>
   );
 }

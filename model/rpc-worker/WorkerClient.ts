@@ -1,7 +1,6 @@
 import { Worker } from 'node:worker_threads'
-import path from 'node:path'
 
-export class WorkerClient<WD extends Record<string, unknown>> {
+export abstract class WorkerClient<WD extends Record<string, unknown>> {
   private idSeq = 0
   private impl: Worker | null = null
   private ready: Promise<void>
@@ -10,9 +9,7 @@ export class WorkerClient<WD extends Record<string, unknown>> {
     this.ready = this.reinintialize()
   }
 
-  protected get workerPath() {
-    return path.join(__dirname, 'worker/worker.ts')
-  }
+  protected abstract get workerPath(): string
 
   protected async invoke<R, P extends unknown[]>(name: string, ...params: P) {
     await this.ready
@@ -30,13 +27,7 @@ export class WorkerClient<WD extends Record<string, unknown>> {
     this.impl.on('error', this.exceptionHandler)
     this.impl.on('exit', this.exceptionHandler)
 
-    console.log('"ready" awaited')
-
-    const p = this.awaitEvent('ready')
-
-    console.log('"ready" received')
-
-    return p
+    return this.awaitEvent('ready')
   }
 
   private async awaitResponse<R>(req: ReturnType<typeof this.createRequest>) {

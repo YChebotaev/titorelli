@@ -57,7 +57,8 @@ export function SignupForm({
   ...props
 }: SignupFormProps) {
   const [{ defaultValues, errors }, formAction] =
-    useActionState<SignupFormState>(action, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useActionState<SignupFormState>(action as any, {
       ...signupFormInitialState,
       defaultValues: {
         ...signupFormInitialState.defaultValues,

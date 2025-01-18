@@ -29,8 +29,12 @@ export type AddConcactFormState = {
 };
 
 export const AddContactForm: FC = () => {
-  const [{ success, defaultValues, errors }, formAction] =
-    useActionState<AddConcactFormState>(addContact, addContactFormInitialState);
+  const [{ defaultValues, errors }, formAction] =
+    useActionState<AddConcactFormState>(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      addContact as any,
+      addContactFormInitialState,
+    );
   const [newContactType, setNewContactType] = useState<ContactType>("email");
   // const [newContactValue, setNewContactValue] = useState("");
 

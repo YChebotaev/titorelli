@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { QRCodeSVG } from "qrcode.react";
 import { ZodError } from "zod";
-import { fromError, fromZodError } from "zod-validation-error";
+import { fromZodError } from "zod-validation-error";
 
 const tryToMakeZodError = (error: Error & { digest?: string }) => {
   try {

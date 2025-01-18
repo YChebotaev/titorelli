@@ -50,7 +50,7 @@ export default function AccountRemovalConfirmation({
               Здравствуйте, {ownerName}!
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
-              Мы получили запрос на удаление проекта "{accountName}" из вашего
+              Мы получили запрос на удаление проекта &quot;{accountName}&quot; из вашего
               аккаунта на платформе Titorelli. Для обеспечения безопасности и
               предотвращения случайного удаления, мы просим вас подтвердить это
               действие.

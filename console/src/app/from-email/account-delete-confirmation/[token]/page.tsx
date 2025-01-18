@@ -25,13 +25,13 @@ import {
 // import { confirmAccountDeletion, cancelAccountDeletion } from '@/app/actions/accountActions'
 
 export default function DeleteAccountConfirmation({
-  params,
+  params: {},
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [isDeleted, setIsDeleted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isConfirming/*, setIsConfirming*/] = useState(false);
+  const [isDeleted/*, setIsDeleted*/] = useState(false);
+  const [error/*, setError*/] = useState<string | null>(null);
   const router = useRouter();
 
   const handleConfirmDeletion = async () => {
@@ -70,7 +70,7 @@ export default function DeleteAccountConfirmation({
         </CardHeader>
         <CardContent>
           <p>
-            Your account has been successfully deleted. We're sorry to see you
+            Your account has been successfully deleted. We&apos;re sorry to see you
             go.
           </p>
         </CardContent>

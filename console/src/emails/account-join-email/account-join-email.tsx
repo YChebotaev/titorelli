@@ -28,7 +28,7 @@ export default function AccountJoinInvite({
   inviteeEmail = "user@example.com",
   inviterName = "Иван Петров",
   projectName = "Мой проект",
-  invitedRole = 'viewer',
+  invitedRole = "viewer",
   joinLink = "https://titorelli.ru/join-project?token=abc123",
 }: ProjectJoinInviteProps) {
   return (
@@ -54,11 +54,12 @@ export default function AccountJoinInvite({
               Здравствуйте, {inviteeEmail}!
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
-              {inviterName} приглашает вас присоединиться к аккаунту "
-              {projectName}" на платформе Titorelli.
+              {inviterName} приглашает вас присоединиться к аккаунту &quot;
+              {projectName}&quot; на платформе Titorelli.
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
-              Ваша роль: {userAccountRoleToDisplayName(invitedRole)}
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              Ваша роль: {userAccountRoleToDisplayName(invitedRole as any)}
             </Text>
             <Section className="text-center my-8">
               <Button

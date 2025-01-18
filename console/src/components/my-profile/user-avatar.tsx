@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -44,7 +43,7 @@ export default function UserAvatar({
             className="hidden"
             onChange={handleAvatarChange}
           />
-          <Button variant="outline" size="sm" as="span">
+          <Button variant="outline" size="sm">
             Upload
           </Button>
         </Label>

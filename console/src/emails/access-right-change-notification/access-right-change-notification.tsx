@@ -48,11 +48,11 @@ export default function AccessRightsChangeEmail({
               Здравствуйте, {userName}!
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
-              Ваши права доступа в проекте "{projectName}" на платформе
+              Ваши права доступа в проекте &quot;{projectName}&quot; на платформе
               Titorelli были изменены.
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
-              Ваша роль изменилась с "{oldRole}" на "{newRole}".
+              Ваша роль изменилась с &quot;{oldRole}&quot; на &quot;{newRole}&quot;.
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
               Если вы считаете, что это изменение произошло по ошибке или у вас

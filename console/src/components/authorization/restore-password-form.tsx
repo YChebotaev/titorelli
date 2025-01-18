@@ -22,9 +22,14 @@ export type RestoreFormState = {
   };
 };
 
-export function RestorePasswordForm({ className, action, ...props }: RestoreFormProps) {
+export function RestorePasswordForm({
+  className,
+  action,
+  ...props
+}: RestoreFormProps) {
   const [{ success, defaultValues, errors }, formAction] =
-    useActionState<RestoreFormState>(action, restoreFormInitialState);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useActionState<RestoreFormState>(action as any, restoreFormInitialState);
 
   if (success) {
     return (

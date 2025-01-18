@@ -3,7 +3,9 @@ export const isJson = (str: string) => {
     JSON.parse(str)
 
     return true
-  } catch (e) {
+  } catch (e: unknown) {
+    new SuppressedError(e, true)
+
     return false
   }
 }

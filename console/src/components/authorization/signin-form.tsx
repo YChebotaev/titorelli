@@ -23,7 +23,8 @@ export type SigninFormState = {
 
 export function SigninForm({ className, action, ...props }: SigninFormProps) {
   const [{ defaultValues, errors }, formAction] =
-    useActionState<SigninFormState>(action, signinFormInitialState);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    useActionState<SigninFormState>(action as any, signinFormInitialState);
 
   return (
     <form

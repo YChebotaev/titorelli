@@ -50,7 +50,7 @@ export default function SubscriptionConfirmation({
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
               Спасибо за подписку на Titorelli. Мы рады подтвердить, что ваша
-              подписка на план "{planName}" успешно активирована.
+              подписка на план &quot;{planName}&quot; успешно активирована.
             </Text>
             <Text className="text-zinc-300 text-base mb-4">
               Детали вашей подписки:

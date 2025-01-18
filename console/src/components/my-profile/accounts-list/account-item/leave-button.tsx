@@ -42,8 +42,9 @@ const LeaveButtonInternal: FC<{
     singleMember ? "wipe" : "new_owner",
   );
   const formId = useId();
-  const [{ success, errors }, formAction] = useActionState<LeaveFormState>(
-    leaveAccount,
+  const [{ success }, formAction] = useActionState<LeaveFormState>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    leaveAccount as any,
     leaveFormInitialState,
   );
 

@@ -3,6 +3,7 @@
 import { useEffect, type FC } from "react";
 import dynamic from "next/dynamic";
 import { toast, Toaster } from "sonner";
+import { last, map } from "lodash";
 import { useGetUserFlashNotifications } from "@/hooks/use-get-user-flash-notifications";
 import type {
   UserNotificationVm,
@@ -92,11 +93,12 @@ const InternalFlashNotificationsReceiver: FC<{ userId: string }> = ({
     data.forEach(spawnToast);
   }, [data]);
 
+  const lastId = last(map(data, 'id') ?? [])
   useEffect(() => {
     queryClient.invalidateQueries({
       queryKey: ["users", userId, "notifications", "unread-count"],
     });
-  }, [...(data?.map(({ id }) => id) ?? [])]);
+  }, [queryClient, userId, lastId]);
 
   useEffect(() => {
     if (!data) return;

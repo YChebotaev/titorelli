@@ -39,7 +39,9 @@ export class UserSessionService {
       await jwtVerify(sessionToken, this.secretKey)
 
       return true
-    } catch (_e: unknown) {
+    } catch (e: unknown) {
+      new SuppressedError(e, true)
+
       return false
     }
   }

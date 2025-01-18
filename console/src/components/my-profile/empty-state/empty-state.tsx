@@ -20,7 +20,7 @@ export function EmptyState({
   );
 }
 
-function InboxIcon(props) {
+function InboxIcon(props: Record<string, unknown>) {
   return (
     <svg
       {...props}

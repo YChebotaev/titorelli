@@ -36,7 +36,8 @@ export default function UserProfile() {
           {/* <UserAvatar initialAvatar={initialData.avatar} /> */}
           {/* <EditableUsername initialUsername={initialData.username} /> */}
           <AccountsList />
-          <ContactsList initialContacts={initialData.contacts} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <ContactsList initialContacts={initialData.contacts as any} />
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="destructive" className="font-bold">
