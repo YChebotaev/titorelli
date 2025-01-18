@@ -13,7 +13,8 @@
     "gptVerify": "ts-node gptVerify.ts",
     "lrTrainSmall": "ts-node lrTrainSmall.ts",
     "testNormalizeText": "ts-node testNormalizeText.ts",
-    "benchmark": "ts-node benchmark.ts"
+    "benchmark": "ts-node benchmark.ts",
+    "buildFullDataset": "ts-node buildFullDataset.ts"
   },
   "author": "YChebotaev",
   "license": "UNLICENSED",

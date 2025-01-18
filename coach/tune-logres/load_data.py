@@ -9,9 +9,9 @@ def load_data():
         tokens = tokenize(text)
         return ' '.join([t.text for t in tokens])
 
-    conn = sqlite3.connect("data/db.sqlite3")
+    conn = sqlite3.connect("data/db-full.sqlite3")
     curs = conn.cursor()
-    curs.execute("SELECT text, label, reason FROM examples")
+    curs.execute("SELECT text, label FROM examples")
     rows = curs.fetchall()
 
     examples = [clean_text(row[0]) for row in rows]
