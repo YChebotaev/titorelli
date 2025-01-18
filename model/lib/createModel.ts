@@ -7,6 +7,7 @@ import type { Logger } from 'pino'
 import { YandexGptModel } from './models/YandexGpt'
 import { LogisticRegressionModel } from './models/LogisticRegression'
 import { EnsembleModel } from './models/Ensemble'
+import { PyModel } from './models/PyModel'
 import { CustomRulesModel } from './models/CustomRules'
 import { ExactMatchModel, type IModel } from './models'
 import { VowpalWabbitModel } from './models/VowpalWabbit'
@@ -47,6 +48,9 @@ export const createModel = async (
 
     case 'exact-match':
       return new ExactMatchModel(modelId, replaceExt(modelFilename, '.sqlite3'), logger)
+
+    case 'python-model':
+      return new PyModel(logger)
 
     default:
       throw 'unreachable'

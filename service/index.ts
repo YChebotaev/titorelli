@@ -25,7 +25,6 @@ new Service({
   port: Number(process.env['PORT'] ?? 3000),
   host: process.env['HOST'] ?? '0.0.0.0',
   logger,
-  // store: new ModelsStore(path.join(__dirname, 'data'), 'ensemble', 3600000 /* 3 hours */, logger),
   modelsStore: new TemporaryStorage(
     (modelId: string) =>
       createModel(path.join(__dirname, 'data'), 'ensemble', modelId, logger),
@@ -42,6 +41,6 @@ new Service({
     3600000 /* 3 hours */,
     logger,
   ),
-  jwtSecret: process.env.JWT_SECRET,
+  jwtSecret: process.env.JWT_SECRET!,
   oauthClients: yaml.parse(readFileSync(oauthClientsFilename, 'utf-8'))
 }).listen()

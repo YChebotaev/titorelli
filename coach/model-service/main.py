@@ -18,9 +18,13 @@ def predict():
 
     return {
         'value': 'spam' if label == 1 else 'ham',
-        'probability': probability,
+        'confidence': probability,
         'classifier': 'neuralnet'
     }
 
+@service.route('/probe', methods=['GET'])
+def probe():
+    return {'ok': True}
+
 if __name__ == '__main__':
-    service.run()
+    service.run(port=2999)

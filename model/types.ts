@@ -5,6 +5,7 @@ export type ModelType =
   | 'custom-rules'
   | 'vowpal-wabbit'
   | 'exact-match'
+  | 'python-model'
 
 export type ReasonTypes =
   | 'classifier'
