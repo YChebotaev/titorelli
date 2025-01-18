@@ -2,6 +2,9 @@ import { Geist } from "next/font/google";
 import { QueryClientProvider } from "@/components/query-client-provider";
 
 import "./globals.css";
+import { Suspense } from "react";
+import { MetrikaScript } from "@/components/metrika-script";
+import { getUserInPage } from "@/lib/server/get-user-in-page";
 
 const geist = Geist({ subsets: ["latin"] });
 
@@ -20,6 +23,11 @@ export default async function RootLayout({
     <html lang="ru">
       <body className={geist.className}>
         <QueryClientProvider>{children}</QueryClientProvider>
+        {process.env.NODE_ENV === "production" && (
+          <Suspense>
+            <MetrikaScript />
+          </Suspense>
+        )}
       </body>
     </html>
   );
