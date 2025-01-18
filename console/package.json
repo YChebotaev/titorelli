@@ -10,7 +10,7 @@
     "test:watch": "tsx --watch --test $(find src -type f -name '*.test.ts')",
     "lint": "next lint",
     "prisma:seed": "tsx --require dotenv/config prisma/seed.ts",
-    "email:preview": "email dev --dir src/emails --port 3001"
+    "emails:preview": "email dev --dir src/emails --port 3001"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -77,7 +77,7 @@
     "postcss": "^8",
     "prisma": "^6.1.0",
     "shadcn": "^1.0.0",
-    "tailwindcss": "^3.4.1",
+    "tailwindcss": "^3.4.17",
     "tsx": "^4.19.2",
     "typescript": "^5"
   }
