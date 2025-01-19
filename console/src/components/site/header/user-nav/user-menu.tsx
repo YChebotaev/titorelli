@@ -13,16 +13,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { HeaderUserVm, UserAccountVm } from "@/types/header";
 import { AddAccountBtn } from "@/components/my-profile/create-account-btn";
 
 export const UserMenu: FC<{
   user: HeaderUserVm;
   buttonWithAvatar: ReactNode;
-  activeAccount: UserAccountVm;
   accounts: UserAccountVm[];
-}> = ({ user, buttonWithAvatar, activeAccount, accounts }) => {
+}> = ({ user, buttonWithAvatar, accounts }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -56,15 +54,7 @@ export const UserMenu: FC<{
             />
           </div>
           {accounts!.map((account) => (
-            <DropdownMenuItem
-              key={account.id}
-              className={cn(
-                account.id === activeAccount?.id &&
-                  "bg-accent text-accent-foreground",
-              )}
-            >
-              {account.name}
-            </DropdownMenuItem>
+            <DropdownMenuItem key={account.id}>{account.name}</DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

@@ -1,4 +1,4 @@
-import { env } from '@/lib/env'
+import { env } from '@/lib/server/env'
 import type { Account, AccountInvite } from "@prisma/client"
 import { maskNumber } from "../keymask";
 

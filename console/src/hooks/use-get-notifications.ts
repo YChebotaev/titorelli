@@ -2,6 +2,7 @@ import { useMemo, useCallback } from 'react'
 import { InfiniteData, useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { HeaderNotificationVm } from '@/types/user-notification'
 import type { PaginatedItems } from '@/types/paginated-items'
+import { useApiClient } from './use-api-client'
 
 const unwrapNotifications = (data: InfiniteData<PaginatedItems<HeaderNotificationVm>> | undefined) => {
   if (data == null)
@@ -11,20 +12,14 @@ const unwrapNotifications = (data: InfiniteData<PaginatedItems<HeaderNotificatio
 }
 
 export function useGetNotifications(userId: string) {
+  const axios = useApiClient()
   const queryClient = useQueryClient()
   const queryKey = useMemo(() => ['users', userId, 'notifications'], [userId])
   const { data, isLoading, hasNextPage, fetchNextPage } = useInfiniteQuery({
     queryKey,
     initialPageParam: 0,
     async queryFn({ pageParam }) {
-      const resp = await fetch(`/api/users/${userId}/notifications`, {
-        method: 'POST',
-        body: JSON.stringify({ page: pageParam, size: 40 }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      const data = await resp.json() as Awaited<PaginatedItems<HeaderNotificationVm>>
+      const { data } = await axios.post<PaginatedItems<HeaderNotificationVm>>(`/api/users/${userId}/notifications`, { page: pageParam, size: 40 })
 
       return data
     },
@@ -45,19 +40,11 @@ export function useGetNotifications(userId: string) {
 
   const receiveNotifications = useCallback(
     async (ids: string[]) => {
-      console.log('ids =', ids)
-
-      await fetch(`/api/users/${userId}/notifications/receive`, {
-        method: 'POST',
-        body: JSON.stringify({ ids }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
+      await axios.post(`/api/users/${userId}/notifications/receive`, { ids })
 
       await queryClient.invalidateQueries({ queryKey })
     },
-    [userId, queryKey, queryClient]
+    [userId, queryKey, queryClient, axios]
   )
 
   const notifications = useMemo(() => unwrapNotifications(data), [data])

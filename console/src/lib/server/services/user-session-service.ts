@@ -3,7 +3,7 @@ import { jwtVerify, SignJWT } from 'jose'
 import { PrismaClient } from '@prisma/client'
 import { prismaClient } from '@/lib/server/prisma-client'
 import { maskNumber } from '../keymask'
-import { env } from '@/lib/env'
+import { env } from '@/lib/server/env'
 
 export class UserSessionService {
   private prisma: PrismaClient = prismaClient

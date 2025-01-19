@@ -2,7 +2,7 @@ import { createHash, randomBytes } from 'crypto'
 import { prismaClient } from '@/lib/server/prisma-client'
 import { PrismaClient } from '@prisma/client'
 import { unmaskNumber } from '@/lib/server/keymask'
-import { env } from '@/lib/env'
+import { env } from '@/lib/server/env'
 import { formatPhoneNumber } from '../format-phone-number'
 import { getEmailService, getEmailValidationService, getTokenService } from './instances'
 

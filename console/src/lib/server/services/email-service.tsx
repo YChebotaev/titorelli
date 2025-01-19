@@ -8,7 +8,7 @@ import ResetPasswordEmail from "@/emails/reset-password/reset-password";
 import { maskNumber, unmaskNumber } from "@/lib/server/keymask";
 import AccountRemovalNotificationEmail from "@/emails/account-removal-notification";
 import AccountRemovalConfirmation from "@/emails/account-removal-confirmation-email";
-import { env } from "@/lib/env";
+import { env } from "@/lib/server/env";
 import { getEmailClient, getTokenService, getUserService } from "./instances";
 import AccountJoinInvite from "@/emails/account-join-email/account-join-email";
 import EmailConfirmation from "@/emails/email-confirmation/email-confirmation";

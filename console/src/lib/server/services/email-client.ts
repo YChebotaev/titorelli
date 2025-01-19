@@ -1,4 +1,4 @@
-import { env } from "@/lib/env"
+import { env } from "@/lib/server/env"
 import { createTransport, Transporter } from "nodemailer"
 import { htmlToText } from 'html-to-text'
 

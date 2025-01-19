@@ -1,6 +1,6 @@
 import { createSecretKey } from "crypto";
 import { JWTPayload, jwtVerify, SignJWT } from "jose";
-import { env } from "@/lib/env";
+import { env } from "@/lib/server/env";
 import { addDays, endOfDay } from "date-fns";
 import { maskNumber } from "../keymask";
 

@@ -83,7 +83,7 @@ export const HeaderNotificationsCenter: FC<{ userId: string }> = ({
             {groups.map((group) => (
               <div key={group.label}>
                 <div className="sticky top-0 z-10 bg-background px-4 py-2 text-xs font-medium text-muted-foreground">
-                  {group.label}
+                  {group.label} назад
                 </div>
                 {group.notifications.map((notification, i, list) => (
                   <NotificationItem

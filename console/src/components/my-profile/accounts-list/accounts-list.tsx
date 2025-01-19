@@ -32,6 +32,7 @@ export async function AccountsList() {
       </div>
       <div className="mt-6 flex justify-end">
         <AddAccountBtn
+          refreshOnSuccess
           buttonNode={<Button variant="outline">Добавить аккаунт</Button>}
         />
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -53,7 +54,14 @@ const formSchema = z.object({
 
 export type AddAccountFormValues = z.infer<typeof formSchema>;
 
-export function AddAccountBtn({ buttonNode }: { buttonNode: ReactNode }) {
+export function AddAccountBtn({
+  buttonNode,
+  refreshOnSuccess = false,
+}: {
+  buttonNode: ReactNode;
+  refreshOnSuccess?: boolean;
+}) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const form = useForm<AddAccountFormValues>({
     resolver: zodResolver(formSchema),
@@ -68,12 +76,22 @@ export function AddAccountBtn({ buttonNode }: { buttonNode: ReactNode }) {
 
     const result = await createAccount(formData);
 
-    for (const [name, message] of Object.entries(result)) {
+    let hasError = false;
+
+    for (const [name, message] of Object.entries(result.errors)) {
+      hasError = true;
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       form.setError(name as any, message as any);
     }
 
-    console.log("result =", result);
+    if (!hasError) {
+      setOpen(false);
+
+      if (refreshOnSuccess) {
+        router.refresh();
+      }
+    }
   };
 
   return (

@@ -1,6 +1,7 @@
 export type UserAccountVm = {
   id: string
   name: string
+  active: boolean
 }
 
 export type HeaderUserVm = {

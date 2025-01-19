@@ -12,7 +12,9 @@ export const MetrikaScript: FC = () => {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    ym(counterId, "hit", window.location.href);
+    if (typeof window !== "undefined") {
+      ym(counterId, "hit", window.location.href);
+    }
   }, [pathname, searchParams]);
 
   return (
