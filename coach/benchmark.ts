@@ -4,9 +4,7 @@ import createKnex from 'knex'
 import { LogisticRegression } from '@titorelli/logistic-regression'
 import { LogisticRegressionClassifier, PorterStemmerRu } from 'natural'
 
-const learningRate = 0.01
-const iterations = 1000
-const classifier = new LogisticRegression({ learningRate, iterations })
+const classifier = new LogisticRegression()
 
 let naturalClassifier: LogisticRegressionClassifier
 

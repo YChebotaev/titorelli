@@ -25,10 +25,12 @@ export abstract class WorkerClient<WD extends Record<string, unknown>> {
     this.impl = new Worker(
       this.workerPath,
       {
-        workerData: this.workerData
+        workerData: this.workerData,
+        execArgv: ['-r', 'ts-node/register/transpile-only']
       }
     )
 
+    this.impl.on('error', console.error.bind(console, "Worker error:"))
     this.impl.on('error', this.exceptionHandler)
     this.impl.on('exit', this.exceptionHandler)
 
