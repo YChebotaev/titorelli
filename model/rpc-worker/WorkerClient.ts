@@ -25,9 +25,7 @@ export abstract class WorkerClient<WD extends Record<string, unknown>> {
     this.impl = new Worker(
       this.workerPath,
       {
-        workerData: this.workerData,
-        stdout: true,
-        stderr: true
+        workerData: this.workerData
       }
     )
 
@@ -63,6 +61,8 @@ export abstract class WorkerClient<WD extends Record<string, unknown>> {
       const handler = (evt: { method: string, result?: any }) => {
         if (evt.method !== eventName)
           return
+
+        console.log('Worker ready: ', this.workerPath)
 
         resolve(evt.result)
 
