@@ -1,13 +1,14 @@
-// import { LogisticRegressionWorker } from './LogisticRegressionWorker'
-import { NaturalWorker } from './NaturalWorker'
+// import { NaturalWorker } from './NaturalWorker'
 import path from 'node:path'
 import type { Logger } from 'pino'
 
 import type { UnlabeledExample, Prediction, LabeledExample, StemmerLanguage, Labels } from '../../types'
 import type { IModel } from './IModel'
+import { LogisticRegressionWorker } from './LogisticRegressionWorker'
+import { PorterStemmerRu } from 'natural'
 
 export class LogisticRegressionModel implements IModel {
-  private worker: NaturalWorker
+  private worker: LogisticRegressionWorker
 
   public type = 'logistic-regression' as const
 
@@ -17,25 +18,26 @@ export class LogisticRegressionModel implements IModel {
     private lang: StemmerLanguage,
     private logger: Logger
   ) {
-    // this.worker = new LogisticRegressionWorker({ modelFilename: this.modelFilename })
+    this.worker = new LogisticRegressionWorker({ modelFilename: this.modelFilename })
 
     const parsedModelFilename = path.parse(this.modelFilename)
 
-    this.worker = new NaturalWorker({
-      modelFilename: path.format({
-        ...parsedModelFilename,
-        base: parsedModelFilename.name + '-previous' + path.extname(this.modelFilename)
-      })
-    })
+    // this.worker = new NaturalWorker({
+    //   modelFilename: path.format({
+    //     ...parsedModelFilename,
+    //     base: parsedModelFilename.name + '-previous' + path.extname(this.modelFilename)
+    //   })
+    // })
   }
 
   async predict(example: UnlabeledExample): Promise<Prediction | null> {
-    const { value, label } = await this.worker.classify(example.text)
-    // const label = score <= 0.5 ? 'ham' : 'spam'
+    // const { value, label } = await this.worker.classify(example.text)
+    const score = await this.worker.classify(PorterStemmerRu.tokenizeAndStem(example.text).join(' '))
+    const label = score <= 0.5 ? 'ham' : 'spam'
 
     return {
       value: label as Labels,
-      confidence: value,
+      confidence: score,
       reason: 'classifier'
     }
   }

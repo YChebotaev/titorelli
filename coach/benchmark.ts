@@ -31,6 +31,8 @@ const pretrainNew = async () => {
       )
     }
   }
+
+  // classifier.saveModel('data/logistic-regression-react_ru.json')
 }
 
 const validate = async () => {

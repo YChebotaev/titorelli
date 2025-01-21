@@ -19,15 +19,19 @@ private:
     Napi::Value Classify(const Napi::CallbackInfo& info);
     Napi::Value LoadModel(const Napi::CallbackInfo& info);
     Napi::Value SaveModel(const Napi::CallbackInfo& info);
-    double Sigmoid(double z);
     double CalculateLoss(const std::vector<std::vector<double>>& inputs, const std::vector<int>& labels);
     std::vector<double> HashingVectorize(const std::string& text, size_t numFeatures);
 
     std::vector<double> weights;
     std::unordered_map<std::string, size_t> featureDict; // Словарь для хранения признаков
     double learningRate = 0.01;
-    int iterations = 1000;
-    size_t numFeatures = 1000; // Количество признаков
+    int iterations = 200000;
+    size_t numFeatures = 100000; // Количество признаков
+
+     double sigmoid(double z);
+     std::vector<double> hypothesis(const std::vector<double>& theta, const std::vector<std::vector<double>>& observations);
+     double cost(const std::vector<double>& theta, const std::vector<std::vector<double>>& examples, const std::vector<double>& classifications);
+     std::vector<double> descendGradient(std::vector<double> theta, std::vector<std::vector<double>> examples, const std::vector<double>& classifications);
 };
 
 Napi::Object LogisticRegression::Init(Napi::Env env, Napi::Object exports) {
@@ -76,29 +80,104 @@ std::vector<double> LogisticRegression::HashingVectorize(const std::string& text
     return vector;
 }
 
-double LogisticRegression::Sigmoid(double z) {
-    // Обработка переполнения
-    if (z < -709) return 0.0; // возвращаем 0, если значение слишком низкое
-    if (z > 709) return 1.0;  // возвращаем 1, если значение слишком высокое
+double LogisticRegression::sigmoid(double z) {
+    if (z < -709) return 0.0; // избегаем переполнения
+    if (z > 709) return 1.0;  // избегаем переполнения
     return 1.0 / (1.0 + std::exp(-z));
 }
 
-double LogisticRegression::CalculateLoss(const std::vector<std::vector<double>>& inputs, const std::vector<int>& labels) {
-    double loss = 0.0;
-    const double epsilon = 1e-10; // Маленькое значение для предотвращения логарифма нуля
+ std::vector<double> LogisticRegression::hypothesis(const std::vector<double>& theta, const std::vector<std::vector<double>>& observations) {
+    std::vector<double> result(observations.size());
+    for (size_t i = 0; i < observations.size(); ++i) {
+        double dot_product = 0.0;
+        for (size_t j = 0; j < theta.size(); ++j) {
+            dot_product += theta[j] * observations[i][j];
+        }
+        result[i] = sigmoid(dot_product);
+    }
+    return result;
+}
 
-    for (size_t i = 0; i < inputs.size(); i++) {
-        double prediction = Sigmoid(std::inner_product(inputs[i].begin(), inputs[i].end(), weights.begin(), 0.0));
+ double LogisticRegression::cost(const std::vector<double>& theta, const std::vector<std::vector<double>>& examples, const std::vector<double>& classifications) {
+    std::vector<double> hypothesisResult = hypothesis(theta, examples);
+    double cost_1 = 0.0;
+    double cost_0 = 0.0;
+    for (size_t i = 0; i < classifications.size(); ++i) {
+        if (classifications[i] == 1) {
+            cost_1 += classifications[i] * log(hypothesisResult[i]);
+        }
+        else {
+            cost_0 += (1 - classifications[i]) * log(1 - hypothesisResult[i]);
+        }
+    }
+    return -(cost_1 + cost_0) / examples.size();
+}
 
-        // Избегаем переполнения и числовых ошибок, используя epsilon
-        prediction = std::max(std::min(prediction, 1.0 - epsilon), epsilon);
 
-        // Расчет потерь
-        loss += -labels[i] * std::log(prediction) - (1 - labels[i]) * std::log(1 - prediction);
+
+
+
+ std::vector<double> LogisticRegression::descendGradient(std::vector<double> theta, std::vector<std::vector<double>> examples, const std::vector<double>& classifications) {
+    int maxIt = 500 * examples.size();
+    double learningRate = 3.0;
+    bool learningRateFound = false;
+    std::vector<double> last;
+    double current = 0.0;
+
+    // Добавляем смещение
+    for (auto& example : examples) {
+        example.insert(example.begin(), 1.0);
+    }
+    theta.insert(theta.begin(), 0.0);
+
+    while (!learningRateFound && learningRate != 0) {
+        int i = 0;
+        last.clear();
+
+        while (true) {
+            std::vector<double> hypothesisResult = hypothesis(theta, examples);
+            std::vector<double> gradient(theta.size(), 0.0);
+
+            for (size_t j = 0; j < theta.size(); ++j) {
+                for (size_t k = 0; k < examples.size(); ++k) {
+                    gradient[j] += (hypothesisResult[k] - classifications[k]) * examples[k][j];
+                }
+                gradient[j] /= examples.size();
+                gradient[j] *= learningRate;
+            }
+
+            for (size_t j = 0; j < theta.size(); ++j) {
+                theta[j] -= gradient[j];
+            }
+
+            current = cost(theta, examples, classifications);
+
+            if (!last.empty() && current < last.back()) {
+                learningRateFound = true;
+                break;
+            }
+
+            if (!last.empty() && abs(last.back() - current) < 0.0001) {
+                break;
+            }
+
+            if (++i >= maxIt) {
+                throw std::runtime_error("Unable to find minimum");
+            }
+
+            last.push_back(current);
+        }
+
+        learningRate /= 3.0;
     }
 
-    return loss / inputs.size();
+    // Удаляем смещение
+    theta.erase(theta.begin());
+    return theta;
 }
+
+
+
 
 Napi::Value LogisticRegression::Train(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
@@ -113,38 +192,52 @@ Napi::Value LogisticRegression::Train(const Napi::CallbackInfo& info) {
     std::vector<std::vector<double>> inputs;
     std::vector<int> labels;
 
+    // Преобразуем входные данные и метки в векторы
     for (size_t i = 0; i < inputArray.Length(); i++) {
         std::string doc = inputArray.Get(i).As<Napi::String>().Utf8Value();
         inputs.push_back(HashingVectorize(doc, numFeatures));
         labels.push_back(labelArray.Get(i).As<Napi::Number>().Int32Value());
     }
 
-    // Проверка на размер входных данных
-    if (inputs.size() == 0 || inputs[0].size() != numFeatures) {
-        Napi::Error::New(env, "Input data size does not match the expected number of features").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
+    // Инициализируем веса
+    std::vector<double> theta(numFeatures, 0.0);
 
-    weights = std::vector<double>(numFeatures, 0.0);
+    // Преобразуем метки в вектор<double>
+    std::vector<double> doubleLabels(labels.begin(), labels.end());
 
-    for (int iter = 0; iter < iterations; iter++) {
-        for (size_t i = 0; i < inputs.size(); i++) {
-            double prediction = Sigmoid(std::inner_product(inputs[i].begin(), inputs[i].end(), weights.begin(), 0.0));
-            double error = labels[i] - prediction;
-            for (size_t j = 0; j < weights.size(); j++) {
-                weights[j] += learningRate * error * inputs[i][j];
-            }
-        }
+    // Запуск градиентного спуска
+    theta = descendGradient(theta, inputs, doubleLabels);
 
-        // Дополнительное логирование для отслеживания прогресса
-        if (iter % 100 == 0) {
-            double loss = CalculateLoss(inputs, labels);
-            std::cout << "Iteration: " << iter << " Loss: " << loss << std::endl;
-        }
-    }
+    // Обновляем веса
+    weights = theta;
 
     return env.Undefined();
 }
+
+
+
+double LogisticRegression::CalculateLoss(const std::vector<std::vector<double>>& inputs, const std::vector<int>& labels) {
+    double loss = 0.0;
+    const double epsilon = 1e-15; // Малое значение для предотвращения ошибок при логарифмировании
+
+    for (size_t i = 0; i < inputs.size(); i++) {
+        // Вычисление предсказания с защитой от переполнения
+        double prediction = sigmoid(std::inner_product(inputs[i].begin(), inputs[i].end(), weights.begin(), 0.0));
+
+        // Ограничиваем значения предсказания, чтобы избежать логарифмов от 0 или 1
+        prediction = std::max(epsilon, std::min(1.0 - epsilon, prediction));
+        double logPrediction = std::log(prediction);
+        double logOneMinusPrediction = std::log(1.0 - prediction);
+
+        // Логистическая функция потерь
+        loss += -labels[i] * logPrediction - (1 - labels[i]) * logOneMinusPrediction;
+    }
+
+    // Возвращаем усредненный loss
+    return loss / inputs.size();
+}
+
+
 
 Napi::Value LogisticRegression::Classify(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
@@ -156,16 +249,17 @@ Napi::Value LogisticRegression::Classify(const Napi::CallbackInfo& info) {
     std::string input = info[0].As<Napi::String>().Utf8Value();
     std::vector<double> vector = HashingVectorize(input, numFeatures);
 
-    if (vector.size() != weights.size()) {
-        Napi::Error::New(env, "Input vector size does not match weights size").ThrowAsJavaScriptException();
-        return env.Undefined();
-    }
-
     double z = std::inner_product(vector.begin(), vector.end(), weights.begin(), 0.0);
-    double probability = Sigmoid(z);
+    double probability = sigmoid(z);
 
-    return Napi::Number::New(env, probability);
+    // Устанавливаем порог для классификации
+    double threshold = 0.5;  // Можете изменить порог для улучшения результатов
+    int predictedClass = (probability >= threshold) ? 1 : 0;
+
+    // Возвращаем предсказанный класс (1 или 0)
+    return Napi::Number::New(env, predictedClass);
 }
+
 
 Napi::Value LogisticRegression::SaveModel(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
@@ -177,28 +271,28 @@ Napi::Value LogisticRegression::SaveModel(const Napi::CallbackInfo& info) {
     std::string filename = info[0].As<Napi::String>();
     std::ofstream file(filename, std::ios::binary);
     if (!file.is_open()) {
-        Napi::Error::New(env, "Unable to open file for writing").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "Unable to open file").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
-    // Сохраняем размеры и сами веса
+    // Сохраняем веса
     size_t weightsSize = weights.size();
     file.write(reinterpret_cast<const char*>(&weightsSize), sizeof(weightsSize));
-    file.write(reinterpret_cast<const char*>(weights.data()), weightsSize * sizeof(double));
+    file.write(reinterpret_cast<const char*>(weights.data()), weights.size() * sizeof(double));
 
-    // Сохраняем размер словаря и его содержимое
+    // Сохраняем словарь признаков
     size_t dictSize = featureDict.size();
-    file.write(reinterpret_cast<const char*>(&dictSize), sizeof(dictSize));
+    file.write(reinterpret_cast<const char*>(&dictSize), sizeof(size_t));
     for (const auto& pair : featureDict) {
         size_t keySize = pair.first.size();
-        file.write(reinterpret_cast<const char*>(&keySize), sizeof(keySize));
-        file.write(pair.first.data(), keySize);
-        file.write(reinterpret_cast<const char*>(&pair.second), sizeof(pair.second));
+        file.write(reinterpret_cast<const char*>(&keySize), sizeof(size_t));
+        file.write(pair.first.c_str(), keySize);
+        file.write(reinterpret_cast<const char*>(&pair.second), sizeof(size_t));
     }
 
-    file.close();
     return env.Undefined();
 }
+
 
 Napi::Value LogisticRegression::LoadModel(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
@@ -210,31 +304,30 @@ Napi::Value LogisticRegression::LoadModel(const Napi::CallbackInfo& info) {
     std::string filename = info[0].As<Napi::String>();
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
-        Napi::Error::New(env, "Unable to open file for reading").ThrowAsJavaScriptException();
+        Napi::Error::New(env, "Unable to open file").ThrowAsJavaScriptException();
         return env.Undefined();
     }
 
-    // Загружаем размеры и сами веса
+    // Загружаем веса
     size_t weightsSize;
     file.read(reinterpret_cast<char*>(&weightsSize), sizeof(weightsSize));
     weights.resize(weightsSize);
     file.read(reinterpret_cast<char*>(weights.data()), weightsSize * sizeof(double));
 
-    // Загружаем размер словаря и его содержимое
+    // Загружаем словарь признаков
     size_t dictSize;
-    file.read(reinterpret_cast<char*>(&dictSize), sizeof(dictSize));
+    file.read(reinterpret_cast<char*>(&dictSize), sizeof(size_t));
     featureDict.clear();
     for (size_t i = 0; i < dictSize; i++) {
         size_t keySize;
-        file.read(reinterpret_cast<char*>(&keySize), sizeof(keySize));
+        file.read(reinterpret_cast<char*>(&keySize), sizeof(size_t));
         std::string key(keySize, '\0');
         file.read(&key[0], keySize);
         size_t value;
-        file.read(reinterpret_cast<char*>(&value), sizeof(value));
+        file.read(reinterpret_cast<char*>(&value), sizeof(size_t));
         featureDict[key] = value;
     }
 
-    file.close();
     return env.Undefined();
 }
 
