@@ -22,7 +22,14 @@ export abstract class WorkerClient<WD extends Record<string, unknown>> {
   private reinintialize = async () => {
     await this.destroy()
 
-    this.impl = new Worker(this.workerPath, { workerData: this.workerData })
+    this.impl = new Worker(
+      this.workerPath,
+      {
+        workerData: this.workerData,
+        stdout: true,
+        stderr: true
+      }
+    )
 
     this.impl.on('error', this.exceptionHandler)
     this.impl.on('exit', this.exceptionHandler)
