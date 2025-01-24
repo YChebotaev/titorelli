@@ -2,6 +2,12 @@ import { ReactNode, type FC } from "react";
 import { AppLayout } from "./app-layout";
 // import { Sidebar } from "@/components/accounts/sidebar";
 import { AppHeader } from "@/components/site/header";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Separator } from "@radix-ui/react-select";
 
 export const AccountShellLayout: FC<{
   children: ReactNode;
@@ -9,15 +15,17 @@ export const AccountShellLayout: FC<{
 }> = ({ children, sidebar }) => {
   return (
     <AppLayout>
-      <div className="flex flex-col min-h-screen">
-        <AppHeader />
-        <div className="flex h-screen overflow-hidden mt-16">
-          {sidebar}
-          <div className="flex-1 flex flex-col overflow-hidden mt-16">
-            {children}
-          </div>
-        </div>
-      </div>
+      <AppHeader />
+      <SidebarProvider className="mt-16">
+        {sidebar}
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator aria-orientation="vertical" className="mr-2 h-4" />
+          </header>
+          {children}
+        </SidebarInset>
+      </SidebarProvider>
     </AppLayout>
   );
 };
