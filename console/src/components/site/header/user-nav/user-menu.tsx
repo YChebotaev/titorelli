@@ -54,7 +54,9 @@ export const UserMenu: FC<{
             />
           </div>
           {accounts!.map((account) => (
-            <DropdownMenuItem key={account.id}>{account.name}</DropdownMenuItem>
+            <DropdownMenuItem key={account.id}>
+              <Link href={`/accounts/${account.id}`}>{account.name}</Link>
+            </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

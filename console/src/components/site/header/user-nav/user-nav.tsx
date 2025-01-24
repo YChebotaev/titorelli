@@ -15,7 +15,7 @@ export function UserNav({ user }: { user: HeaderUserVm }) {
       <UserMenu
         user={user}
         buttonWithAvatar={renderAvatar({ user })}
-        accounts={accounts!}
+        accounts={accounts}
       />
     </div>
   );
