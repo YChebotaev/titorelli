@@ -1,0 +1,32 @@
+import { Knex } from "knex";
+import type { Db } from "../Db";
+import type { MemberInfoRecord, UserInfo } from "../types";
+
+export class MemberInfoRepository {
+  constructor(private db: Db) { }
+
+  private get knex() {
+    return this.db.knex as Knex<MemberInfoRecord, MemberInfoRecord[]>
+  }
+
+  async insertIfChanged(userInfo: UserInfo) {
+    const lastValue = await this.knex
+      .select('id')
+      .from('memberInfo')
+      .where('tgUserId', userInfo.id)
+      .andWhere('isBot', userInfo.isBot)
+      .andWhere('firstName', userInfo.firstName)
+      .andWhere('lastName', userInfo.lastName)
+      .andWhere('username', userInfo.username)
+      .andWhere('languageCode', userInfo.languageCode)
+      .andWhere('isPremium', userInfo.isPremium)
+      .andWhere('addedToAttachmentMenu', userInfo.addedToAttachmentMenu)
+      .first()
+
+    if (!lastValue) {
+      await this.knex
+        .insert(userInfo)
+        .into('memberInfo')
+    }
+  }
+}

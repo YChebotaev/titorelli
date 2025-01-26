@@ -1,0 +1,44 @@
+{
+  "name": "@titorelli/telemetry-client",
+  "description": "",
+  "version": "0.1.0",
+  "main": "./dist/core/index.js",
+  "module": "./dist/core/index.mjs",
+  "types": "./dist/core/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/core/index.d.ts",
+      "default": "./dist/core/index.js"
+    },
+    "./telegraf": {
+      "types": "./dist/telegraf/index.d.ts",
+      "default": "./dist/telegraf/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup"
+  },
+  "keywords": [
+    "telegram",
+    "antispam",
+    "titorelli"
+  ],
+  "author": "YChebotaev",
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "@telegraf/types": "^8.2.0",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3"
+  },
+  "peerDependencies": {
+    "@titorelli/client": "^2.3.2",
+    "telegraf": "^4.16.3"
+  },
+  "dependencies": {
+    "knex": "^3.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}

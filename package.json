@@ -5,7 +5,8 @@
     "client",
     "coach",
     "console",
-    "logistic-regression"
+    "logistic-regression",
+    "telemetry-client"
   ],
   "author": "YChebotaev",
   "license": "UNLICENSED",
