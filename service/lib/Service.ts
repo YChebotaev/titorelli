@@ -53,6 +53,10 @@ export class Service {
   private modelTrainBulkPath = '/models/:modelId/train_bulk'
   private modelExactMatchTrainPath = '/models/:modelId/exact_match/train'
   private modelTotemsTrainPath = '/models/:modelId/totems/train'
+  private telemetryTrackBotInfoPath = '/telemetry/track_bot'
+  private telemetryTrackMemberInfoPath = '/telemetry/track_member'
+  private telemetryTrackChatInfoPath = '/telemetry/track_chat'
+  private telemetryTrackMessagePath = '/telemetry/track_message'
   private casPredictPath = '/cas/predict'
   private casTrainPath = '/cas/train'
   private ouathTokenPath = '/oauth2/token'
@@ -95,6 +99,10 @@ export class Service {
     await this.installModelTotemsTrainRoute()
     await this.installCasPredictRoute()
     await this.installCasTrainRoute()
+    await this.installTelemetryTrackBotInfo()
+    await this.installTelemetryTrackMemberInfo()
+    await this.installTelemetryTrackChatInfo()
+    await this.installTelemetryTrackMessage()
     await this.installOauthTokenRoute()
     await this.installPluginsEnd()
   }
@@ -440,6 +448,15 @@ export class Service {
       await this.cas.add(tgUserId)
     })
   }
+
+  private async installTelemetryTrackBotInfo() { }
+
+  private async installTelemetryTrackMemberInfo() { }
+
+  private async installTelemetryTrackChatInfo() { }
+
+  private async installTelemetryTrackMessage() { }
+
 
   private async installOauthTokenRoute() {
     await this.service.post<{
