@@ -16,7 +16,7 @@ export class PredictionsRepository {
         tgMessageId,
         tgUserId,
         reason: prediction.reason,
-        value: prediction.value,
+        label: prediction.value,
         confidence: prediction.confidence
       })
       .into('predictions')

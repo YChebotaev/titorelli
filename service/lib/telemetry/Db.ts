@@ -1,3 +1,4 @@
+import path from 'node:path'
 import createKnex from 'knex'
 
 export class Db {
@@ -9,22 +10,17 @@ export class Db {
       connection: { filename: this._dbFilename },
       useNullAsDefault: true,
     })
-  }
 
-  get dbFilename() {
-    return this._dbFilename
+    this.initialize()
   }
 
   get knex() {
     return this._knex
   }
 
-  async selectFromTableNameFromId(tableName: string, startId: number): Promise<Record<string, unknown>[]> {
-    const records = await this._knex
-      .select('*')
-      .from(tableName)
-      .where('id', '>', startId)
-
-    return records
+  private async initialize() {
+    await this._knex.migrate.latest({
+      directory: path.join(__dirname, 'migrations')
+    })
   }
 }

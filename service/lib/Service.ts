@@ -13,7 +13,10 @@ import type {
   ITotems,
   ICas
 } from "@titorelli/model"
+import { omit } from 'lodash'
 import type { ServiceAuthClient } from './types'
+import { TelemetryServer } from './telemetry/TelemetryServer'
+import type { ChatInfo, MessageInfo, SelfInfo, UserInfo } from './telemetry/types'
 
 declare module 'fastify' {
   interface FastifyInstance extends FastifyJwtNamespace<{ namespace: 'jwt' }> {
@@ -29,6 +32,7 @@ export type ServiceConfig = {
   cas: ICas
   totemsStore: TemporaryStorage<ITotems, [string]>
   jwtSecret: string
+  telemetry: TelemetryServer
   oauthClients: ServiceAuthClient[]
 }
 
@@ -47,6 +51,7 @@ export class Service {
   private host: string
   private jwtSecret: string
   private oauthClients: ServiceAuthClient[]
+  private telemetry: TelemetryServer
   private ready: Promise<void>
   private modelPredictPath = '/models/:modelId/predict'
   private modelTrainPath = '/models/:modelId/train'
@@ -57,6 +62,7 @@ export class Service {
   private telemetryTrackMemberInfoPath = '/telemetry/track_member'
   private telemetryTrackChatInfoPath = '/telemetry/track_chat'
   private telemetryTrackMessagePath = '/telemetry/track_message'
+  private telemetryTrackPredictionPath = '/telemetry/track_prediction'
   private casPredictPath = '/cas/predict'
   private casTrainPath = '/cas/train'
   private ouathTokenPath = '/oauth2/token'
@@ -69,6 +75,7 @@ export class Service {
     cas,
     totemsStore,
     jwtSecret,
+    telemetry,
     oauthClients
   }: ServiceConfig) {
     this.logger = logger
@@ -78,6 +85,7 @@ export class Service {
     this.port = port
     this.host = host
     this.jwtSecret = jwtSecret
+    this.telemetry = telemetry
     this.oauthClients = oauthClients
     this.ready = this.initialize()
   }
@@ -103,6 +111,7 @@ export class Service {
     await this.installTelemetryTrackMemberInfo()
     await this.installTelemetryTrackChatInfo()
     await this.installTelemetryTrackMessage()
+    await this.installTelemetryTrackPrediction()
     await this.installOauthTokenRoute()
     await this.installPluginsEnd()
   }
@@ -449,14 +458,140 @@ export class Service {
     })
   }
 
-  private async installTelemetryTrackBotInfo() { }
+  private async installTelemetryTrackBotInfo() {
+    await this.service.post<{
+      Body: SelfInfo
+    }>(this.telemetryTrackBotInfoPath, {
+      onRequest: [this.verifyToken],
+      schema: {
+        body: {
+          type: "object",
+          properties: {
+            id: { type: 'number' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' },
+            username: { type: 'string' },
+            languageCode: { type: 'string' },
+            isPremium: { type: 'boolean' },
+            addedToAttachmentMenu: { type: 'boolean' },
+            isBot: { type: 'boolean' },
+            canJoinGroups: { type: 'boolean' },
+            canReadAllGroupMessages: { type: 'boolean' },
+            supportsInlineQueries: { type: 'boolean' }
+          }
+        }
+      }
+    }, async ({ body }) => {
+      await this.telemetry.trackSelfBotInfo(body)
+    })
+  }
 
-  private async installTelemetryTrackMemberInfo() { }
+  private async installTelemetryTrackMemberInfo() {
+    await this.service.post<{ Body: UserInfo }>(this.telemetryTrackMemberInfoPath, {
+      onRequest: [this.verifyToken], schema: {
+        body: {
+          type: 'object',
+          properties: {
+            id: { type: 'number' },
+            isBot: { type: 'boolean' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' },
+            username: { type: 'string' },
+            languageCode: { type: 'string' },
+            isPremium: { type: 'boolean' },
+            addedToAttachmentMenu: { type: 'boolean' },
+          }
+        }
+      }
+    }, async ({ body }) => {
+      await this.telemetry.trackMemberInfo(body)
+    })
+  }
 
-  private async installTelemetryTrackChatInfo() { }
+  private async installTelemetryTrackChatInfo() {
+    await this.service.post<{ Body: ChatInfo }>(
+      this.telemetryTrackChatInfoPath,
+      {
+        onRequest: [this.verifyToken],
+        schema: {
+          body: {
+            type: 'object',
+            properties: {
+              id: { type: 'number' },
+              type: { enum: ['private', 'group', 'supergroup', 'channel'] },
+              username: { type: 'string' },
+              title: { type: 'string' },
+              firstName: { type: 'string' },
+              lastName: { type: 'string' },
+              isForum: { type: 'boolean' },
+              description: { type: 'string' },
+              bio: { type: 'string' },
+            }
+          }
+        }
+      },
+      async ({ body }) => {
+        await this.telemetry.trackChat(body)
+      }
+    )
+  }
 
-  private async installTelemetryTrackMessage() { }
+  private async installTelemetryTrackMessage() {
+    await this.service.post<{ Body: MessageInfo }>(
+      this.telemetryTrackMessagePath,
+      {
+        onRequest: [this.verifyToken],
+        schema: {
+          body: {
+            type: 'object',
+            properties: {
+              id: { type: 'number' },
+              type: { enum: ['text', 'media'] },
+              threadId: { type: 'number' },
+              fromTgUserId: { type: 'number' },
+              senderTgChatId: { type: 'number' },
+              date: { type: 'number' },
+              tgChatId: { type: 'number' },
+              isTopic: { type: 'boolean' },
+              text: { type: 'string' },
+              caption: { type: 'string' },
+            }
+          }
+        }
+      },
+      async ({ body }) => {
+        await this.telemetry.trackMessage(body)
+      }
+    )
+  }
 
+  private async installTelemetryTrackPrediction() {
+    await this.service.post<{
+      Body:
+      & Omit<Prediction, 'reason'>
+      & Partial<Pick<Prediction, 'reason'>>
+      & { tgMessageId: number }
+    }>(
+      this.telemetryTrackPredictionPath,
+      {
+        onRequest: [this.verifyToken],
+        schema: {
+          body: {
+            type: 'object',
+            properties: {
+              tgMessageId: { type: 'number' },
+              reason: { enum: ['classifier', 'duplicate', 'totem', 'cas'] },
+              value: { enum: ['spam', 'ham'] },
+              confidence: { type: 'number' },
+            }
+          }
+        }
+      },
+      async ({ body }) => {
+        await this.telemetry.trackPrediction(body.tgMessageId, body)
+      }
+    )
+  }
 
   private async installOauthTokenRoute() {
     await this.service.post<{

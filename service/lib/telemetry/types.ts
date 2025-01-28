@@ -109,13 +109,6 @@ export type PredictionRecord = {
   tgMessageId: number
   tgUserId: number
   reason: ReasonTypes
-  value: Labels
+  label: Labels
   confidence: number
-}
-
-export type SyncMetadataRecord = {
-  id: number
-  tableName: string
-  lastReceivedId: number
-  transactionId: number
 }

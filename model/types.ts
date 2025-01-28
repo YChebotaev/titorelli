@@ -9,7 +9,6 @@ export type ModelType =
 
 export type ReasonTypes =
   | 'classifier'
-  | 'rule'
   | 'duplicate'
   | 'totem'
   | 'cas'

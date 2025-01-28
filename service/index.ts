@@ -12,6 +12,7 @@ import {
   type ITotems
 } from '@titorelli/model'
 import { Service } from './lib/Service'
+import { TelemetryServer } from './lib/telemetry/TelemetryServer'
 
 const oauthClientsFilename = path.join(__dirname, 'oauth-clients.yaml')
 
@@ -42,5 +43,6 @@ new Service({
     logger,
   ),
   jwtSecret: process.env.JWT_SECRET!,
-  oauthClients: yaml.parse(readFileSync(oauthClientsFilename, 'utf-8'))
+  oauthClients: yaml.parse(readFileSync(oauthClientsFilename, 'utf-8')),
+  telemetry: new TelemetryServer()
 }).listen()

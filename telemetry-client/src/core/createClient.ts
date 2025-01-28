@@ -1,5 +1,5 @@
-import { TitorelliTelemetryClient, type TitorelliTelemetryClientConfig } from "../lib/TitorelliTelemetryClient";
+import { TelemetryClient, type TelemetryClientConfig } from "./TelemetryClient";
 
-export const createClient = (clientConf: TitorelliTelemetryClientConfig) => {
-  return new TitorelliTelemetryClient(clientConf)
+export const createClient = (clientConf: TelemetryClientConfig) => {
+  return new TelemetryClient(clientConf)
 }
