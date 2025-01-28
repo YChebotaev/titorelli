@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 import type { Db } from "../Db";
 import type { PredictionRecord } from "../types";
-import { Prediction } from "@titorelli/client";
+// import { Prediction } from "@titorelli/client";
 
 export class PredictionsRepository {
   constructor(private db: Db) { }
@@ -10,7 +10,7 @@ export class PredictionsRepository {
     return this.db.knex as Knex<PredictionRecord, PredictionRecord[]>
   }
 
-  async insert(tgMessageId: number, tgUserId: number, prediction: Prediction) {
+  async insert(tgMessageId: number, tgUserId: number, prediction: any) {
     await this.knex
       .insert({
         tgMessageId,
