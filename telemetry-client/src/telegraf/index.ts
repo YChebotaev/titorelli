@@ -1,6 +1,6 @@
 import { Composer, Context, deunionize } from 'telegraf'
 import type { Update, Message } from 'telegraf/types'
-import type { TitorelliTelemetryClient } from '../lib/TitorelliTelemetryClient'
+import type { TelemetryClient } from '../core/TelemetryClient'
 
 const getMessageType = (m: Message) => {
   if ('text' in m) {
@@ -11,7 +11,7 @@ const getMessageType = (m: Message) => {
     }
 }
 
-export const createMiddleware = (client: TitorelliTelemetryClient) => {
+export const createMiddleware = (client: TelemetryClient) => {
   const chatMemberHandler = (ctx: Context<Update>, next: () => Promise<void>) => { }
 
   const editedMessageHandler = (ctx: Context<Update>, next: () => Promise<void>) => { }
