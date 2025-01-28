@@ -42,7 +42,7 @@ export type MessageInfo = {
   type: 'text' | 'media'
   threadId?: number
   fromTgUserId: number
-  senderTgChatId: number
+  senderTgChatId?: number
   date: number
   tgChatId: number
   isTopic?: boolean

@@ -61,7 +61,7 @@ export const createMiddleware = (client: TelemetryClient) => {
       type: getMessageType(ctx.message),
       threadId: m.message_thread_id,
       fromTgUserId: m.from.id,
-      senderTgChatId: m.sender_chat.id,
+      senderTgChatId: m.sender_chat?.id,
       date: m.date,
       tgChatId: m.chat.id,
       isTopic: m.is_topic_message,
