@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from "axios"
 import { clientCredentials } from 'axios-oauth-client'
-import type { Prediction } from '@titorelli/client'
 import type { SelfInfo, UserInfo, ChatInfo, MessageInfo } from './types'
 
 export type TelemetryClientConfig = {
@@ -57,7 +56,7 @@ export class TelemetryClient {
     return data
   }
 
-  async trackPrediction(tgMessageId: number, prediction: Prediction) {
+  async trackPrediction(tgMessageId: number, prediction: any) {
     await this.ready
 
     const { data } = await this.axios.post<void>('/track_prediction', { tgMessageId, ...prediction })

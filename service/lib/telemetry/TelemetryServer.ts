@@ -1,5 +1,4 @@
 import path from 'node:path'
-import { Prediction } from '@titorelli/client'
 import { Db } from "./Db"
 import { SelfInfoRepository } from './repositories/SelfInfoRepository'
 import { MemberInfoRepository } from './repositories/MemberInfoRepository'
@@ -32,7 +31,7 @@ export class TelemetryServer {
     await this.messageInfoRepository.insert(messageInfo)
   }
 
-  async trackPrediction(tgMessageId: number, prediction: Prediction) {
+  async trackPrediction(tgMessageId: number, prediction: any) {
     const savedMessage = await this.messageInfoRepository.getByTgMessageId(tgMessageId)
 
     if (savedMessage) {
