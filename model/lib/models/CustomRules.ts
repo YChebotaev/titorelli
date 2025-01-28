@@ -37,7 +37,7 @@ export class CustomRulesModel implements IModel {
     return {
       value: 'spam',
       confidence: 1,
-      reason: 'rule'
+      // reason: 'rule'
     }
   }
 
