@@ -16,8 +16,6 @@ jobs:
           node-version: 20.18.1
       - name: Npm install
         run: npm install
-      - name: Install peer dependencies
-        run: cd telemetry-client && npm install
       - name: Npm build
         run: "cd telemetry-client && npm run build"
       - name: Npm publish
