@@ -31,9 +31,7 @@
   "devDependencies": {
     "@telegraf/types": "^8.2.0",
     "tsup": "^8.3.6",
-    "typescript": "^5.7.3"
-  },
-  "peerDependencies": {
+    "typescript": "^5.7.3",
     "@titorelli/client": "^2.3.2",
     "telegraf": "^4.16.3"
   },
