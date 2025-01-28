@@ -1,4 +1,5 @@
 import { Knex } from "knex";
+import { omit } from 'lodash'
 import type { Db } from "../Db";
 import type { SelfInfoRecord, SelfInfo } from "../types";
 
@@ -28,7 +29,7 @@ export class SelfInfoRepository {
 
     if (!lastValue) {
       await this.knex
-        .insert(selfInfo)
+        .insert(omit(selfInfo, 'id'))
         .into('selfInfo')
     }
   }

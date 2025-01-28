@@ -1,6 +1,7 @@
 import { Knex } from "knex";
 import type { Db } from "../Db";
 import type { MemberInfoRecord, UserInfo } from "../types";
+import { omit } from "lodash";
 
 export class MemberInfoRepository {
   constructor(private db: Db) { }
@@ -25,7 +26,7 @@ export class MemberInfoRepository {
 
     if (!lastValue) {
       await this.knex
-        .insert(userInfo)
+        .insert(omit(userInfo, 'id'))
         .into('memberInfo')
     }
   }

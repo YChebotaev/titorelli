@@ -1,4 +1,5 @@
 import { Knex } from "knex";
+import { omit } from 'lodash'
 import type { Db } from "../Db";
 import type { ChatInfo, ChatInfoRecord } from "../types";
 
@@ -26,7 +27,7 @@ export class ChatInfoRepository {
 
     if (!lastValue) {
       await this.knex
-        .insert(chatInfo)
+        .insert(omit(chatInfo, 'id'))
         .into('chatInfo')
     }
   }
