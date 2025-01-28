@@ -462,7 +462,7 @@ export class Service {
     await this.service.post<{
       Body: SelfInfo
     }>(this.telemetryTrackBotInfoPath, {
-      onRequest: [this.verifyToken],
+      // onRequest: [this.verifyToken],
       schema: {
         body: {
           type: "object",
@@ -488,7 +488,7 @@ export class Service {
 
   private async installTelemetryTrackMemberInfo() {
     await this.service.post<{ Body: UserInfo }>(this.telemetryTrackMemberInfoPath, {
-      onRequest: [this.verifyToken], schema: {
+      /*onRequest: [this.verifyToken],*/ schema: {
         body: {
           type: 'object',
           properties: {
@@ -512,7 +512,7 @@ export class Service {
     await this.service.post<{ Body: ChatInfo }>(
       this.telemetryTrackChatInfoPath,
       {
-        onRequest: [this.verifyToken],
+        // onRequest: [this.verifyToken],
         schema: {
           body: {
             type: 'object',
@@ -540,7 +540,7 @@ export class Service {
     await this.service.post<{ Body: MessageInfo }>(
       this.telemetryTrackMessagePath,
       {
-        onRequest: [this.verifyToken],
+        // onRequest: [this.verifyToken],
         schema: {
           body: {
             type: 'object',
@@ -574,7 +574,7 @@ export class Service {
     }>(
       this.telemetryTrackPredictionPath,
       {
-        onRequest: [this.verifyToken],
+        // onRequest: [this.verifyToken],
         schema: {
           body: {
             type: 'object',
