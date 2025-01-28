@@ -27,7 +27,10 @@ export class ChatInfoRepository {
 
     if (!lastValue) {
       await this.knex
-        .insert(omit(chatInfo, 'id'))
+        .insert({
+          ...omit(chatInfo, 'id'),
+          tgChatId: chatInfo.id
+        })
         .into('chatInfo')
     }
   }

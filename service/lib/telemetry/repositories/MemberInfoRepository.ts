@@ -26,7 +26,10 @@ export class MemberInfoRepository {
 
     if (!lastValue) {
       await this.knex
-        .insert(omit(userInfo, 'id'))
+        .insert({
+          ...omit(userInfo, 'id'),
+          tgUserId: userInfo.id
+        })
         .into('memberInfo')
     }
   }
