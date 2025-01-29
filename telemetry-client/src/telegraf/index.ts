@@ -12,9 +12,13 @@ const getMessageType = (m: Message) => {
 }
 
 export const createMiddleware = (client: TelemetryClient) => {
-  const chatMemberHandler = (ctx: Context<Update>, next: () => Promise<void>) => { }
+  const chatMemberHandler = (ctx: Context<Update>, next: () => Promise<void>) => {
+    return next()
+  }
 
-  const editedMessageHandler = (ctx: Context<Update>, next: () => Promise<void>) => { }
+  const editedMessageHandler = (ctx: Context<Update>, next: () => Promise<void>) => {
+    return next()
+  }
 
   const messageHandler = async (ctx: Context<Update>, next: () => Promise<void>) => {
     await client.trackSelfBotInfo({
@@ -68,6 +72,8 @@ export const createMiddleware = (client: TelemetryClient) => {
       text: m.text,
       caption: m.caption
     })
+
+    return next()
   }
 
   return new Composer((ctx, next) => {
@@ -75,6 +81,8 @@ export const createMiddleware = (client: TelemetryClient) => {
       case 'chat_member': return chatMemberHandler(ctx, next)
       case 'edited_message': return editedMessageHandler(ctx, next)
       case 'message': return messageHandler(ctx, next)
+      default:
+        return next()
     }
   })
 }
