@@ -12,9 +12,9 @@ export class MessageInfoRepository {
   async insert(messageInfo: MessageInfo) {
     await this.knex
       .insert({
+        ...messageInfo,
         id: undefined,
         tgMessageId: messageInfo.id,
-        ...messageInfo
       })
       .into('messageInfo')
   }

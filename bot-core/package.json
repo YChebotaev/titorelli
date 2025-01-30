@@ -1,0 +1,23 @@
+{
+  "name": "@titorelli/bot-core",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsup"
+  },
+  "keywords": [
+    "telegram",
+    "antispam",
+    "titorelli"
+  ],
+  "author": "YChebotaev",
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "@titorelli/client": "^2.4.0",
+    "pino": "^9.6.0",
+    "tsup": "^8.3.6",
+    "typescript": "^5.7.3"
+  }
+}

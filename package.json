@@ -6,7 +6,8 @@
     "coach",
     "console",
     "logistic-regression",
-    "telemetry-client"
+    "telemetry-client",
+    "bot-core"
   ],
   "author": "YChebotaev",
   "license": "UNLICENSED",
