@@ -4,49 +4,32 @@ import { type Logger } from "pino"
 export type BotCoreConfig = {
   titorelli: TitorelliClient
   logger: Logger
-  deleteMessage(tgMessageId: number): Promise<void>
-  banChatMember(tgUserId: number): Promise<void>
-  getTextContent<M>(m: M): string | Promise<string>
-  getTgFromId<M>(m: M): number | Promise<number>
-  getTgMessageId<M>(m: M): number | Promise<number>
 }
 
-export class BotCore<CoreM> {
-  private titorelli: TitorelliClient
-  private logger: Logger
-  // @ts-expect-error TS2391
-  private deleteMessage(tgMessageId: number): Promise<void>
-  // @ts-expect-error TS2391
-  private banChatMember(tgMessageId: number): Promise<void>
-  // @ts-expect-error TS2391
-  private getTextContent<M = CoreM>(m: M): string | Promise<string>
-  // @ts-expect-error TS2391
-  private getTgFromId<M = CoreM>(m: M): number | Promise<number>
-  // @ts-expect-error TS2391
-  private getTgMessageId<M = CoreM>(m: M): number | Promise<number>
+export abstract class BotCore<Ctx> {
+  protected titorelli: TitorelliClient
+  protected logger: Logger
+
+  protected abstract getTgChatId(ctx: Ctx): Promise<number>
+  protected abstract getTextContent(ctx: Ctx): string | Promise<string>
+  protected abstract getTgFromUserId(ctx: Ctx): number | Promise<number>
+  protected abstract getTgMessageId(ctx: Ctx): number | Promise<number>
+  protected abstract deleteMessage(tgChatId: number, tgMessageId: number): Promise<any>
+  protected abstract banChatMember(tgChatId: number, tgMessageId: number): Promise<any>
 
   constructor({
     titorelli,
-    logger,
-    deleteMessage,
-    banChatMember,
-    getTextContent,
-    getTgFromId: getTgUserId,
-    getTgMessageId
+    logger
   }: BotCoreConfig) {
     this.titorelli = titorelli
     this.logger = logger
-    this.deleteMessage = deleteMessage
-    this.banChatMember = banChatMember
-    this.getTextContent = getTextContent
-    this.getTgFromId = getTgUserId
-    this.getTgMessageId = getTgMessageId
   }
 
-  async messageHandler(m: CoreM) {
-    const text = await this.getTextContent(m)
-    const tgFromId = await this.getTgFromId(m)
-    const tgMessageId = await this.getTgMessageId(m)
+  async messageHandler(ctx: Ctx) {
+    const tgChatId = await this.getTgChatId(ctx)
+    const text = await this.getTextContent(ctx)
+    const tgFromId = await this.getTgFromUserId(ctx)
+    const tgMessageId = await this.getTgMessageId(ctx)
 
     const {
       value: label,
@@ -65,8 +48,8 @@ export class BotCore<CoreM> {
     }
 
     if (reason === 'cas') {
-      await this.deleteMessage(tgMessageId)
-      await this.banChatMember(tgFromId)
+      await this.deleteMessage(tgChatId, tgMessageId)
+      await this.banChatMember(tgChatId, tgFromId)
 
       this.logger.info('User banned and message deleted because of CAS ban: %s', text)
 
@@ -74,7 +57,7 @@ export class BotCore<CoreM> {
     }
 
     if (reason === 'duplicate' && label === 'spam') {
-      await this.deleteMessage(tgMessageId)
+      await this.deleteMessage(tgChatId, tgMessageId)
 
       this.logger.info('Message deleted because it known spam duplicate: %s', text)
 
@@ -90,7 +73,7 @@ export class BotCore<CoreM> {
         return
       } else
         if (label === 'spam') {
-          await this.deleteMessage(tgMessageId)
+          await this.deleteMessage(tgChatId, tgMessageId)
 
           this.logger.info('Message deleted because classified as spam: %s', text)
 
