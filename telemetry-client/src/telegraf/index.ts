@@ -11,7 +11,7 @@ const getMessageType = (m: Message) => {
     }
 }
 
-export const createMiddleware = (client: TelemetryClient) => {
+export const telegrafMiddleware = (client: TelemetryClient) => {
   const chatMemberHandler = (ctx: Context<Update>, next: () => Promise<void>) => {
     return next()
   }

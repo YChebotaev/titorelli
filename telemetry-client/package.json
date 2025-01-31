@@ -1,7 +1,7 @@
 {
   "name": "@titorelli/telemetry-client",
   "description": "",
-  "version": "5.0.2",
+  "version": "6.0.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
