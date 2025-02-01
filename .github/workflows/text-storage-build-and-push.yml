@@ -30,7 +30,7 @@ jobs:
         with:
           context: text-storage
           push: true
-          tags: ghcr.io/titorelli/text-storage
+          tags: ghcr.io/${{github.actor}}/text-storage
       - name: Artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
