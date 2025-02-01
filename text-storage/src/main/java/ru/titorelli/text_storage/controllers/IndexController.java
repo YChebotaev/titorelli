@@ -53,10 +53,18 @@ public class IndexController {
 
     @PostMapping(
             value = "/get_has/{guid}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    ResponseEntity<Boolean> getHasByGuid(@PathVariable @NotNull UUID guid) {
+        return ResponseEntity.ok(textRepository.has(guid.toString()));
+    }
+
+    @PostMapping(
+            value = "/get_has",
             consumes = MediaType.TEXT_PLAIN_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    ResponseEntity<Boolean> has(@RequestBody(required = true) String txt) {
+    ResponseEntity<Boolean> getHasByText(@RequestBody(required = true) String txt) {
         return ResponseEntity.ok(textRepository.has(getUUIDStringFromText(txt)));
     }
 
