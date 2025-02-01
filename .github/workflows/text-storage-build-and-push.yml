@@ -22,7 +22,7 @@ jobs:
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
           registry: ${{env.REGISTRY}}
-          username: ${{github.actor}}
+          username: ${{github.repository_owner}}
           password: ${{github.token}}
       - name: Build and push
         id: push
@@ -30,7 +30,7 @@ jobs:
         with:
           context: text-storage
           push: true
-          tags: titorelli/text-storage
+          tags: ghcr.io/titorelli/text-storage
           labels: latest
       - name: Artifact attestation
         uses: actions/attest-build-provenance@v2
