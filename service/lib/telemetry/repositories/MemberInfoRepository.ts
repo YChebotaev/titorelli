@@ -1,5 +1,5 @@
 import { Knex } from "knex";
-import type { Db } from "../Db";
+import type { Db } from "../../Db";
 import type { MemberInfoRecord, UserInfo } from "../types";
 import { omit } from "lodash";
 

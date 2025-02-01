@@ -1,6 +1,6 @@
 import { Knex } from "knex";
 import { omit } from 'lodash'
-import type { Db } from "../Db";
+import type { Db } from "../../Db";
 import type { ChatInfo, ChatInfoRecord } from "../types";
 
 export class ChatInfoRepository {

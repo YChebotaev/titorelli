@@ -1,6 +1,6 @@
 import { AppLayout } from "@/layouts/app-layout";
 
-export default async function LandingLayout({
+export default async function AccountLayout({
   children,
 }: {
   children: React.ReactNode;

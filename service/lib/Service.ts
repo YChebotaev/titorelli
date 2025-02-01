@@ -17,6 +17,8 @@ import { omit } from 'lodash'
 import type { ServiceAuthClient } from './types'
 import { TelemetryServer } from './telemetry/TelemetryServer'
 import type { ChatInfo, MessageInfo, SelfInfo, UserInfo } from './telemetry/types'
+import { MarkupServer } from './markup/MarkupServer'
+import { TelemetryToMarkupBridge } from './TelemetryToMarkupBridge'
 
 declare module 'fastify' {
   interface FastifyInstance extends FastifyJwtNamespace<{ namespace: 'jwt' }> {
@@ -33,6 +35,7 @@ export type ServiceConfig = {
   totemsStore: TemporaryStorage<ITotems, [string]>
   jwtSecret: string
   telemetry: TelemetryServer
+  markup: MarkupServer
   oauthClients: ServiceAuthClient[]
 }
 
@@ -52,6 +55,7 @@ export class Service {
   private jwtSecret: string
   private oauthClients: ServiceAuthClient[]
   private telemetry: TelemetryServer
+  private markup: MarkupServer
   private ready: Promise<void>
   private modelPredictPath = '/models/:modelId/predict'
   private modelTrainPath = '/models/:modelId/train'
@@ -76,6 +80,7 @@ export class Service {
     totemsStore,
     jwtSecret,
     telemetry,
+    markup,
     oauthClients
   }: ServiceConfig) {
     this.logger = logger
@@ -86,8 +91,11 @@ export class Service {
     this.host = host
     this.jwtSecret = jwtSecret
     this.telemetry = telemetry
+    this.markup = markup
     this.oauthClients = oauthClients
     this.ready = this.initialize()
+
+    new TelemetryToMarkupBridge(this.markup, this.telemetry)
   }
 
   async listen() {

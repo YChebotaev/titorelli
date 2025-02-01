@@ -1,5 +1,5 @@
 import { Knex } from "knex";
-import type { Db } from "../Db";
+import type { Db } from "../../Db";
 import type { MessageInfo, MessageInfoRecord } from "../types";
 
 export class MessageInfoRepository {

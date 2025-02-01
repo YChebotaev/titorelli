@@ -1,10 +1,10 @@
+import { type FC } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface ChatListProps {
-  activeTab: string;
-}
-
-export function ChatList({ activeTab }: ChatListProps) {
+export const ChatList: FC<{
+  activeChat: string | undefined;
+  onChangeChat(activeChat: string): void;
+}> = ({ activeChat, onChangeChat }) => {
   const renderListItem = (i: number) => (
     <div
       key={i}
@@ -16,9 +16,7 @@ export function ChatList({ activeTab }: ChatListProps) {
       </Avatar>
       <div className="flex-1 overflow-hidden">
         <div className="flex justify-between items-start">
-          <h3 className="font-semibold truncate">
-            {activeTab === "by-model" ? `Model ${i + 1}` : `Chat Name ${i + 1}`}
-          </h3>
+          <h3 className="font-semibold truncate">Chat Name {i + 1}</h3>
           <span className="text-xs text-muted-foreground">12:34</span>
         </div>
         <p className="text-sm text-muted-foreground truncate">
@@ -33,4 +31,4 @@ export function ChatList({ activeTab }: ChatListProps) {
       {Array.from({ length: 20 }).map((_, i) => renderListItem(i))}
     </div>
   );
-}
+};
