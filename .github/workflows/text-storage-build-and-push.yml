@@ -34,6 +34,6 @@ jobs:
       - name: Artifact attestation
         uses: actions/attest-build-provenance@v2
         with:
-          subject-name: ${{env.REGISTRY}}/${{env.IMAGE_NAME}}
+          subject-name: ${{env.REGISTRY}}/ychebotaev/${{env.IMAGE_NAME}}
           subject-digest: ${{steps.push.outputs.digest}}
           push-to-registry: true
