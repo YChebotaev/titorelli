@@ -54,6 +54,10 @@ public class TextRepository {
         }
     }
 
+    public synchronized Boolean has(String key) {
+        return db.keyExists(key.getBytes());
+    }
+
     @PostConstruct
     void initialize() {
         RocksDB.loadLibrary();
