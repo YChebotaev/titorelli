@@ -15,6 +15,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface Bot {
   id: string;
@@ -29,7 +30,8 @@ const mockBots: Bot[] = [
 
 export const Sidebar: React.FC<{
   active: "dashboard" | `bot-${string}` | "data-markup";
-}> = ({ active }) => {
+  accountId: string;
+}> = ({ active, accountId }) => {
   const [bots, setBots] = React.useState<Bot[]>(mockBots);
 
   const addBot = () => {
@@ -105,8 +107,13 @@ export const Sidebar: React.FC<{
                         "bg-accent text-accent-foreground",
                     )}
                   >
-                    <Database className="mr-2 h-4 w-4" />
-                    Разметка данных
+                    <Link
+                      className="w-full flex items-center justify-start"
+                      href={`/accounts/${accountId}/data-markup`}
+                    >
+                      <Database className="mr-2 h-4 w-4" />
+                      Разметка данных
+                    </Link>
                   </Button>
                 </SidebarMenuButton>
               </SidebarMenuItem>

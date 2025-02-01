@@ -16,5 +16,9 @@
   reverse_proxy :3000
 }
 
+text.{{service_origin}} {
+  reverse_proxy :8080
+}
+
 # Refer to the Caddy docs for more information:
 # https://caddyserver.com/docs/caddyfile
