@@ -42,7 +42,7 @@ export class TelemetryToMarkupBridge {
         tgMessageId: prediction.tgMessageId,
         tgChatId: 0,
         label: prediction.label,
-        author: prediction.reason
+        issuer: prediction.reason
       })
     })
   }

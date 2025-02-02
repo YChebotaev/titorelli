@@ -14,7 +14,7 @@ export const up = (knex: Knex) =>
 
     table.index('tgMessageId')
     table.index('tgChatId')
-    table.index('author')
+    table.index('issuer')
   })
 
 export const down = (knex: Knex) =>
