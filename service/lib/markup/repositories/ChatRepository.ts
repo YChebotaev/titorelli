@@ -32,6 +32,20 @@ export class ChatRepository {
       }
   }
 
+  async updateLatestMessage(tgChatId: number, tgMessageId: number) {
+    const exist = await this.knex
+      .select('id')
+      .where({ tgChatId })
+      .from('chats')
+      .first()
+
+    if (exist) {
+      await this.knex('chats')
+        .update({ latestTgMessageId: tgMessageId })
+        .where({ tgChatId })
+    }
+  }
+
   async listByBotId(tgBotId: number) {
     return this.knex
       .select<ChatRecord[]>('*')

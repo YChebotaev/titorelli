@@ -149,6 +149,7 @@ model Account {
   name          String          @unique
   members       AccountMember[] 
   invites       AccountInvite[]
+  bots          ManagedBot[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   @@index([name])
@@ -200,6 +201,32 @@ model AccountInvite {
   @@index([username])
   @@index([userId])
   @@index([accountId])
+}
+// #endregion
+
+// #region ManagedBot
+model ManagedBot {
+  id                  Int         @id @default(autoincrement())
+  instances           ManageBotInstance[]
+  account             Account     @relation(fields: [accountId], references: [id])
+  accountId           Int
+  name                String
+  tgBotToken          String
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+}
+// #endregion
+
+// #region ManagedBotInstance
+model ManageBotInstance {
+  id                  Int         @id @default(autoincrement())
+  tgBotId             Int
+  bot                 ManagedBot  @relation(fields: [botId], references: [id])
+  botId               Int
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  @@index([botId])
+  @@index([tgBotId])
 }
 // #endregion
 

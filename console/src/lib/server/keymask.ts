@@ -9,6 +9,9 @@ export const maskNumber = (value: number) => {
   return keymaskNumber.mask(value)
 }
 
-export const unmaskNumber = (value: string) => {
+export const unmaskNumber = (value: string | undefined | null) => {
+  if (value == null)
+    return null
+
   return keymaskNumber.unmask(value)
 }

@@ -663,7 +663,19 @@ export class Service {
         }
       },
       async ({ query: { tgBotId } }) => {
-        return this.markup.listChatsByBotId(tgBotId)
+        const chats = await this.markup.listChatsByBotId(tgBotId)
+
+        return Promise.all(
+          chats.map(
+            async chat => Object.assign(
+              chat,
+              {
+                latestExample:
+                  await this.markup.getExampleByTgMessageId(chat.latestTgMessageId)
+              }
+            )
+          )
+        )
       }
     )
   }

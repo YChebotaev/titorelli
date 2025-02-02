@@ -2,7 +2,7 @@ import { AccountShellLayout } from "@/layouts/account-shell-layout";
 import { Sidebar } from "@/components/account/sidebar";
 import { AccountDataMarkup } from "@/components/account/account-data-markup";
 import { getUserInPage } from "@/lib/server/get-user-in-page";
-import { FolderTypes } from "@/components/markup-chat/markup-chat";
+import { FolderTypes } from "@/types/data-markup";
 
 export default async function DataMarkupPage({
   params: paramsPromise,

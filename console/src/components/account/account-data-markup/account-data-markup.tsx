@@ -1,8 +1,9 @@
 "use client";
 
-import { type FC } from "react";
-import { FolderTypes, MarkupChat } from "@/components/markup-chat/markup-chat";
+import { Suspense, type FC } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { MarkupChat } from "@/components/markup-chat/markup-chat";
+import { FolderTypes } from "@/types/data-markup";
 
 export const AccountDataMarkup: FC<{
   activeChat: string | undefined;

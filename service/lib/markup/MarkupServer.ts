@@ -19,8 +19,12 @@ export class MarkupServer {
     return this.chatRepository.upsert(...args)
   }
 
-  insertExample(...args: Parameters<ExampleRepository['insert']>) {
-    return this.exampleRepository.insert(...args)
+  async insertExample(...args: Parameters<ExampleRepository['insert']>) {
+    const result = await this.exampleRepository.insert(...args)
+
+    await this.chatRepository.updateLatestMessage(args[0].tgChatId, args[0].tgMessageId)
+
+    return result
   }
 
   insertLabel(...args: Parameters<LabelRepository['insert']>) {
@@ -57,5 +61,9 @@ export class MarkupServer {
 
   getMemberByTgUserId(...args: Parameters<MemberRepository['getByTgUserId']>) {
     return this.memberRepository.getByTgUserId(...args)
+  }
+
+  getExampleByTgMessageId(...args: Parameters<ExampleRepository['getByTgMessageId']>) {
+    return this.exampleRepository.getByTgMessageId(...args)
   }
 }

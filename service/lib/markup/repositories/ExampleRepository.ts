@@ -24,4 +24,12 @@ export class ExampleRepository {
       .where('tgChatId', tgChatId)
       .from('examples')
   }
+
+  async getByTgMessageId(tgMessageId: number) {
+    return this.knex
+      .select('*')
+      .from('examples')
+      .where('tgMessageId', tgMessageId)
+      .first<ExampleRecord>()
+  }
 }

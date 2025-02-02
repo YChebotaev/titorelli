@@ -25,6 +25,7 @@ export type ChatRecord = {
   name: string
   updatedAt: string
   createdAt: string
+  latestTgMessageId: number
 }
 
 export type MemberRoot =
