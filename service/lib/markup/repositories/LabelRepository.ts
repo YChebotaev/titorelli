@@ -18,11 +18,11 @@ export class LabelRepository {
       .into('labels')
   }
 
-  async listByMessageIdAndAuthor(tgMessageId: number, author: string) {
+  async listByMessageIdAndIssuer(tgMessageId: number, issuer: string) {
     return this.knex
       .select<LabelRecord[]>('*')
       .from('labels')
       .where('tgMessageId', tgMessageId)
-      .andWhere('author', author)
+      .andWhere('issuer', issuer)
   }
 }

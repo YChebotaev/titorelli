@@ -6,7 +6,10 @@ import { LabelRepository } from './repositories/LabelRepository'
 import { MemberRepository } from './repositories/MemberRepository'
 
 export class MarkupServer {
-  private db = new Db(process.env.MARKUP_DB_FILENAME ?? path.join(process.cwd(), 'markup.sqlite3'))
+  private db = new Db(
+    process.env.MARKUP_DB_FILENAME ?? path.join(process.cwd(), 'markup.sqlite3'),
+    path.join(__dirname, './migrations')
+  )
   private chatRepository = new ChatRepository(this.db)
   private exampleRepository = new ExampleRepository(this.db)
   private labelRepository = new LabelRepository(this.db)
@@ -48,8 +51,8 @@ export class MarkupServer {
     return this.exampleRepository.listByChatId(...args)
   }
 
-  listLabelsByMessageIdAndAuthor(...args: Parameters<LabelRepository['listByMessageIdAndAuthor']>) {
-    return this.labelRepository.listByMessageIdAndAuthor(...args)
+  listLabelsByMessageIdAndIssuer(...args: Parameters<LabelRepository['listByMessageIdAndIssuer']>) {
+    return this.labelRepository.listByMessageIdAndIssuer(...args)
   }
 
   getMemberByTgUserId(...args: Parameters<MemberRepository['getByTgUserId']>) {

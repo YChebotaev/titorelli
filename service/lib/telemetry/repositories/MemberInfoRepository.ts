@@ -15,6 +15,7 @@ export class MemberInfoRepository {
       .select('id')
       .from('memberInfo')
       .where('tgUserId', userInfo.id)
+      .andWhere('reporterTgBotId', userInfo.reporterTgBotId)
       .andWhere('isBot', userInfo.isBot ?? null)
       .andWhere('firstName', userInfo.firstName ?? null)
       .andWhere('lastName', userInfo.lastName ?? null)

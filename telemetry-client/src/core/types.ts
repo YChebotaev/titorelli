@@ -21,6 +21,7 @@ export type UserInfo = {
   languageCode?: string;
   isPremium?: true;
   addedToAttachmentMenu?: true;
+  reporterTgBotId: number
 }
 
 export type ChatInfo = {
@@ -33,6 +34,7 @@ export type ChatInfo = {
   isForum?: boolean
   description?: string
   bio?: string
+  reporterTgBotId: number
 }
 
 export type MessageInfo = {
@@ -46,4 +48,5 @@ export type MessageInfo = {
   isTopic?: boolean
   text?: string
   caption?: string
+  reporterTgBotId: number
 }

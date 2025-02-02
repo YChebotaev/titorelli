@@ -13,12 +13,11 @@ import type {
   ITotems,
   ICas
 } from "@titorelli/model"
-import { omit } from 'lodash'
 import type { ServiceAuthClient } from './types'
 import { TelemetryServer } from './telemetry/TelemetryServer'
 import type { ChatInfo, MessageInfo, SelfInfo, UserInfo } from './telemetry/types'
 import { MarkupServer } from './markup/MarkupServer'
-import { TelemetryToMarkupBridge } from './TelemetryToMarkupBridge'
+// import { TelemetryToMarkupBridge } from './TelemetryToMarkupBridge'
 
 declare module 'fastify' {
   interface FastifyInstance extends FastifyJwtNamespace<{ namespace: 'jwt' }> {
@@ -67,6 +66,10 @@ export class Service {
   private telemetryTrackChatInfoPath = '/telemetry/track_chat'
   private telemetryTrackMessagePath = '/telemetry/track_message'
   private telemetryTrackPredictionPath = '/telemetry/track_prediction'
+  private markupChatsPath = '/markup/chats'
+  private markupExamplesPath = '/markup/examples'
+  private markupLabelsPath = '/markup/labels'
+  private markupMemberPath = '/markup/members/:memberId'
   private casPredictPath = '/cas/predict'
   private casTrainPath = '/cas/train'
   private ouathTokenPath = '/oauth2/token'
@@ -94,8 +97,6 @@ export class Service {
     this.markup = markup
     this.oauthClients = oauthClients
     this.ready = this.initialize()
-
-    new TelemetryToMarkupBridge(this.markup, this.telemetry)
   }
 
   async listen() {
@@ -108,19 +109,29 @@ export class Service {
     this.service = fastify({ loggerInstance: this.logger })
 
     await this.installPluginsBegin()
+
     await this.installModelPredictRoute()
     await this.installModelTrainRoute()
     await this.installModelTrainBulkRoute()
     await this.installModelExactMatchTrainRoute()
     await this.installModelTotemsTrainRoute()
+
     await this.installCasPredictRoute()
     await this.installCasTrainRoute()
+
     await this.installTelemetryTrackBotInfo()
     await this.installTelemetryTrackMemberInfo()
     await this.installTelemetryTrackChatInfo()
     await this.installTelemetryTrackMessage()
     await this.installTelemetryTrackPrediction()
+
+    await this.installMarkupChats()
+    await this.installMarkupExamples()
+    await this.installMarkupLabels()
+    await this.installMarkupMembers()
+
     await this.installOauthTokenRoute()
+
     await this.installPluginsEnd()
   }
 
@@ -508,10 +519,17 @@ export class Service {
             languageCode: { type: 'string' },
             isPremium: { type: 'boolean' },
             addedToAttachmentMenu: { type: 'boolean' },
+            reporterTgBotId: { type: 'number' },
           }
         }
       }
     }, async ({ body }) => {
+      await this.markup.insertMember({
+        tgUserId: body.id,
+        languageCode: body.languageCode,
+        isPremium: body.isPremium
+      })
+
       await this.telemetry.trackMemberInfo(body)
     })
   }
@@ -534,11 +552,14 @@ export class Service {
               isForum: { type: 'boolean' },
               description: { type: 'string' },
               bio: { type: 'string' },
+              reporterTgBotId: { type: 'number' },
             }
           }
         }
       },
       async ({ body }) => {
+        await this.markup.upsertChat(body.reporterTgBotId, body.id, body.title)
+
         await this.telemetry.trackChat(body)
       }
     )
@@ -563,11 +584,20 @@ export class Service {
               isTopic: { type: 'boolean' },
               text: { type: 'string' },
               caption: { type: 'string' },
+              reporterTgBotId: { type: 'number' },
             }
           }
         }
       },
       async ({ body }) => {
+        await this.markup.insertExample({
+          tgMessageId: body.id,
+          tgChatId: body.tgChatId,
+          date: body.date,
+          text: body.text,
+          caption: body.caption,
+        })
+
         await this.telemetry.trackMessage(body)
       }
     )
@@ -578,7 +608,10 @@ export class Service {
       Body:
       & Omit<Prediction, 'reason'>
       & Partial<Pick<Prediction, 'reason'>>
-      & { tgMessageId: number }
+      & {
+        tgMessageId: number,
+        reporterTgBotId: number
+      }
     }>(
       this.telemetryTrackPredictionPath,
       {
@@ -591,12 +624,111 @@ export class Service {
               reason: { enum: ['classifier', 'duplicate', 'totem', 'cas'] },
               value: { enum: ['spam', 'ham'] },
               confidence: { type: 'number' },
+              reporterTgBotId: { type: 'number' },
             }
           }
         }
       },
       async ({ body }) => {
-        await this.telemetry.trackPrediction(body.tgMessageId, body)
+        await this.telemetry.trackPrediction(body.tgMessageId, body, body.reporterTgBotId)
+      }
+    )
+  }
+
+  private async installMarkupChats() {
+    await this.service.get<{
+      Querystring: {
+        tgBotId: number
+      }
+    }>(
+      this.markupChatsPath,
+      {
+        schema: {
+          querystring: {
+            type: 'object',
+            required: ['tgBotId'],
+            properties: {
+              tgBotId: { type: 'number' }
+            }
+          }
+        }
+      },
+      async ({ query: { tgBotId } }) => {
+        return this.markup.listChatsByBotId(tgBotId)
+      }
+    )
+  }
+
+  private async installMarkupExamples() {
+    await this.service.get<{
+      Querystring: {
+        tgChatId: number
+      }
+    }>(
+      this.markupExamplesPath,
+      {
+        schema: {
+          querystring: {
+            type: 'object',
+            required: ['tgChatId'],
+            properties: {
+              tgChatId: { type: 'number' }
+            }
+          }
+        }
+      },
+      async ({ query: { tgChatId } }) => {
+        return this.markup.listExamplesByChatId(tgChatId)
+      }
+    )
+  }
+
+  private async installMarkupLabels() {
+    await this.service.get<{
+      Querystring: {
+        tgMessageId: number,
+        issuer: string
+      }
+    }>(
+      this.markupLabelsPath,
+      {
+        schema: {
+          querystring: {
+            type: 'object',
+            required: ['tgMessageId', 'issuer'],
+            properties: {
+              tgMessageId: { type: 'number' },
+              issuer: { type: 'string' }
+            }
+          }
+        }
+      },
+      async ({ query: { tgMessageId, issuer } }) => {
+        return this.markup.listLabelsByMessageIdAndIssuer(tgMessageId, issuer)
+      }
+    )
+  }
+
+  private async installMarkupMembers() {
+    await this.service.get<{
+      Querystring: {
+        tgUserId: number
+      }
+    }>(
+      this.markupMemberPath,
+      {
+        schema: {
+          querystring: {
+            type: 'object',
+            required: ['tgUserId'],
+            properties: {
+              tgUserId: { type: 'number' }
+            }
+          }
+        }
+      },
+      async ({ query: { tgUserId } }) => {
+        return this.markup.getMemberByTgUserId(tgUserId)
       }
     )
   }

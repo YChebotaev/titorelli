@@ -13,7 +13,7 @@ export type LabelRecord = {
   tgMessageId: number
   tgChatId: number
   label: 'spam' | 'ham'
-  author: string
+  issuer: string
   createdAt: string
   updatedAt: string
 }

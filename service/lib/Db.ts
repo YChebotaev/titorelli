@@ -4,7 +4,10 @@ import createKnex from 'knex'
 export class Db {
   private _knex: ReturnType<typeof createKnex>
 
-  constructor(private _dbFilename: string) {
+  constructor(
+    private _dbFilename: string,
+    private _migrationsDir: string
+  ) {
     this._knex = createKnex({
       client: 'sqlite3',
       connection: { filename: this._dbFilename },
@@ -20,7 +23,7 @@ export class Db {
 
   private async initialize() {
     await this._knex.migrate.latest({
-      directory: path.join(__dirname, 'migrations')
+      directory: this._migrationsDir
     })
   }
 }

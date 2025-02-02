@@ -16,6 +16,7 @@ export type SelfInfo = {
 
 export type UserInfo = {
   id: number;
+  reporterTgBotId: number
   isBot: boolean;
   firstName: string;
   lastName?: string;
@@ -27,6 +28,7 @@ export type UserInfo = {
 
 export type ChatInfo = {
   id: number
+  reporterTgBotId: number
   type: 'private' | 'group' | 'supergroup' | 'channel'
   username?: string
   title?: string
@@ -39,6 +41,7 @@ export type ChatInfo = {
 
 export type MessageInfo = {
   id: number
+  reporterTgBotId: number
   type: 'text' | 'media'
   threadId?: number
   fromTgUserId: number
@@ -67,6 +70,7 @@ export type SelfInfoRecord = {
 
 export type MemberInfoRecord = {
   id: number;
+  reporterTgBotId: number
   tgUserId: number;
   isBot: boolean;
   firstName: string;
@@ -79,6 +83,7 @@ export type MemberInfoRecord = {
 
 export type ChatInfoRecord = {
   id: number
+  reporterTgBotId: number
   tgChatId: number
   type: 'private' | 'group' | 'supergroup' | 'channel'
   username?: string
@@ -92,6 +97,7 @@ export type ChatInfoRecord = {
 
 export type MessageInfoRecord = {
   id: number
+  reporterTgBotId: number
   tgMessageId: number
   type: 'text' | 'media'
   threadId: number
@@ -106,6 +112,7 @@ export type MessageInfoRecord = {
 
 export type PredictionRecord = {
   id: number
+  reporterTgBotId: number
   tgMessageId: number
   tgUserId: number
   reason: ReasonTypes

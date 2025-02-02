@@ -15,6 +15,7 @@ export class ChatInfoRepository {
       .select('id')
       .from('chatInfo')
       .where('tgChatId', chatInfo.id)
+      .andWhere('reporterTgBotId', chatInfo.reporterTgBotId)
       .andWhere('type', chatInfo.type ?? null)
       .andWhere('username', chatInfo.username ?? null)
       .andWhere('title', chatInfo.title ?? null)

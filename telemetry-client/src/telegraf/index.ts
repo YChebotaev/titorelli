@@ -38,6 +38,7 @@ export const telegrafMiddleware = (client: TelemetryClient) => {
     const c = deunionize(ctx.chat)
     await client.trackChat({
       id: c.id,
+      reporterTgBotId: ctx.botInfo.id,
       type: c.type,
       username: c.username,
       title: c.title,
@@ -50,6 +51,7 @@ export const telegrafMiddleware = (client: TelemetryClient) => {
 
     await client.trackMemberInfo({
       id: ctx.from.id,
+      reporterTgBotId: ctx.botInfo.id,
       isBot: ctx.from.is_bot,
       firstName: ctx.from.first_name,
       lastName: ctx.from.last_name,
@@ -62,6 +64,7 @@ export const telegrafMiddleware = (client: TelemetryClient) => {
     const m = deunionize(ctx.message)
     await client.trackMessage({
       id: m.message_id,
+      reporterTgBotId: ctx.botInfo.id,
       type: getMessageType(ctx.message),
       threadId: m.message_thread_id,
       fromTgUserId: m.from.id,

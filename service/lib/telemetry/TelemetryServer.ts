@@ -26,7 +26,10 @@ export declare interface TelemetryServer {
 }
 
 export class TelemetryServer extends EventEmitter {
-  private db = new Db(process.env.TELEMETRY_DB_FILENAME ?? path.join(process.cwd(), 'telemetry.sqlite3'))
+  private db = new Db(
+    process.env.TELEMETRY_DB_FILENAME ?? path.join(process.cwd(), 'telemetry.sqlite3'),
+    path.join(__dirname, './migrations')
+  )
   private selfInfoRepository = new SelfInfoRepository(this.db)
   private memberInfoRepository = new MemberInfoRepository(this.db)
   private chatInfoRepository = new ChatInfoRepository(this.db)
@@ -57,11 +60,11 @@ export class TelemetryServer extends EventEmitter {
     this.emit('track:message', messageInfo)
   }
 
-  async trackPrediction(tgMessageId: number, prediction: any) {
+  async trackPrediction(tgMessageId: number, prediction: any, reporterTgBotId: number) {
     const savedMessage = await this.messageInfoRepository.getByTgMessageId(tgMessageId)
 
     if (savedMessage) {
-      await this.predictionsRepository.insert(tgMessageId, savedMessage.fromTgUserId, prediction)
+      await this.predictionsRepository.insert(tgMessageId, savedMessage.fromTgUserId, prediction, reporterTgBotId)
     }
 
     this.emit('track:prediction', {

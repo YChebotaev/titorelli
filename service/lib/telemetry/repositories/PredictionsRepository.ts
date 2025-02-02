@@ -10,14 +10,15 @@ export class PredictionsRepository {
     return this.db.knex as Knex<PredictionRecord, PredictionRecord[]>
   }
 
-  async insert(tgMessageId: number, tgUserId: number, prediction: any) {
+  async insert(tgMessageId: number, tgUserId: number, prediction: any, reporterTgBotId: number) {
     await this.knex
       .insert({
         tgMessageId,
         tgUserId,
         reason: prediction.reason,
         label: prediction.value,
-        confidence: prediction.confidence
+        confidence: prediction.confidence,
+        reporterTgBotId
       })
       .into('predictions')
   }

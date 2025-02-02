@@ -1,6 +1,9 @@
 import { MarkupServer } from "./markup/MarkupServer";
 import { TelemetryServer } from "./telemetry/TelemetryServer";
 
+/**
+ * @deprecated
+ */
 export class TelemetryToMarkupBridge {
   constructor(
     private markup: MarkupServer,

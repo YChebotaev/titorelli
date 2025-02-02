@@ -7,7 +7,7 @@ export const up = (knex: Knex) =>
     table.integer('tgMessageId')
     table.integer('tgChatId')
     table.string('label')
-    table.string('author')
+    table.string('issuer')
     
     table.dateTime('updatedAt').nullable()
     table.dateTime('createdAt')
