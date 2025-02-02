@@ -23,6 +23,7 @@ export class ChatRepository {
         name,
         createdAt: new Date().toISOString()
       })
+        .into('chats')
     } else
       if (previous.name !== name) {
         await this.knex('chats')
