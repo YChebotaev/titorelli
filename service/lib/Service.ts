@@ -610,6 +610,7 @@ export class Service {
       & Partial<Pick<Prediction, 'reason'>>
       & {
         tgMessageId: number,
+        tgChatId: number,
         reporterTgBotId: number
       }
     }>(
@@ -621,6 +622,7 @@ export class Service {
             type: 'object',
             properties: {
               tgMessageId: { type: 'number' },
+              tgChatId: { type: 'number' },
               reason: { enum: ['classifier', 'duplicate', 'totem', 'cas'] },
               value: { enum: ['spam', 'ham'] },
               confidence: { type: 'number' },
@@ -630,6 +632,13 @@ export class Service {
         }
       },
       async ({ body }) => {
+        await this.markup.insertLabel({
+          tgMessageId: body.tgMessageId,
+          tgChatId: body.tgChatId,
+          label: body.value,
+          issuer: body.reason
+        })
+
         await this.telemetry.trackPrediction(body.tgMessageId, body, body.reporterTgBotId)
       }
     )

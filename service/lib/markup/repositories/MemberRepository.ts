@@ -18,14 +18,14 @@ export class MemberRepository {
       .first<Pick<MemberRecord, 'id' | 'languageCode' | 'isPremium'>>()
 
     if (previous == null) {
-      const { id } = await this.knex.insert({
+      const result = await this.knex.insert({
         ...data,
         createdAt: new Date().toISOString()
       })
-        .first()
-        .returning<Pick<MemberRecord, 'id'>>('id')
+        .into('members')
+        .returning<Pick<MemberRecord, 'id'>[]>('id')
 
-      return id
+      return result ? result[0]?.id : undefined
     } else {
       const changed = !isEqual(
         [previous.languageCode, previous.isPremium],

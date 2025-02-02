@@ -56,10 +56,10 @@ export class TelemetryClient {
     return data
   }
 
-  async trackPrediction(tgMessageId: number, prediction: any) {
+  async trackPrediction(tgChatId: number, tgMessageId: number, prediction: any) {
     await this.ready
 
-    const { data } = await this.axios.post<void>('/track_prediction', { tgMessageId, ...prediction })
+    const { data } = await this.axios.post<void>('/track_prediction', { tgChatId, tgMessageId, ...prediction })
 
     return data
   }
