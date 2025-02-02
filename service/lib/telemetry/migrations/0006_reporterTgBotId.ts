@@ -1,7 +1,7 @@
 import { Knex } from "knex";
 
 export const up = (knex: Knex) => Promise.all([
-  knex.schema.table('chatInfo', table => {
+  knex.schema.alterTable('chatInfo', table => {
     table.integer('reporterTgBotId').nullable()
   }),
   knex.schema.table('memberInfo', table => {
@@ -16,8 +16,8 @@ export const up = (knex: Knex) => Promise.all([
 ])
 
 export const down = (knex: Knex) => Promise.all([
-  knex.schema.table('chatInfo', table => table.dropColumn('reporterTgBotId')),
-  knex.schema.table('memberInfo', table => table.dropColumn('reporterTgBotId')),
-  knex.schema.table('messageInfo', table => table.dropColumn('reporterTgBotId')),
-  knex.schema.table('predictions', table => table.dropColumn('reporterTgBotId')),
+  knex.schema.alterTable('chatInfo', table => table.dropColumn('reporterTgBotId')),
+  knex.schema.alterTable('memberInfo', table => table.dropColumn('reporterTgBotId')),
+  knex.schema.alterTable('messageInfo', table => table.dropColumn('reporterTgBotId')),
+  knex.schema.alterTable('predictions', table => table.dropColumn('reporterTgBotId')),
 ])
