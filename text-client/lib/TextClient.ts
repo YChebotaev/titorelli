@@ -1,6 +1,13 @@
 import axios, { AxiosInstance } from 'axios'
 import * as uuid from 'uuid'
 
+export type Stats = {
+  createdAt: number
+  length: number
+  lastAccess: number
+  countRead: number
+}
+
 export class TextClient {
   private axios: AxiosInstance
 
@@ -8,36 +15,67 @@ export class TextClient {
     this.axios = axios.create({ baseURL: baseUrl })
   }
 
-  async put(txt: string) {
-    const { data } = await this.axios.put<string>('/', txt, {
-      responseType: 'text',
-      headers: {
-        'Content-Type': 'text/plain'
-      }
-    })
+  async put<Metadata>(txt: string, metadata?: Metadata) {
+    if (metadata) {
+      const formData = new FormData()
+
+      formData.set('text', txt)
+      formData.set('metadata', JSON.stringify(metadata))
+
+      const { data } = await this.axios.put<string>('/text', formData, {
+        responseType: 'text'
+      })
+
+      return data
+    } else {
+      const { data } = await this.axios.put<string>('/text', txt, {
+        responseType: 'text',
+        headers: {
+          'Content-Type': 'text/plain'
+        }
+      })
+
+      return data
+    }
+  }
+
+  async stats(uuid: string) {
+    const { data } = await this.axios.get<Stats>(`/stats/${uuid}`)
 
     return data
   }
 
+  async metadata<Metadata>(uuid: string, metadata?: Metadata) {
+    if (metadata) {
+      const { data } = await this.axios.put<boolean>(`/metadata/${uuid}`, metadata)
+
+      return data
+    } else {
+      const { data } = await this.axios.get<Metadata>(`/metadata/${uuid}`)
+
+      return data
+    }
+  }
+
   async get(uuid: string) {
-    const { data } = await this.axios.get<string>(`/${uuid}`)
+    const { data } = await this.axios.get<string>(`/text/${uuid}`)
 
     return data
   }
 
   async has(guidOrText: string) {
     if (uuid.validate(guidOrText)) {
-      const { data } = await this.axios.post<boolean>(`/get_has/${guidOrText}`)
+      const { data } = await this.axios.post<boolean>(`/text/get_has/${guidOrText}`)
 
       return data
     } else {
-      const { data } = await this.axios.post<boolean>(`/get_has`, guidOrText, {
+      const { data } = await this.axios.post<boolean>(`/text/get_has`, guidOrText, {
         responseType: 'json',
         headers: {
           'Content-Type': 'text/plain'
         }
       })
-  
+
       return data
     }
   }
@@ -54,7 +92,7 @@ export class TextClient {
   }
 
   public getUUIDStringFromText(txt: string) {
-    const namespacceUUID = uuid.v5('https://text.api.titorelli.ru', '6ba7b811-9dad-11d1-80b4-00c04fd430c8')
+    const namespacceUUID = uuid.v5('https://text.api.titorelli.ru/text', '6ba7b811-9dad-11d1-80b4-00c04fd430c8')
     const guid = uuid.v5(txt, namespacceUUID)
 
     return guid

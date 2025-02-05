@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>ru.titorelli</groupId>
 	<artifactId>text-storage</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>text-storage</name>
 	<description>Text storage engine for Titorelli antispam backed by rocksdb</description>
 	<url/>
