@@ -1,5 +1,9 @@
 package ru.titorelli.text_storage.struct;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import lombok.AllArgsConstructor;
@@ -15,17 +19,15 @@ import java.util.Optional;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonSerialize
-@Getter
-@Setter
+@JsonDeserialize
 public class Stats {
-    private JsonMapper jsonMapper = new JsonMapper();
-    private Long createdAt = 0L;
-    private Integer length = 0;
-    private Long lastAccess = 0L;
-    private Long countRead = 0L;
+    @JsonIgnore private static final JsonMapper jsonMapper = new JsonMapper();
+    @Setter @Getter private Long createdAt = 0L;
+    @Setter @Getter private Integer length = 0;
+    @Setter @Getter private Long lastAccess = 0L;
+    @Setter @Getter private Long countRead = 0L;
 
     public static Optional<Stats> fromJSONBytes(byte[] jsonBytes) {
-        final JsonMapper jsonMapper = new JsonMapper();
         final Stats stats;
 
         try {

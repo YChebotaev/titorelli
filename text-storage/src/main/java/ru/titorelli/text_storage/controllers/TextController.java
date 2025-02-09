@@ -26,7 +26,7 @@ public class TextController {
         final String uuidStr = uuidHelper.getForText(txt);
 
         if (textRepository.put(uuidStr, txt)) {
-            textRepository.getStatsHelper().incrReads(uuidStr);
+            textRepository.getStatsHelper().init(uuidHelper.getForStats(uuidStr), txt);
 
             return ResponseEntity.ok(uuidStr);
         }
@@ -43,10 +43,10 @@ public class TextController {
         final String textUuid = uuidHelper.getForText(txt);
         final String metadataUuid = uuidHelper.getForMetadata(textUuid);
 
-        if (!textRepository.put(textUuid, txt)) {
-            return ResponseEntity.internalServerError().build();
+        if (textRepository.put(textUuid, txt)) {
+            textRepository.getStatsHelper().init(uuidHelper.getForStats(textUuid), txt);
         } else {
-            textRepository.getStatsHelper().init(textUuid, txt);
+            return ResponseEntity.internalServerError().build();
         }
 
         if (!textRepository.put(metadataUuid, metadataStr)) {
@@ -59,6 +59,8 @@ public class TextController {
     @GetMapping(value = "/{guid}", produces = MediaType.TEXT_PLAIN_VALUE)
     ResponseEntity<String> get(@PathVariable @NotNull UUID guid) {
         final Optional<String> txt = textRepository.get(guid.toString());
+
+        textRepository.getStatsHelper().incrReads(uuidHelper.getForStats(guid));
 
         return ResponseEntity.of(txt);
     }

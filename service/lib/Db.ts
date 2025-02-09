@@ -6,7 +6,7 @@ export class Db {
 
   constructor(
     private _dbFilename: string,
-    private _migrationsDir: string
+    private _migrationsDir?: string
   ) {
     this._knex = createKnex({
       client: 'sqlite3',
@@ -22,6 +22,9 @@ export class Db {
   }
 
   private async initialize() {
+    if (this._migrationsDir == null)
+      return
+
     await this._knex.migrate.latest({
       directory: this._migrationsDir
     })

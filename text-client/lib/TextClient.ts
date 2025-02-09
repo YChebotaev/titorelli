@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios'
+import axios, { AxiosError, AxiosInstance } from 'axios'
 import * as uuid from 'uuid'
 
 export type Stats = {
@@ -51,9 +51,19 @@ export class TextClient {
 
       return data
     } else {
-      const { data } = await this.axios.get<Metadata>(`/metadata/${uuid}`)
+      try {
+        const { data } = await this.axios.get<Metadata>(`/metadata/${uuid}`)
 
-      return data
+        return data
+      } catch (_e: unknown) {
+        const e = _e as AxiosError
+
+        if (e.status === 404) {
+          return null
+        }
+
+        throw _e
+      }
     }
   }
 
@@ -81,7 +91,7 @@ export class TextClient {
   }
 
   async hash(txt: string) {
-    const { data } = await this.axios.post<string>('/get_hash', txt, {
+    const { data } = await this.axios.post<string>('/text/get_hash', txt, {
       responseType: 'text',
       headers: {
         'Content-Type': 'text/plain'

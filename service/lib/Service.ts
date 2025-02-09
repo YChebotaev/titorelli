@@ -17,7 +17,6 @@ import type { ServiceAuthClient } from './types'
 import { TelemetryServer } from './telemetry/TelemetryServer'
 import type { ChatInfo, MessageInfo, SelfInfo, UserInfo } from './telemetry/types'
 import { MarkupServer } from './markup/MarkupServer'
-// import { TelemetryToMarkupBridge } from './TelemetryToMarkupBridge'
 
 declare module 'fastify' {
   interface FastifyInstance extends FastifyJwtNamespace<{ namespace: 'jwt' }> {
