@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { maskNumber, unmaskNumber } from "@/lib/server/keymask"
+import { unmaskNumber } from "@/lib/server/keymask"
 import { getAccessTokensService } from "@/lib/server/services/instances"
-import type { AccessTokenCreatedRequestDataVm, AccessTokenCreatedResultVm, AccessTokenVm } from "@/types/access-tokens"
+import { mapAccessTokenDtoToVm, type AccessTokenCreatedRequestDataVm, type AccessTokenCreatedResultVm, type AccessTokenVm } from "@/types/access-tokens"
 
 export const GET = async ({ }: NextRequest, { params: paramsPromise }: { params: Promise<{ id: string }> }) => {
   const { id: accountIdStr } = await paramsPromise
@@ -15,20 +15,7 @@ export const GET = async ({ }: NextRequest, { params: paramsPromise }: { params:
   const accessTokensService = getAccessTokensService()
   const accountTokens = await accessTokensService.list(accountId)
 
-  const result: AccessTokenVm[] = accountTokens
-    .map(({
-      id,
-      name,
-      description,
-      createdAt,
-      updatedAt
-    }) => ({
-      id: maskNumber(id),
-      name,
-      description,
-      createdAt: createdAt.toISOString(),
-      updatedAt: updatedAt.toISOString()
-    }))
+  const result: AccessTokenVm[] = accountTokens.map(mapAccessTokenDtoToVm)
 
   return NextResponse.json(result)
 }

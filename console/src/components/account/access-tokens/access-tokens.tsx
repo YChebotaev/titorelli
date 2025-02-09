@@ -11,12 +11,17 @@ import { useParams } from "next/navigation";
 import { useAddToken } from "@/hooks/use-add-token";
 import { useRegenerateToken } from "@/hooks/use-regenerate-token";
 import { useRevokeToken } from "@/hooks/use-revoke-token";
+import { AccessTokenVm } from "@/types/access-tokens";
 
-export const AccessTokens: FC = () => {
+export const AccessTokens: FC<{ initialTokens: AccessTokenVm[] }> = ({
+  initialTokens,
+}) => {
   const { accountId } = useParams();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const { data: tokens } = useGetTokens(String(accountId));
+  const { data: tokens } = useGetTokens(String(accountId), {
+    initialData: initialTokens,
+  });
   const { mutateAsync: addTokenAsyncMutation } = useAddToken(String(accountId));
   const { mutate: revokeTokenMutation } = useRevokeToken(String(accountId));
   const { mutateAsync: regenerateTokenAsyncMutation } = useRegenerateToken(
