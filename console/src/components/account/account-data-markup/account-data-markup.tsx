@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, type FC } from "react";
+import { type FC } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { MarkupChat } from "@/components/markup-chat/markup-chat";
 import { FolderTypes } from "@/types/data-markup";

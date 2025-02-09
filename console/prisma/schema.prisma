@@ -210,6 +210,9 @@ model AccountInvite {
 model AccessToken {
   id                      Int                     @id @default(autoincrement())
   token                   String
+  name                    String
+  revoked                 Boolean                 @default(false)
+  description             String                  @default("")
   account                 Account                 @relation(fields: [accountId], references: [id])
   accountId               Int
   bypassTelemetry         Boolean                 @default(false)

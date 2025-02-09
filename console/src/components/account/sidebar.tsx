@@ -1,7 +1,13 @@
 "use client";
 
 import * as React from "react";
-import { Plus, Bot, Database, LayoutDashboard } from "lucide-react";
+import {
+  Plus,
+  Bot,
+  Database,
+  LayoutDashboard,
+  SquareAsterisk,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +35,7 @@ const mockBots: Bot[] = [
 ];
 
 export const Sidebar: React.FC<{
-  active: "dashboard" | `bot-${string}` | "data-markup";
+  active: "dashboard" | `bot-${string}` | `access-tokens` | "data-markup";
   accountId: string;
 }> = ({ active, accountId }) => {
   const [bots, setBots] = React.useState<Bot[]>(mockBots);
@@ -58,6 +64,26 @@ export const Sidebar: React.FC<{
                   >
                     <LayoutDashboard className="mr-2 h-4 w-4" />
                     Панель управления
+                  </Button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start",
+                      active === "access-tokens" &&
+                        "bg-accent text-accent-foreground",
+                    )}
+                  >
+                    <Link
+                      className="w-full flex items-center justify-start"
+                      href={`/accounts/${accountId}/access-tokens`}
+                    >
+                      <SquareAsterisk className="mr-2 h-4 w-4" />
+                      Токены доступа
+                    </Link>
                   </Button>
                 </SidebarMenuButton>
               </SidebarMenuItem>

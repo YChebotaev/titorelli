@@ -9,6 +9,7 @@ import { TokenService } from "./token-service";
 import { UserService } from "./user-service";
 import { UserSessionService } from "./user-session-service";
 import { DataMarkupService } from "./data-markup-service";
+import { AcccessTokenService } from "./access-tokens-service";
 
 const memoize = <T>(fn: () => T) => {
   let cache: T | null = null
@@ -27,3 +28,4 @@ export const getEmailClient = memoize(() => new EmailClient)
 export const getTokenService = memoize(() => new TokenService)
 export const getUserNotificationService = memoize(() => new UserNotificationService)
 export const getDataMarkupService = memoize(() => new DataMarkupService)
+export const getAccessTokensService = memoize(() => new AcccessTokenService)
