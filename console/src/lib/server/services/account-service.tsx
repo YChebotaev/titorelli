@@ -3,7 +3,11 @@ import toKebab from "kebab-case";
 import { PrismaClient } from "@prisma/client";
 import { ProfileAccountRoles } from "@/types/my-profile";
 import { mapFilter, mapFilterAsync } from "@/lib/utils";
-import { getInviteService, getUserService } from "./instances";
+import {
+  getInviteService,
+  getModelsService,
+  getUserService,
+} from "./instances";
 import { prismaClient } from "../prisma-client";
 import { addHours } from "date-fns";
 import { first, forEach, groupBy } from "lodash";
@@ -25,6 +29,10 @@ export class AccountService {
 
   get inviteService() {
     return getInviteService();
+  }
+
+  get modelsService() {
+    return getModelsService();
   }
 
   async getAccount(accountId: number) {
@@ -75,66 +83,71 @@ export class AccountService {
     members: { identity: string; role: string }[],
   ) {
     if (await this.accountNameTaken(accountName)) {
-      throw new Error(`Account name = "${name}" taken`);
+      throw new Error(`Account nam
+        e = "${name}" taken`);
     }
 
-    const createdInvites = await this.prisma.$transaction(async (t) => {
-      const account = await t.account.create({
-        data: {
-          name: accountName,
-        },
-      });
+    const [createdInvites, account] = await this.prisma.$transaction(
+      async (t) => {
+        const account = await t.account.create({
+          data: {
+            name: accountName,
+          },
+        });
 
-      await t.accountMember.create({
-        data: {
-          role: "owner",
-          accountId: account.id,
-          userId: ownerUserId,
-        },
-      });
-
-      const inviteInputs = await mapFilterAsync(
-        members,
-        async ({ identity, role }) => {
-          const identityType = this.userService.getIdentityType(identity);
-
-          if (!identityType) return null;
-
-          const user = await this.userService.getUserByIdentnty(identity);
-
-          if (user?.id === ownerUserId) return null;
-
-          return {
-            role,
-            userId: user?.id ?? undefined,
-            identityType,
-            email: identityType === "email" ? identity : undefined,
-            phone: identityType === "phone" ? identity : undefined,
-            username: identityType === "username" ? identity : undefined,
+        await t.accountMember.create({
+          data: {
+            role: "owner",
             accountId: account.id,
-            expiredAt: addHours(new Date(), this.inviteValidityPeriodInHours),
-          };
-        },
-      );
+            userId: ownerUserId,
+          },
+        });
 
-      const uniqueByUserIdInviteInputs: typeof inviteInputs = [];
+        const inviteInputs = await mapFilterAsync(
+          members,
+          async ({ identity, role }) => {
+            const identityType = this.userService.getIdentityType(identity);
 
-      forEach(groupBy(inviteInputs, "userId"), (invites, userIdStr) => {
-        if (userIdStr === "undefined") {
-          uniqueByUserIdInviteInputs.push(...invites);
-        } else {
-          uniqueByUserIdInviteInputs.push(first(invites)!);
-        }
-      });
+            if (!identityType) return null;
 
-      const createdInvites = await t.accountInvite.createManyAndReturn({
-        data: uniqueByUserIdInviteInputs,
-      });
+            const user = await this.userService.getUserByIdentnty(identity);
 
-      return createdInvites;
-    });
+            if (user?.id === ownerUserId) return null;
 
-    await this.inviteService.sendInvites(createdInvites);
+            return {
+              role,
+              userId: user?.id ?? undefined,
+              identityType,
+              email: identityType === "email" ? identity : undefined,
+              phone: identityType === "phone" ? identity : undefined,
+              username: identityType === "username" ? identity : undefined,
+              accountId: account.id,
+              expiredAt: addHours(new Date(), this.inviteValidityPeriodInHours),
+            };
+          },
+        );
+
+        const uniqueByUserIdInviteInputs: typeof inviteInputs = [];
+
+        forEach(groupBy(inviteInputs, "userId"), (invites, userIdStr) => {
+          if (userIdStr === "undefined") {
+            uniqueByUserIdInviteInputs.push(...invites);
+          } else {
+            uniqueByUserIdInviteInputs.push(first(invites)!);
+          }
+        });
+
+        const createdInvites = await t.accountInvite.createManyAndReturn({
+          data: uniqueByUserIdInviteInputs,
+        });
+
+        return [createdInvites, account];
+      },
+    );
+
+    await this.modelsService.initGenericModel(account.id);
+
+    await await this.inviteService.sendInvites(createdInvites);
   }
 
   /**
@@ -286,7 +299,7 @@ export class AccountService {
   }
 
   private async createAccountWithSingleOwner(userId: number, name: string) {
-    return this.prisma.$transaction(async (t) => {
+    const accountId = await this.prisma.$transaction(async (t) => {
       const account = await t.account.create({
         data: {
           name,
@@ -303,5 +316,9 @@ export class AccountService {
 
       return account.id;
     });
+
+    await this.modelsService.initGenericModel(accountId);
+
+    return accountId;
   }
 }

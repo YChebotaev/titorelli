@@ -8,6 +8,8 @@ import { type LeaveFormState } from '@/components/my-profile/accounts-list/accou
 export const sessionTokenCookieName = 'SID'
 export const activeAccountCookueName = 'AA'
 
+export const genericModelCode = 'generic'
+
 export const signupFormInitialState: SignupFormState = {
   defaultValues: {
     username: "",

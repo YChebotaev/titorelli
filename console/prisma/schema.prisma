@@ -226,14 +226,21 @@ model AccessToken {
 model ManagedBot {
   id                      Int                     @id @default(autoincrement())
   name                    String
-  tgUsername              String
-  tgFirstName             String
-  tgLastName              String
-  tgUserId                Int
-  tgBotToken              String
-  dockhostImage           String
-  dockhostContainer       String
-  dockhostProject         String
+  code                    String                  @unique
+  description             String
+  state                   String                  @default("created")
+  bypassTelemetry         Boolean                 @default(false)
+  tgUsername              String?
+  tgFirstName             String?
+  tgLastName              String?
+  tgUserId                Int?
+  tgBotToken              String?                 @unique
+  canJoinGroups           Boolean
+  canReadAllGroupMessages Boolean
+  supportsInlineQueries   Boolean
+  dockhostImage           String?
+  dockhostContainer       String?
+  dockhostProject         String?
   account                 Account                 @relation(fields: [accountId], references: [id])
   accountId               Int
   accessToken             AccessToken             @relation(fields: [accessTokenId], references: [id])
@@ -244,6 +251,7 @@ model ManagedBot {
   updatedAt               DateTime                @updatedAt
   @@index([accountId])
   @@index([accessTokenId])
+  @@index([code])
 }
 // #endregion
 
@@ -251,12 +259,15 @@ model ManagedBot {
 model ClassificationModel {
   id                      Int                     @id @default(autoincrement())
   name                    String
+  code                    String
+  description             String
   account                 Account                 @relation(fields: [accountId], references: [id])
   accountId               Int
   bots                    ManagedBot[]
   createdAt               DateTime                @default(now())
   updatedAt               DateTime                @updatedAt
   @@index([accountId])
+  @@index([code])
 }
 // #endregion
 

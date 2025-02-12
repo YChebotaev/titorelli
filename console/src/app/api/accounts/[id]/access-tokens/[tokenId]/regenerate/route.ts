@@ -1,4 +1,4 @@
-import { unmaskNumber } from "@/lib/server/keymask"
+import { maskNumber, unmaskNumber } from "@/lib/server/keymask"
 import { getAccessTokensService } from "@/lib/server/services/instances"
 import type { AccessTokenCreatedResultVm } from "@/types/access-tokens"
 import { NextRequest, NextResponse } from "next/server"
@@ -18,8 +18,8 @@ export const POST = async (req: NextRequest, { params: paramsPromise }: { params
 
   const accessTokensService = getAccessTokensService()
 
-  const token = await accessTokensService.regenerate(tokenId)
-  const result: AccessTokenCreatedResultVm = { token }
+  const { token, id } = await accessTokensService.regenerate(tokenId)
+  const result: AccessTokenCreatedResultVm = { token, id: maskNumber(id) }
 
   return NextResponse.json(result)
 }

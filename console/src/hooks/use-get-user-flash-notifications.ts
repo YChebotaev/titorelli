@@ -7,7 +7,7 @@ export const useGetUserFlashNotifications = (userId: string) => {
 
   return useQuery({
     queryKey: ['users', userId, 'notifications', 'flash'],
-    refetchInterval: 3000, /* each 3 seconds */
+    refetchInterval: 30000, /* each 30 seconds, debug only */
     async queryFn() {
       const { data } = await axios.get<UserNotificationVm[]>(`/api/users/${userId}/notifications/flash`)
 

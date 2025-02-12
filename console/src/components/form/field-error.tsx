@@ -1,4 +1,6 @@
 import { forwardRef, type HTMLAttributes } from "react";
+import { FieldErrors } from "react-hook-form";
+import { ErrorMessage, type Props } from "@hookform/error-message";
 import { cn } from "@/lib/utils";
 
 export type FieldErrorProps = HTMLAttributes<HTMLParagraphElement> & {
@@ -23,4 +25,23 @@ export const FieldError = forwardRef<HTMLParagraphElement, FieldErrorProps>(
     );
   },
 );
+
 FieldError.displayName = "FieldError";
+
+export const StyledErrorMessage = <
+  TFieldErrors extends FieldErrors,
+  TAs extends
+    | undefined
+    | React.ReactElement
+    | React.ComponentType<unknown>
+    | keyof JSX.IntrinsicElements,
+>(
+  props: Props<TFieldErrors, TAs>,
+) => (
+  <ErrorMessage
+    render={({ message }) => (
+      <div className="text-red-500 text-sm">{message}</div>
+    )}
+    {...props}
+  />
+);

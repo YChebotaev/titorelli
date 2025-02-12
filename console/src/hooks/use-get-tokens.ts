@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { useApiClient } from "./use-api-client"
 import { AccessTokenVm } from "@/types/access-tokens"
+import { useApiClient } from "./use-api-client"
 
-export const useGetTokens = (accountId: string, { initialData }: { initialData: AccessTokenVm[] }) => {
+export const useGetTokens = (accountId: string, { initialData }: { initialData?: AccessTokenVm[] }) => {
   const apiClient = useApiClient()
 
   return useSuspenseQuery({

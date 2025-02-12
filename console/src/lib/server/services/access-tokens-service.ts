@@ -13,7 +13,7 @@ export class AcccessTokenService {
   public async create(accountId: number, name: string, description?: string) {
     const token = this.generateToken()
 
-    await this.prisma.accessToken.create({
+    const { id } = await this.prisma.accessToken.create({
       data: {
         token,
         description,
@@ -22,7 +22,7 @@ export class AcccessTokenService {
       }
     })
 
-    return token
+    return { token, id }
   }
 
   public async revoke(tokenId: number) {
@@ -40,7 +40,7 @@ export class AcccessTokenService {
       data: { token }
     })
 
-    return token
+    return { token, id: tokenId }
   }
 
   private generateToken() {

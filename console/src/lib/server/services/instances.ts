@@ -10,6 +10,8 @@ import { UserService } from "./user-service";
 import { UserSessionService } from "./user-session-service";
 import { DataMarkupService } from "./data-markup-service";
 import { AcccessTokenService } from "./access-tokens-service";
+import { ModelsService } from "./models-service";
+import { BotService } from "./bot-service";
 
 const memoize = <T>(fn: () => T) => {
   let cache: T | null = null
@@ -29,3 +31,5 @@ export const getTokenService = memoize(() => new TokenService)
 export const getUserNotificationService = memoize(() => new UserNotificationService)
 export const getDataMarkupService = memoize(() => new DataMarkupService)
 export const getAccessTokensService = memoize(() => new AcccessTokenService)
+export const getModelsService = memoize(() => new ModelsService)
+export const getBotService = memoize(() => new BotService)

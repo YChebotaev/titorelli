@@ -1,13 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  Plus,
-  Bot,
-  Database,
-  LayoutDashboard,
-  SquareAsterisk,
-} from "lucide-react";
+import { Bot, Database, LayoutDashboard, SquareAsterisk } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,28 +17,16 @@ import {
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
-interface Bot {
-  id: string;
-  name: string;
-}
-
-const mockBots: Bot[] = [
-  { id: "1", name: "Бот 1" },
-  { id: "2", name: "Бот 2" },
-  { id: "3", name: "Бот 3" },
-];
-
 export const Sidebar: React.FC<{
-  active: "dashboard" | `bot-${string}` | `access-tokens` | "data-markup";
+  active:
+    | "dashboard"
+    | `bot-${string}`
+    | "access-tokens"
+    | "bots"
+    | "models"
+    | "data-markup";
   accountId: string;
 }> = ({ active, accountId }) => {
-  const [bots, setBots] = React.useState<Bot[]>(mockBots);
-
-  const addBot = () => {
-    const newBot = { id: `${bots.length + 1}`, name: `Бот ${bots.length + 1}` };
-    setBots([...bots, newBot]);
-  };
-
   return (
     <ShadSidebar className="mt-16">
       <SidebarContent>
@@ -89,37 +71,39 @@ export const Sidebar: React.FC<{
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Button variant="ghost" className="w-full justify-start">
-                    <Bot className="mr-2 h-4 w-4" />
-                    Боты
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start",
+                      active === "bots" && "bg-accent text-accent-foreground",
+                    )}
+                  >
+                    <Link
+                      className="w-full flex items-center justify-start"
+                      href={`/accounts/${accountId}/bots`}
+                    >
+                      <Bot className="mr-2 h-4 w-4" />
+                      Боты
+                    </Link>
                   </Button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {bots.map((bot) => (
-                <SidebarMenuItem key={bot.id}>
-                  <SidebarMenuButton asChild>
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start pl-8",
-                        active === `bot-${bot.id}` &&
-                          "bg-accent text-accent-foreground",
-                      )}
-                    >
-                      {bot.name}
-                    </Button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start pl-8"
-                    onClick={addBot}
+                    className={cn(
+                      "w-full justify-start",
+                      active === "models" && "bg-accent text-accent-foreground",
+                    )}
                   >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Добавить бота
+                    <Link
+                      className="w-full flex items-center justify-start"
+                      href={`/accounts/${accountId}/models`}
+                    >
+                      <Bot className="mr-2 h-4 w-4" />
+                      Модели
+                    </Link>
                   </Button>
                 </SidebarMenuButton>
               </SidebarMenuItem>

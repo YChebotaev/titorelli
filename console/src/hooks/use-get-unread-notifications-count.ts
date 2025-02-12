@@ -7,7 +7,7 @@ export const useGetUnreadNotificationsCount = (userId: string) => {
 
   return useQuery({
     queryKey: ['users', userId, 'notifications', 'unread-count'],
-    refetchInterval: 3000, /* each 3 seconds */
+    refetchInterval: 30000, /* each 30 seconds, debug only */
     async queryFn() {
       const { data } = await axios.get<UnreadCountVm>(`/api/users/${userId}/notifications/unread-count`)
 

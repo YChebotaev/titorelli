@@ -1,7 +1,7 @@
 import { maskNumber } from "@/lib/server/keymask"
-import type { AccessToken } from "@prisma/client"
+import type { ClassificationModel } from "@prisma/client"
 
-export type AccessTokenVm = {
+export type ModelVM = {
   id: string
   name: string
   description: string
@@ -9,26 +9,17 @@ export type AccessTokenVm = {
   updatedAt: string
 }
 
-export type AccessTokenCreatedRequestDataVm = {
-  name: string
-  description?: string
-}
-
-export type AccessTokenCreatedResultVm = {
-  id: string
-  token: string
-}
-
-export const mapAccessTokenDtoToVm = ({
+export const mapModelDtoToVm = ({
   id,
   name,
   description,
   createdAt,
   updatedAt
-}: AccessToken): AccessTokenVm => ({
+}: ClassificationModel): ModelVM => ({
   id: maskNumber(id),
   name,
   description,
   createdAt: createdAt.toISOString(),
   updatedAt: updatedAt.toISOString()
 })
+
