@@ -89,7 +89,7 @@ export function BotList() {
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
                 {bots.map((bot) => (
-                  <BotListItem key={bot.id} bot={bot} />
+                  <BotListItem key={bot.id} bot={bot} accountId={String(accountId)} />
                 ))}
               </tbody>
             </table>

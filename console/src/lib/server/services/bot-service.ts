@@ -1,7 +1,6 @@
-import { inspect } from 'node:util'
-
 import slugify from "@sindresorhus/slugify";
 import { prismaClient } from "../prisma-client";
+import { BotState } from '@/types/bot';
 
 export class BotService {
   private prisma = prismaClient
@@ -57,13 +56,68 @@ export class BotService {
     })
   }
 
-  public async start(botId: number) { }
+  public async changeState(botId: number, newState: BotState) {
+    const bot = await this.prisma.managedBot.findFirst({
+      where: { id: botId }
+    })
 
-  public async stop(botId: number) { }
+    if (!bot)
+      return null
 
-  public async abort(botId: number) { }
+    if (['created', 'starting', 'stopping', 'failed'].includes(newState))
+      return null
 
-  public async restart(botId: number) { }
+    switch (`${bot.state}/${newState}`) {
+      case 'starting/stopped':
+        return this.abort(botId)
+      case "created/running":
+        return this.start(botId)
+      case "stopped/running":
+        return this.start(botId)
+      case "failed/running":
+        return this.restart(botId)
+      case "running/stopped":
+        return this.stop(botId)
+      default:
+        return null
+    }
+  }
+
+  public async getBotState(botId: number) {
+    const bot = await this.prisma.managedBot.findFirst({
+      where: { id: botId }
+    })
+
+    return (bot?.state as BotState | undefined) ?? null
+  }
+
+  private async start(botId: number) {
+    await this.prisma.managedBot.update({
+      where: { id: botId },
+      data: { state: 'starting' }
+    })
+  }
+
+  private async stop(botId: number) {
+    await this.prisma.managedBot.update({
+      where: { id: botId },
+      data: { state: 'stopping' }
+    })
+  }
+
+  private async abort(botId: number) {
+    await this.prisma.managedBot.update({
+      where: { id: botId },
+      data: { state: 'stopping' }
+    })
+  }
+
+  private async restart(botId: number) {
+    await this.prisma.managedBot.update({
+      where: { id: botId },
+      data: { state: 'starting' }
+    })
+  }
 
   private async tgGetMe(botToken: string) {
     try {

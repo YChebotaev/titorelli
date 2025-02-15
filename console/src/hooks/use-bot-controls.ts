@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { BotCreateRequestDataVm } from '@/types/bot'
+import { BotCreateRequestDataVm, BotState, BotStateChangeResultVm } from '@/types/bot'
 import { useApiClient } from "./use-api-client"
 
 export const useBotControls = (accountId: string) => {
@@ -17,7 +17,19 @@ export const useBotControls = (accountId: string) => {
     }
   })
 
+  const { mutate: stateMutation } = useMutation({
+    async mutationFn({ id, state }: { id: string, state: BotState }) {
+      const { data } = await apiClient.post<BotStateChangeResultVm>(`/api/accounts/${accountId}/bots/${id}/state`, { state })
+
+      return data
+    },
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ['accounts', accountId, 'bots'] })
+    }
+  })
+
   return {
-    createMutation
+    createMutation,
+    stateMutation
   }
 }

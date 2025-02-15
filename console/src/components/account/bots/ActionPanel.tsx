@@ -1,56 +1,69 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Play, Square, RotateCcw, Trash2, Edit, BarChart } from "lucide-react"
-import type { BotState } from "@/types/bot"
-import ConfirmationModal from "./ConfirmationModal"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Play, Square, RotateCcw, Trash2, Edit, BarChart } from "lucide-react";
+import type { BotState } from "@/types/bot";
+import ConfirmationModal from "./ConfirmationModal";
 
 interface ActionPanelProps {
-  botState: BotState
-  onEdit: () => void
-  onDelete: () => void
-  onStateChange: () => void
-  onViewStats: () => void
+  botState: BotState;
+  onEdit: () => void;
+  onDelete: () => void;
+  onStateChange: (state: BotState) => void;
+  onViewStats: () => void;
 }
 
-export default function ActionPanel({ botState, onEdit, onDelete, onStateChange, onViewStats }: ActionPanelProps) {
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+export default function ActionPanel({
+  botState,
+  onEdit,
+  onDelete,
+  onStateChange,
+  onViewStats,
+}: ActionPanelProps) {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const createChangeStateHandler = (state: BotState) => () =>
+    onStateChange(state);
 
   const getStateChangeButton = () => {
     switch (botState) {
-      case "Created":
-      case "Stopped":
+      case "created":
+      case "stopped":
         return (
-          <Button size="sm" onClick={onStateChange}>
-            <Play className="w-4 h-4 mr-1" /> Start
+          <Button size="sm" onClick={createChangeStateHandler("running")}>
+            <Play className="w-4 h-4 mr-1" /> Запустить
           </Button>
-        )
-      case "Running":
+        );
+      case "running":
         return (
-          <Button size="sm" onClick={onStateChange}>
-            <Square className="w-4 h-4 mr-1" /> Stop
+          <Button size="sm" onClick={createChangeStateHandler("stopped")}>
+            <Square className="w-4 h-4 mr-1" /> Остановить
           </Button>
-        )
-      case "Starting":
-      case "Stopping":
+        );
+      case "starting":
+      case "stopping":
         return (
-          <Button size="sm" onClick={onStateChange}>
-            Abort
+          <Button size="sm" onClick={createChangeStateHandler("stopped")}>
+            Отменить
           </Button>
-        )
-      case "Failed":
+        );
+      case "failed":
         return (
-          <Button size="sm" onClick={onStateChange}>
-            <RotateCcw className="w-4 h-4 mr-1" /> Restart
+          <Button size="sm" onClick={createChangeStateHandler("running")}>
+            <RotateCcw className="w-4 h-4 mr-1" /> Перезагрузить
           </Button>
-        )
+        );
       default:
-        return null
+        return (
+          <Button size="sm" onClick={createChangeStateHandler("running")}>
+            <RotateCcw className="w-4 h-4 mr-1" /> Сделать что-нибудь
+          </Button>
+        );
     }
-  }
+  };
 
-  const isDeleteDisabled = !["Created", "Stopped", "Failed"].includes(botState)
+  const isDeleteDisabled = !["created", "stopped", "failed"].includes(botState);
 
   return (
     <div className="flex space-x-2">
@@ -58,7 +71,12 @@ export default function ActionPanel({ botState, onEdit, onDelete, onStateChange,
       <Button size="sm" variant="outline" onClick={onEdit}>
         <Edit className="w-4 h-4" />
       </Button>
-      <Button size="sm" variant="outline" onClick={() => setIsDeleteModalOpen(true)} disabled={isDeleteDisabled}>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => setIsDeleteModalOpen(true)}
+        disabled={isDeleteDisabled}
+      >
         <Trash2 className="w-4 h-4" />
       </Button>
       <Button size="sm" variant="outline" onClick={onViewStats}>
@@ -68,13 +86,12 @@ export default function ActionPanel({ botState, onEdit, onDelete, onStateChange,
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={() => {
-          setIsDeleteModalOpen(false)
-          onDelete()
+          setIsDeleteModalOpen(false);
+          onDelete();
         }}
         title="Delete Bot"
         message="Are you sure you want to delete this bot? This action cannot be undone."
       />
     </div>
-  )
+  );
 }
-
