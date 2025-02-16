@@ -1,17 +1,20 @@
-import { promisify } from 'node:util'
-import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { gunzip as baseUnzip } from 'node:zlib'
 import { execSync } from 'node:child_process'
 import { mkdirpSync } from 'mkdirp'
-
-const unzip = promisify(baseUnzip)
+import { existsSync } from 'node:fs'
 
 export class DockhostInstaller {
   private downloadDir = path.join(__dirname, 'downloads')
-  public executableFilename = path.join(this.downloadDir, 'dockhost')
+  public executableFilename: string
+
+  constructor() {
+    this.executableFilename = path.join(this.downloadDir, this.getDockhostTarget())
+  }
 
   public async install() {
+    if (existsSync(this.executableFilename))
+      return true
+
     mkdirpSync(this.downloadDir)
 
     await this.downloadDockhostCli()
@@ -23,9 +26,11 @@ export class DockhostInstaller {
     if (target == null)
       return null
 
+    const downloadUrl = `https://download.dockhost.ru/cli/releases/latest/${target}.zip`
+
     execSync(`curl --fail --location --output "${this.executableFilename}.zip" "https://download.dockhost.ru/cli/releases/latest/${target}.zip"`)
 
-    execSync(`unzip -oq ${this.executableFilename}.zip -d ${path.dirname(this.executableFilename)}`)
+    execSync(`unzip -oq ${this.executableFilename}.zip -d ${this.downloadDir}`)
   }
 
   private getDockhostTarget() {

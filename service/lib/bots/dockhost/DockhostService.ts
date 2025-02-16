@@ -1,8 +1,20 @@
-import { execFile as baseExecFile } from 'node:child_process'
-import { promisify } from 'node:util'
+import { execSync } from 'node:child_process'
 import { DockhostInstaller } from "./DockhostInstaller"
 
-const execFile = promisify(baseExecFile)
+export type ContainerListResultItem = {
+  id: string
+  name: string
+  image: string
+  replicas: string
+  cpuLimit: string
+  memoryLimit: string
+  cpuUse: string
+  memoryUse: string
+  receive: string
+  transmit: string
+  ports: string
+  status: 'creating' | 'updating' | 'ready' | 'stopped' | 'paused'
+}
 
 export class DockhostService {
   private installer = new DockhostInstaller()
@@ -117,7 +129,58 @@ export class DockhostService {
   public async listContainer(project: string) {
     await this.ready
 
-    return this.exec('container', 'list', `--project ${project}`)
+    const out = await this.exec('container', 'list', `--project ${project}`)
+
+    console.log('out:', out)
+
+    return this.listContainerOutToJson(out)
+  }
+
+  private listContainerOutToJson(out: string) {
+    const lines = out.trim().split(/\n+/)
+
+    lines.shift()
+
+    const parsed: ContainerListResultItem[] = []
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim()
+      const [
+        id,
+        name,
+        image,
+        replicas,
+        cpuLimit,
+        memoryLimit,
+        memoryLimitUnit,
+        cpuUse,
+        memoryUse,
+        memoryUseUnit,
+        receive,
+        receiveUnit,
+        transmit,
+        transmitUnit,
+        ports,
+        status,
+      ] = line.split(/[\s\t]+/)
+
+      parsed.push({
+        id,
+        name,
+        image,
+        replicas,
+        cpuLimit,
+        memoryLimit: `${memoryLimit} ${memoryLimitUnit}`,
+        cpuUse,
+        memoryUse: `${memoryUse} ${memoryUseUnit}`,
+        receive: `${receive} ${receiveUnit}`,
+        transmit: `${transmit} ${transmitUnit}`,
+        ports,
+        status: status as ContainerListResultItem['status'],
+      })
+    }
+
+    return parsed
   }
 
   public async startContainer(project: string, name: string) {
@@ -133,15 +196,16 @@ export class DockhostService {
   }
 
   private async exec(...args: string[]) {
-    const { stdout, stderr } = await execFile(this.installer.executableFilename, args, {
+    const fullCmd = `${this.installer.executableFilename} ${args.join(' ')}`
+
+    const stdout = execSync(fullCmd, {
       encoding: 'utf-8',
+      shell: 'sh',
+      stdio: 'pipe',
       env: {
         DOCKHOST_TOKEN: this.token
       }
     })
-
-    if (stderr)
-      throw new Error(stderr)
 
     return stdout
   }

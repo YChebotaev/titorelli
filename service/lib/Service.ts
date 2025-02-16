@@ -17,6 +17,13 @@ import type { ServiceAuthClient } from './types'
 import { TelemetryServer } from './telemetry/TelemetryServer'
 import type { ChatInfo, MessageInfo, SelfInfo, UserInfo } from './telemetry/types'
 import { MarkupServer } from './markup/MarkupServer'
+import { BotsService } from './bots'
+
+export type OauthTokenResult = {
+  access_token: string
+  token_type: 'Bearer'
+  scope: string
+}
 
 declare module 'fastify' {
   interface FastifyInstance extends FastifyJwtNamespace<{ namespace: 'jwt' }> {
@@ -34,6 +41,7 @@ export type ServiceConfig = {
   jwtSecret: string
   telemetry: TelemetryServer
   markup: MarkupServer
+  bots: BotsService
   oauthClients: ServiceAuthClient[]
 }
 
@@ -54,6 +62,7 @@ export class Service {
   private oauthClients: ServiceAuthClient[]
   private telemetry: TelemetryServer
   private markup: MarkupServer
+  private bots: BotsService
   private ready: Promise<void>
   private modelPredictPath = '/models/:modelId/predict'
   private modelTrainPath = '/models/:modelId/train'
@@ -83,6 +92,7 @@ export class Service {
     jwtSecret,
     telemetry,
     markup,
+    bots,
     oauthClients
   }: ServiceConfig) {
     this.logger = logger
@@ -94,6 +104,7 @@ export class Service {
     this.jwtSecret = jwtSecret
     this.telemetry = telemetry
     this.markup = markup
+    this.bots = bots
     this.oauthClients = oauthClients
     this.ready = this.initialize()
   }
@@ -786,31 +797,66 @@ export class Service {
             }
           }
         }
-      }, ({ body }) => {
-        const client = this.oauthClients.find(({ id }) => id === body.client_id)
+      }, async ({ body }) => {
+        let result: OauthTokenResult | null = null
 
-        if (!client) {
-          throw new Error(`Client with id = "${body.client_id}" not registered within system`)
+        try {
+          result = await this.legacyTokenHandler(body.client_id, body.client_secret, body.scope)
+        } catch (e) {
+          this.logger.info('Client with id = %s attempted to get token with legacy path, errored: %j', body.client_id, e)
         }
 
-        if (client.secret !== body.client_secret)
-          throw new Error('Client credentials not valid')
+        result = await this.modernTokenHandler(body.client_id, body.client_secret, body.scope)
 
-        const requestScopes = body.scope?.split(' ').map(s => s.trim()).filter(s => s) ?? []
-        const scopes = requestScopes.filter(s => client.scopes.includes(s))
-
-        const token = this.service.jwt.sign({
-          sub: body.client_id,
-          scopes: scopes
-        })
-
-        return {
-          access_token: token,
-          token_type: 'Bearer',
-          expires_id: -1,
-          scope: scopes.join(' ')
-        }
+        return result
       })
+  }
+
+  private async legacyTokenHandler(clientId: string, clientSecret: string, scope: string) {
+    const client = this.oauthClients.find(({ id }) => id === clientId)
+
+    if (!client) {
+      throw new Error(`Client with id = "${clientId}" not registered within system`)
+    }
+
+    if (client.secret !== clientSecret)
+      throw new Error('Client credentials not valid')
+
+    const requestScopes = scope?.split(' ').map(s => s.trim()).filter(s => s) ?? []
+    const scopes = requestScopes.filter(s => client.scopes.includes(s))
+
+    const token = this.service.jwt.sign({
+      sub: clientId,
+      scopes: scopes
+    })
+
+    return {
+      access_token: token,
+      token_type: 'Bearer',
+      expires_id: -1,
+      scope: scopes.join(' ')
+    } as OauthTokenResult
+  }
+
+  private async modernTokenHandler(clientId: string, clientSecret: string, scope: string) {
+    const requestScopes = scope?.split(' ').map(s => s.trim()).filter(s => s) ?? []
+
+    const [hasAccess, grantedScopes] = await this.bots.assertIdentity(clientId, clientSecret, requestScopes)
+
+    if (hasAccess) {
+      const token = this.service.jwt.sign({
+        sub: clientId,
+        scopes: scope
+      })
+
+      return {
+        access_token: token,
+        token_type: 'Bearer',
+        scope: grantedScopes.join(' ')
+      } as OauthTokenResult
+    }
+
+    return null
   }
 
   private async installPluginsEnd() {

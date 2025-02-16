@@ -8,7 +8,8 @@
     "logistic-regression",
     "telemetry-client",
     "bot-core",
-    "text-client"
+    "text-client",
+    "titus-bot"
   ],
   "author": "YChebotaev",
   "license": "UNLICENSED",

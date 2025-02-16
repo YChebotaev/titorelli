@@ -40,6 +40,7 @@ export class BotService {
         code: slugify(name),
         description,
         bypassTelemetry,
+        scopes: 'generic/predict generic/train generic/exact_match/train generic/totems/train cas/predict cas/train',
         state: 'created',
         accountId,
         accessTokenId,

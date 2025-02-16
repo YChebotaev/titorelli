@@ -14,6 +14,7 @@ import {
 import { Service } from './lib/Service'
 import { TelemetryServer } from './lib/telemetry/TelemetryServer'
 import { MarkupServer } from './lib/markup/MarkupServer'
+import { BotsService } from './lib/bots'
 
 const oauthClientsFilename = path.join(__dirname, 'oauth-clients.yaml')
 
@@ -46,5 +47,13 @@ new Service({
   jwtSecret: process.env.JWT_SECRET!,
   oauthClients: yaml.parse(readFileSync(oauthClientsFilename, 'utf-8')),
   telemetry: new TelemetryServer(),
-  markup: new MarkupServer()
+  markup: new MarkupServer(),
+  bots: new BotsService({
+    dockhostToken: process.env.DOCKHOST_TOKEN!,
+    dbFilename: path.join(__dirname, '../console/prisma/dev.db'),
+    baseDockhostProject: 'react-ru-bot',
+    baseDockhostImage: 'ghcr.io/ychebotaev/titus-bot',
+    baseDockhostContainer: 'titus-bot',
+    logger
+  })
 }).listen()

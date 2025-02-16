@@ -226,10 +226,12 @@ model AccessToken {
 model ManagedBot {
   id                      Int                     @id @default(autoincrement())
   name                    String
+  engine                  String                  @default("titus")
   code                    String                  @unique
   description             String
   state                   String                  @default("created")
   bypassTelemetry         Boolean                 @default(false)
+  scopes                  String                  @default("")
   tgUsername              String?
   tgFirstName             String?
   tgLastName              String?
