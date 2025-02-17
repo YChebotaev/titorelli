@@ -1,14 +1,14 @@
-import { execSync } from 'node:child_process'
+import { exec } from 'node:child_process'
 import { DockhostInstaller } from "./DockhostInstaller"
 
 export type ContainerListResultItem = {
   id: string
   name: string
   image: string
-  replicas: string
-  cpuLimit: string
+  replicas: number
+  cpuLimit: number
   memoryLimit: string
-  cpuUse: string
+  cpuUse: number
   memoryUse: string
   receive: string
   transmit: string
@@ -117,97 +117,102 @@ export class DockhostService {
     if (project)
       args.push(`--project ${project}`)
 
-    return this.exec('container', 'create', ...args)
+    return new Promise<string>((resolve, reject) => {
+      let t: NodeJS.Timeout
+
+      this.exec(`container create ${args.join(' ')}`)
+        .then(resolve, reject)
+        .finally(() => {
+          clearTimeout(t)
+        })
+
+      if (replicas === 0) {
+        t = setTimeout(() => {
+          resolve('--succeed-by-timeout--')
+        }, 1000)
+      }
+    })
   }
 
   public async deleteContainer(project: string, name: string) {
     await this.ready
 
-    return this.exec('container', 'delete', `--name ${name} --project ${project}`)
+    return this.exec(`container delete --name ${name} --project ${project}`)
   }
 
   public async listContainer(project: string) {
     await this.ready
 
-    const out = await this.exec('container', 'list', `--project ${project}`)
-
-    console.log('out:', out)
-
-    return this.listContainerOutToJson(out)
+    return this.exec<ContainerListResultItem[]>(`container list --project ${project} --json`, this.parseListOutput)
   }
 
-  private listContainerOutToJson(out: string) {
-    const lines = out.trim().split(/\n+/)
+  private parseListOutput = (out: string) => {
+    const rawJson = JSON.parse(out)
 
-    lines.shift()
-
-    const parsed: ContainerListResultItem[] = []
-
-    for (const rawLine of lines) {
-      const line = rawLine.trim()
-      const [
-        id,
-        name,
-        image,
-        replicas,
-        cpuLimit,
-        memoryLimit,
-        memoryLimitUnit,
-        cpuUse,
-        memoryUse,
-        memoryUseUnit,
-        receive,
-        receiveUnit,
-        transmit,
-        transmitUnit,
-        ports,
-        status,
-      ] = line.split(/[\s\t]+/)
-
-      parsed.push({
-        id,
-        name,
-        image,
-        replicas,
-        cpuLimit,
-        memoryLimit: `${memoryLimit} ${memoryLimitUnit}`,
-        cpuUse,
-        memoryUse: `${memoryUse} ${memoryUseUnit}`,
-        receive: `${receive} ${receiveUnit}`,
-        transmit: `${transmit} ${transmitUnit}`,
-        ports,
-        status: status as ContainerListResultItem['status'],
-      })
-    }
-
-    return parsed
+    return rawJson.map(it => Object.fromEntries(
+      Object.entries(it)
+        .map(([key, value]) => [key.toLowerCase(), value]))
+    )
   }
 
   public async startContainer(project: string, name: string) {
     await this.ready
 
-    return this.exec('container', 'start', name, `--project ${project}`)
+    return this.exec(`container start ${name} --project ${project}`)
+  }
+
+  public async scaleContainer(name: string, replicas: number, project: string) {
+    await this.ready
+
+    return this.exec(`container scale ${name} --replicas ${replicas} --project ${project}`)
   }
 
   public async stopContainer(project: string, name: string) {
     await this.ready
 
-    return this.exec('container', 'stop', name, `--project ${project}`)
+    return this.exec(`container stop ${name} --project ${project}`)
   }
 
-  private async exec(...args: string[]) {
-    const fullCmd = `${this.installer.executableFilename} ${args.join(' ')}`
+  public exec(commandWithArgs: string): Promise<string>
+  public exec<T>(commandWithArgs: string, responseParser: (out: string) => Promise<T>): T
+  public async exec<T>(commandWithArgs: string, responseParser?: (out: string) => T | Promise<T>) {
+    console.group('exec()')
+    console.log('commandWithArgs:', commandWithArgs)
+    console.groupEnd()
 
-    const stdout = execSync(fullCmd, {
-      encoding: 'utf-8',
-      shell: 'sh',
-      stdio: 'pipe',
-      env: {
-        DOCKHOST_TOKEN: this.token
-      }
+    return new Promise<T | string>((resolve, reject) => {
+      exec(`${this.installer.executableFilename} ${commandWithArgs}`, {
+        encoding: 'utf-8',
+        shell: 'sh',
+        env: { DOCKHOST_TOKEN: this.token }
+      }, (error, stdout, stderr) => {
+        if (error) {
+          return reject(error)
+        }
+
+        if (stderr.trim()) {
+          return reject(new Error(stderr))
+        }
+
+        let result: string | T | Promise<T> = stdout
+
+        if (responseParser) {
+          result = responseParser(stdout)
+        } else {
+          return resolve(result)
+        }
+
+        if (typeof result === 'object' && 'then' in result) {
+          return result.then(resolve, reject)
+        } else {
+          return resolve(result)
+        }
+      })
+    }).then((result) => {
+      console.log('command result:', result)
+
+      return result
     })
-
-    return stdout
   }
 
   private async initialize() {

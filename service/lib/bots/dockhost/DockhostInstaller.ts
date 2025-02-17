@@ -26,9 +26,7 @@ export class DockhostInstaller {
     if (target == null)
       return null
 
-    const downloadUrl = `https://download.dockhost.ru/cli/releases/latest/${target}.zip`
-
-    execSync(`curl --fail --location --output "${this.executableFilename}.zip" "https://download.dockhost.ru/cli/releases/latest/${target}.zip"`)
+    execSync(`curl --fail --location --output "${this.executableFilename}.zip" "https://download.dockhost.ru/cli/releases/master/${target}.zip"`)
 
     execSync(`unzip -oq ${this.executableFilename}.zip -d ${this.downloadDir}`)
   }

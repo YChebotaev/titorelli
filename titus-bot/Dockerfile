@@ -32,6 +32,7 @@ FROM node:${NODE_VERSION}-alpine
 
 ENV NODE_ENV=production
 
+# DEBUG ONLY
 WORKDIR /usr/run/titus-bot
 
 # RUN npm install pino

@@ -224,33 +224,35 @@ model AccessToken {
 
 // #region ManagedBot
 model ManagedBot {
-  id                      Int                     @id @default(autoincrement())
-  name                    String
-  engine                  String                  @default("titus")
-  code                    String                  @unique
-  description             String
-  state                   String                  @default("created")
-  bypassTelemetry         Boolean                 @default(false)
-  scopes                  String                  @default("")
-  tgUsername              String?
-  tgFirstName             String?
-  tgLastName              String?
-  tgUserId                Int?
-  tgBotToken              String?                 @unique
-  canJoinGroups           Boolean
-  canReadAllGroupMessages Boolean
-  supportsInlineQueries   Boolean
-  dockhostImage           String?
-  dockhostContainer       String?
-  dockhostProject         String?
-  account                 Account                 @relation(fields: [accountId], references: [id])
-  accountId               Int
-  accessToken             AccessToken             @relation(fields: [accessTokenId], references: [id])
-  accessTokenId           Int
-  model                   ClassificationModel     @relation(fields: [modelId], references: [id])
-  modelId                 Int
-  createdAt               DateTime                @default(now())
-  updatedAt               DateTime                @updatedAt
+  id                        Int                     @id @default(autoincrement())
+  name                      String
+  engine                    String                  @default("titus")
+  code                      String                  @unique
+  description               String
+  state                     String                  @default("created")
+  bypassTelemetry           Boolean                 @default(false)
+  scopes                    String                  @default("")
+  tgUsername                String?
+  tgFirstName               String?
+  tgLastName                String?
+  tgUserId                  Int?
+  tgBotToken                String?                 @unique
+  canJoinGroups             Boolean
+  canReadAllGroupMessages   Boolean
+  supportsInlineQueries     Boolean
+  dockhostImage             String?
+  dockhostContainer         String?
+  dockhostProject           String?
+  dockhostStatus            String?
+  dockhostStatusUpdatedAt   DateTime?
+  account                   Account                 @relation(fields: [accountId], references: [id])
+  accountId                 Int
+  accessToken               AccessToken             @relation(fields: [accessTokenId], references: [id])
+  accessTokenId             Int
+  model                     ClassificationModel     @relation(fields: [modelId], references: [id])
+  modelId                   Int
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @updatedAt
   @@index([accountId])
   @@index([accessTokenId])
   @@index([code])
