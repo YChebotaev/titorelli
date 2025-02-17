@@ -25,6 +25,8 @@ const bot = new Bot({
   titorelliServiceUrl: process.env.TITORELLI_HOST,
 })
 
-bot.launch()
-  .catch(() => process.exit(1))
-  .then(() => process.exit(0))
+setInterval(() => { }, 3000)
+
+// bot.launch()
+//   .catch(() => process.exit(1))
+//   .then(() => process.exit(0))
