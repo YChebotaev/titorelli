@@ -80,6 +80,8 @@ export class Service {
   private markupMemberPath = '/markup/members/:memberId'
   private casPredictPath = '/cas/predict'
   private casTrainPath = '/cas/train'
+  private botsConvergePath = '/bots/converge'
+  private botsLivenessPath = '/bots/liveness'
   private ouathTokenPath = '/oauth2/token'
 
   constructor({
@@ -139,6 +141,9 @@ export class Service {
     await this.installMarkupExamples()
     await this.installMarkupLabels()
     await this.installMarkupMembers()
+
+    await this.installBotsConvergeRoute()
+    await this.installBotsLivenessRoute()
 
     await this.installOauthTokenRoute()
 
@@ -760,6 +765,52 @@ export class Service {
       },
       async ({ query: { tgUserId } }) => {
         return this.markup.getMemberByTgUserId(tgUserId)
+      }
+    )
+  }
+
+  private async installBotsConvergeRoute() {
+    await this.service.post<{
+      Querystring: {
+        botId: number
+      }
+    }>(
+      this.botsConvergePath,
+      {
+        schema: {
+          querystring: {
+            type: 'object',
+            properties: {
+              botId: { type: 'number' }
+            }
+          }
+        }
+      },
+      async ({ query: { botId } }) => {
+        return this.bots.convergeFor(botId)
+      }
+    )
+  }
+
+  private async installBotsLivenessRoute() {
+    await this.service.post<{
+      Querystring: {
+        clientId: string
+      }
+    }>(
+      this.botsLivenessPath,
+      {
+        schema: {
+          querystring: {
+            type: 'object',
+            properties: {
+              clientId: { type: 'string' }
+            }
+          }
+        }
+      },
+      async ({ query: { clientId } }) => {
+        return this.bots.reportAlive(clientId)
       }
     )
   }

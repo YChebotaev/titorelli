@@ -1,6 +1,8 @@
 import slugify from "@sindresorhus/slugify";
 import { prismaClient } from "../prisma-client";
 import { BotState } from '@/types/bot';
+import axios from "axios";
+import { env } from "../env";
 
 export class BotService {
   private prisma = prismaClient
@@ -118,6 +120,10 @@ export class BotService {
       where: { id: botId },
       data: { state: 'starting' }
     })
+  }
+
+  public async converge(botId: number) {
+    await axios.post(`${env.TITORELLI_HOST}/bots/converge`, null, { params: { botId } })
   }
 
   private async tgGetMe(botToken: string) {

@@ -21,6 +21,8 @@ export const POST = async (req: NextRequest, { params: paramsPromise }: { params
   const botService = getBotService()
   await botService.changeState(botId, state)
 
+  await botService.converge(botId)
+
   const newState = await botService.getBotState(botId)
 
   return NextResponse.json({ state: newState })

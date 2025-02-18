@@ -51,6 +51,35 @@ export class BotsService {
     }
   }
 
+  private aliveTimeouts = new Map<number, NodeJS.Timeout | undefined>()
+
+  public async reportAlive(clientId: string) {
+    const [botId, accountId] = this.unmaskClientId(clientId)
+
+    if (!botId || !accountId)
+      return null
+
+    await this.db.knex('ManagedBot')
+      .update<BotRecord>({ state: 'running' })
+      .where('id', botId)
+      .andWhere('accountId', accountId)
+
+    let t = this.aliveTimeouts.get(botId)
+
+    clearTimeout(t)
+
+    this.aliveTimeouts.set(botId, undefined)
+
+    t = setTimeout(async () => {
+      await this.db.knex('ManagedBot')
+        .update<BotRecord>({ state: 'failed' })
+        .where('id', botId)
+        .andWhere('accountId', accountId)
+    }, 30 * 1000 /* 30 seconds */)
+
+    this.aliveTimeouts.set(botId, t)
+  }
+
   public async start(botId: number) {
     await this.db
       .knex('ManagedBot')
