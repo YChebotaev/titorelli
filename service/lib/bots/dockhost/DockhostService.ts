@@ -1,5 +1,21 @@
 import { exec } from 'node:child_process'
+const camelcaseKeysPromise = import('camelcase-keys')
 import { DockhostInstaller } from "./DockhostInstaller"
+
+export type ContainerInstanceStatus = 'creating' | 'updating' | 'ready' | 'stopped' | 'paused'
+
+export type ContainerListInstanceItem = {
+  id: string
+  cpuUse: number
+  memoryUse: string
+  ip: string
+  receive: string
+  transmit: string
+  isError: boolean
+  errorMsg: string | null
+  restartCount: number
+  status: ContainerInstanceStatus
+}
 
 export type ContainerListResultItem = {
   id: string
@@ -13,7 +29,8 @@ export type ContainerListResultItem = {
   receive: string
   transmit: string
   ports: string
-  status: 'creating' | 'updating' | 'ready' | 'stopped' | 'paused'
+  status: ContainerInstanceStatus
+  instances?: ContainerListInstanceItem[]
 }
 
 export class DockhostService {
@@ -146,13 +163,11 @@ export class DockhostService {
     return this.exec<ContainerListResultItem[]>(`container list --project ${project} --json`, this.parseListOutput)
   }
 
-  private parseListOutput = (out: string) => {
+  private parseListOutput = async (out: string) => {
     const rawJson = JSON.parse(out)
+    const { default: camelcaseKeys } = await camelcaseKeysPromise
 
-    return rawJson.map(it => Object.fromEntries(
-      Object.entries(it)
-        .map(([key, value]) => [key.toLowerCase(), value]))
-    )
+    return camelcaseKeys<ContainerListResultItem[]>(rawJson, { deep: true })
   }
 
   public async startContainer(project: string, name: string) {

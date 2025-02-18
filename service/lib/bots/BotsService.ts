@@ -1,6 +1,6 @@
 import { type Logger } from "pino";
 import { Db } from "../Db";
-import { DockhostService } from "./dockhost";
+import { DockhostService, ContainerInstanceStatus } from "./dockhost";
 
 export type BotRecord = {
   id: number
@@ -15,7 +15,7 @@ export type BotRecord = {
 
 export class BotsService {
   private dockhost: DockhostService
-  private db: Db
+  public /* public for tests */ db: Db
   private siteOrigin = process.env.SITE_ORIGIN
   private baseDockhostProject: string
   private baseDockhostContainer: string
@@ -51,12 +51,17 @@ export class BotsService {
     }
   }
 
-  public async convergeFor(botId: number) {
-    const bot = await this.db.knex
-      .select('*')
-      .from('ManagedBot')
+  public async start(botId: number) {
+    await this.db
+      .knex('ManagedBot')
+      .update<BotRecord>({ state: 'starting' })
       .where('id', botId)
-      .first<BotRecord>()
+
+    await this.convergeFor(botId)
+  }
+
+  public async convergeFor(botId: number) {
+    const bot = await this.getBot(botId);
 
     if (!bot)
       return false
@@ -77,6 +82,14 @@ export class BotsService {
     }
   }
 
+  private async getBot(botId: number) {
+    return this.db.knex
+      .select('*')
+      .from('ManagedBot')
+      .where('id', botId)
+      .first<BotRecord>()
+  }
+
   private async pushState(bot: BotRecord) {
     const { state: botState } = bot
     const containerStatus = await this.getContainerStatusFor(bot)
@@ -86,60 +99,104 @@ export class BotsService {
 
     switch (fullState) {
       case 'created/creating':
-        return
       case "created/stopped":
-        // Нормальное состояние, если контейнер создан
-        // без реплик (а он создан без реплик),
-        // то это нормально, что он вначале остановлен
-        return this.startContainerFor(bot)
       case "created/updating":
-        return
       case "created/ready":
       case "created/paused":
+        return null
       case "starting/stopped":
+        return this.startContainerFor(bot)
       case "starting/creating":
+        return null // noop
       case "starting/updating":
+        return this.containerMayBeFailedFor(bot)
       case "starting/ready":
+        return null // noop
       case "starting/paused":
+        return this.startContainerFor(bot)
       case "running/stopped":
+        return this.restartContainerFor(bot)
       case "running/creating":
+        return null // noop
       case "running/updating":
+        return this.containerMayBeFailedFor(bot)
       case "running/ready":
       case "running/paused":
+        return this.startContainerFor(bot)
       case "stopping/stopped":
+        return null // noop
       case "stopping/creating":
+        return null // noop
       case "stopping/updating":
+        return null // noop
       case "stopping/ready":
+        return this.stopContainerFor(bot)
       case "stopping/paused":
+        return this.stopContainerFor(bot)
       case "stopped/stopped":
+        return null // noop
       case "stopped/creating":
+        return null; // noop
       case "stopped/updating":
+        return null // noop
       case "stopped/ready":
+        return null // noop
       case "stopped/paused":
+        return null
       case "failed/stopped":
+        return null // noop
       case "failed/creating":
+        return null // noop
       case "failed/updating":
+        return null // noop
       case "failed/ready":
+        return null // noop
       case "failed/paused":
-      default: return
+        return null // noop
+      default: return null
     }
   }
 
   private async containerMayBeFailedFor(bot: BotRecord) { }
 
   private async startContainerFor(bot: BotRecord) {
-    console.log('startContainerFor')
+    const info = await this.getContainerInfoFor(bot)
 
-    const result = await this.dockhost.scaleContainer(bot.dockhostContainer, 1, bot.dockhostProject)
+    // Обработать случай, когда у контейнера несколько инстансов
+    // Обработать случай, когда инстансы у контейнера есть, но они упали
 
-    console.log('result =', result)
+    if (!info.instances || info.instances.length === 0) {
+      console.log('start container by scaling')
+
+      const result = await this.dockhost.scaleContainer(bot.dockhostContainer, 1, bot.dockhostProject)
+
+      console.log('result =', result)
+    } else {
+      console.log('start container by command')
+
+      const result = await this.dockhost.startContainer(bot.dockhostProject, bot.dockhostContainer)
+
+      console.log('result =', result)
+    }
   }
 
   private async shouldCreateContainer(bot: BotRecord) {
     return !(await this.hasContainerInDockhostProject(bot.dockhostProject ?? this.baseDockhostProject, bot.dockhostContainer ?? this.baseDockhostContainer))
   }
 
-  private async restartContainerFor(bot: BotRecord) { }
+  private async restartContainerFor(bot: BotRecord) {
+    throw new Error('Not implemeted yet')
+  }
+
+  private async stopContainerFor(bot: BotRecord) {
+    const info = await this.getContainerInfoFor(bot)
+
+    if (!info.instances || info.instances.length === 0) {
+      return null // noop
+    }
+
+    await this.dockhost.scaleContainer(bot.dockhostContainer, 0, bot.dockhostProject)
+  }
 
   public async assertIdentity(clientId: string, clientSecret: string, scopes: string[])
     : Promise<[false] | [true, string[]]> {
@@ -227,9 +284,15 @@ export class BotsService {
     return null
   }
 
-  private async getContainerStatusFor(bot: BotRecord) {
+  private async getContainerInfoFor(bot: BotRecord) {
     const containers = await this.dockhost.listContainer(bot.dockhostProject)
     const botContainer = containers.find(({ name }) => bot.dockhostContainer)
+
+    return botContainer
+  }
+
+  private async getContainerStatusFor(bot: BotRecord) {
+    const botContainer = await this.getContainerInfoFor(bot)
 
     return botContainer.status ?? null
   }

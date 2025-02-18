@@ -800,8 +800,12 @@ export class Service {
       }, async ({ body }) => {
         let result: OauthTokenResult | null = null
 
+        console.log('body:', body)
+
         try {
           result = await this.legacyTokenHandler(body.client_id, body.client_secret, body.scope)
+
+          return result
         } catch (e) {
           this.logger.info('Client with id = %s attempted to get token with legacy path, errored: %j', body.client_id, e)
         }
